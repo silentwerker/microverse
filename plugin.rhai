@@ -61,40 +61,6 @@ fn warp_ship_core(
     ["ship_id", ship_id]
   ]);
 }
-fn prove_ship_at_sector(action, ship, sector) {
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, sector);
-  action.st_sum(sector.body_bank_version, 0, 1);
-  var sector_equal_x = unsafe { ship.x - 0 };
-  var sector_equal_y = unsafe { ship.y - 0 };
-  var sector_equal_z = unsafe { ship.z - 0 };
-  var sector_equal_epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, sector_equal_x);
-  action.st_sum(sector.x, 0, sector_equal_x);
-  action.st_sum(ship.y, 0, sector_equal_y);
-  action.st_sum(sector.y, 0, sector_equal_y);
-  action.st_sum(ship.z, 0, sector_equal_z);
-  action.st_sum(sector.z, 0, sector_equal_z);
-  action.st_sum(ship.epoch, 0, sector_equal_epoch);
-  action.st_sum(sector.epoch, 0, sector_equal_epoch);
-}
-fn prove_ship_at_body(action, ship, body) {
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, body);
-  action.st_sum(body.body_bank_version, 0, 1);
-  var body_equal_x = unsafe { ship.x - 0 };
-  var body_equal_y = unsafe { ship.y - 0 };
-  var body_equal_z = unsafe { ship.z - 0 };
-  var body_equal_epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, body_equal_x);
-  action.st_sum(body.sector_x, 0, body_equal_x);
-  action.st_sum(ship.y, 0, body_equal_y);
-  action.st_sum(body.sector_y, 0, body_equal_y);
-  action.st_sum(ship.z, 0, body_equal_z);
-  action.st_sum(body.sector_z, 0, body_equal_z);
-  action.st_sum(ship.epoch, 0, body_equal_epoch);
-  action.st_sum(body.sector_epoch, 0, body_equal_epoch);
-}
 fn rotate_key(object, next_key) {
   object.update("key", next_key);
 }
@@ -338,6 +304,412 @@ fn extract_composite_resource_core(
   body.update(remaining_field, next_remaining);
   var next_body_key = action.random();
   rotate_key(body, next_body_key);
+}
+fn refine_resource_core(
+  action,
+  next_ship,
+  resource,
+  ship,
+  parent,
+  skill_type,
+  parent_resource_type,
+  child_remaining_field,
+  output_resource_type
+) {
+  prove_fixed_versions(action, ship);
+  prove_fixed_versions(action, parent);
+  action.st_sum(parent.schema_version, 0, 1);
+  var ship_id = bind_ship_id(action, ship);
+
+  var extraction_amount = unsafe { ship.extraction_amount - 0 };
+  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
+  action.st_sum(ship.extraction_amount, 0, extraction_amount);
+  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
+
+  var x = unsafe { ship.x - 0 };
+  var y = unsafe { ship.y - 0 };
+  var z = unsafe { ship.z - 0 };
+  var epoch = unsafe { ship.epoch - 0 };
+  action.st_sum(ship.x, 0, x);
+  action.st_sum(parent.sector_x, 0, x);
+  action.st_sum(ship.y, 0, y);
+  action.st_sum(parent.sector_y, 0, y);
+  action.st_sum(ship.z, 0, z);
+  action.st_sum(parent.sector_z, 0, z);
+  action.st_sum(ship.epoch, 0, epoch);
+  action.st_sum(parent.origin_epoch, 0, epoch);
+
+  var claim_serial = unsafe { ship.claim_serial - 0 };
+  action.st_sum(ship.claim_serial, 0, claim_serial);
+  var discovery_serial = unsafe { ship.discovery_serial - 0 };
+  action.st_sum(ship.discovery_serial, 0, discovery_serial);
+  var satellite_serial = unsafe { ship.satellite_serial - 0 };
+  action.st_sum(ship.satellite_serial, 0, satellite_serial);
+  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
+  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
+
+  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
+  action.st_sum(ship.action_serial, 1, next_action_serial);
+
+  next_ship.set([
+    ["schema_version", 1],
+    ["mechanics_version", 1],
+    ["universe_version", 1],
+    ["extraction_amount", extraction_amount],
+    ["rare_extraction_amount", rare_extraction_amount],
+    ["x", x],
+    ["y", y],
+    ["z", z],
+    ["epoch", epoch],
+    ["active_skill_type", 0],
+    ["action_serial", next_action_serial],
+    ["claim_serial", claim_serial],
+    ["discovery_serial", discovery_serial],
+    ["satellite_serial", satellite_serial],
+    ["civilization_scan_serial", civilization_scan_serial],
+    ["ship_id", ship_id]
+  ]);
+
+  action.st_sum(ship.active_skill_type, 0, skill_type);
+  action.st_sum(parent.resource_type, 0, parent_resource_type);
+  action.st_gt(parent[child_remaining_field], 0);
+  var refinement_amount = unsafe {
+    parent[child_remaining_field] - 0
+  };
+  action.st_sum(
+    parent[child_remaining_field],
+    0,
+    refinement_amount
+  );
+  resource.set([
+    ["schema_version", 1],
+    ["mechanics_version", 1],
+    ["universe_version", 1],
+    ["resource_type", output_resource_type],
+    ["amount", refinement_amount]
+  ]);
+  parent.update(child_remaining_field, 0);
+  var next_parent_key = action.random();
+  rotate_key(parent, next_parent_key);
+}
+fn develop_technology_skill_core(
+  action,
+  next_ship,
+  technology_skill,
+  ship,
+  civilization,
+  civilization_type,
+  skill_type,
+  reusable
+) {
+  prove_fixed_versions(action, ship);
+  prove_fixed_versions(action, civilization);
+  action.st_sum(civilization.civilization_version, 0, 1);
+  var ship_id = bind_ship_id(action, ship);
+
+  var extraction_amount = unsafe { ship.extraction_amount - 0 };
+  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
+  action.st_sum(ship.extraction_amount, 0, extraction_amount);
+  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
+
+  var x = unsafe { ship.x - 0 };
+  var y = unsafe { ship.y - 0 };
+  var z = unsafe { ship.z - 0 };
+  var epoch = unsafe { ship.epoch - 0 };
+  action.st_sum(ship.x, 0, x);
+  action.st_sum(civilization.sector_x, 0, x);
+  action.st_sum(ship.y, 0, y);
+  action.st_sum(civilization.sector_y, 0, y);
+  action.st_sum(ship.z, 0, z);
+  action.st_sum(civilization.sector_z, 0, z);
+  action.st_sum(ship.epoch, 0, epoch);
+  action.st_sum(civilization.origin_epoch, 0, epoch);
+
+  var claim_serial = unsafe { ship.claim_serial - 0 };
+  action.st_sum(ship.claim_serial, 0, claim_serial);
+  var discovery_serial = unsafe { ship.discovery_serial - 0 };
+  action.st_sum(ship.discovery_serial, 0, discovery_serial);
+  var satellite_serial = unsafe { ship.satellite_serial - 0 };
+  action.st_sum(ship.satellite_serial, 0, satellite_serial);
+  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
+  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
+
+  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
+  action.st_sum(ship.action_serial, 1, next_action_serial);
+
+  next_ship.set([
+    ["schema_version", 1],
+    ["mechanics_version", 1],
+    ["universe_version", 1],
+    ["extraction_amount", extraction_amount],
+    ["rare_extraction_amount", rare_extraction_amount],
+    ["x", x],
+    ["y", y],
+    ["z", z],
+    ["epoch", epoch],
+    ["active_skill_type", 0],
+    ["action_serial", next_action_serial],
+    ["claim_serial", claim_serial],
+    ["discovery_serial", discovery_serial],
+    ["satellite_serial", satellite_serial],
+    ["civilization_scan_serial", civilization_scan_serial],
+    ["ship_id", ship_id]
+  ]);
+
+  action.st_sum(
+    civilization.civilization_type,
+    0,
+    civilization_type
+  );
+  technology_skill.set([
+    ["schema_version", 1],
+    ["mechanics_version", 1],
+    ["universe_version", 1],
+    ["civilization_version", 1],
+    ["skill_type", skill_type],
+    ["reusable", reusable]
+  ]);
+  var next_civilization_key = action.random();
+  rotate_key(civilization, next_civilization_key);
+}
+fn authorize_large_ship_permit_core(
+  action,
+  next_ship,
+  ship,
+  permit,
+  skill_type,
+  authorization_field
+) {
+  prove_fixed_versions(action, ship);
+  prove_fixed_versions(action, permit);
+  action.st_sum(permit.schema_version, 0, 1);
+  var ship_id = bind_ship_id(action, ship);
+
+  var extraction_amount = unsafe { ship.extraction_amount - 0 };
+  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
+  action.st_sum(ship.extraction_amount, 0, extraction_amount);
+  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
+
+  var x = unsafe { ship.x - 0 };
+  var y = unsafe { ship.y - 0 };
+  var z = unsafe { ship.z - 0 };
+  var epoch = unsafe { ship.epoch - 0 };
+  action.st_sum(ship.x, 0, x);
+  action.st_sum(permit.x, 0, x);
+  action.st_sum(ship.y, 0, y);
+  action.st_sum(permit.y, 0, y);
+  action.st_sum(ship.z, 0, z);
+  action.st_sum(permit.z, 0, z);
+  action.st_sum(ship.epoch, 0, epoch);
+  action.st_sum(permit.epoch, 0, epoch);
+
+  var claim_serial = unsafe { ship.claim_serial - 0 };
+  action.st_sum(ship.claim_serial, 0, claim_serial);
+  var discovery_serial = unsafe { ship.discovery_serial - 0 };
+  action.st_sum(ship.discovery_serial, 0, discovery_serial);
+  var satellite_serial = unsafe { ship.satellite_serial - 0 };
+  action.st_sum(ship.satellite_serial, 0, satellite_serial);
+  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
+  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
+
+  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
+  action.st_sum(ship.action_serial, 1, next_action_serial);
+
+  next_ship.set([
+    ["schema_version", 1],
+    ["mechanics_version", 1],
+    ["universe_version", 1],
+    ["extraction_amount", extraction_amount],
+    ["rare_extraction_amount", rare_extraction_amount],
+    ["x", x],
+    ["y", y],
+    ["z", z],
+    ["epoch", epoch],
+    ["active_skill_type", 0],
+    ["action_serial", next_action_serial],
+    ["claim_serial", claim_serial],
+    ["discovery_serial", discovery_serial],
+    ["satellite_serial", satellite_serial],
+    ["civilization_scan_serial", civilization_scan_serial],
+    ["ship_id", ship_id]
+  ]);
+  action.st_sum(ship.active_skill_type, 0, skill_type);
+  action.st_sum(permit.permit_type, 0, 1);
+  action.st_sum(permit[authorization_field], 0, 0);
+  permit.update(authorization_field, 1);
+  var next_permit_key = action.random();
+  rotate_key(permit, next_permit_key);
+}
+fn scan_body_core(
+  action,
+  body,
+  signal,
+  ship,
+  category_code,
+  candidate_code,
+  target_top_limb,
+  body_type,
+  life_stat,
+  matter_remaining,
+  crystal_remaining,
+  gas_remaining,
+  energy_remaining,
+  satellites_remaining
+) {
+  prove_fixed_versions(action, signal);
+  prove_fixed_versions(action, ship);
+  action.st_sum(signal.body_bank_version, 0, 1);
+  action.st_sum(signal.category_code, 0, category_code);
+  action.st_sum(signal.candidate_code, 0, candidate_code);
+  let target = action.top_limb_u256(target_top_limb);
+
+  action.st_gt(signal.slot_serial, -1);
+
+  var source_signal_identifier = action.random();
+  var_assign(source_signal_identifier, signal.stable_identifier);
+  signal.update("stable_identifier", source_signal_identifier);
+
+  var sector_x = unsafe { signal.sector_x - 0 };
+  var sector_y = unsafe { signal.sector_y - 0 };
+  var sector_z = unsafe { signal.sector_z - 0 };
+  var sector_epoch = unsafe { signal.sector_epoch - 0 };
+  action.st_sum(signal.sector_x, 0, sector_x);
+  action.st_sum(signal.sector_y, 0, sector_y);
+  action.st_sum(signal.sector_z, 0, sector_z);
+  action.st_sum(signal.sector_epoch, 0, sector_epoch);
+  action.st_sum(ship.x, 0, sector_x);
+  action.st_sum(ship.y, 0, sector_y);
+  action.st_sum(ship.z, 0, sector_z);
+  action.st_sum(ship.epoch, 0, sector_epoch);
+  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
+  action.st_sum(ship.action_serial, 1, next_action_serial);
+
+  action.intro_lt_eq_u256(signal, target);
+  body.set([
+    ["schema_version", 1],
+    ["mechanics_version", 1],
+    ["universe_version", 1],
+    ["body_bank_version", 1],
+    ["source_signal_identifier", source_signal_identifier],
+    ["sector_x", sector_x],
+    ["sector_y", sector_y],
+    ["sector_z", sector_z],
+    ["sector_epoch", sector_epoch],
+    ["candidate_code", candidate_code],
+    ["body_type", body_type],
+    ["life_stat", life_stat],
+    ["matter_remaining", matter_remaining],
+    ["crystal_remaining", crystal_remaining],
+    ["gas_remaining", gas_remaining],
+    ["energy_remaining", energy_remaining],
+    ["satellites_remaining", satellites_remaining],
+    ["next_satellite_serial", 0],
+    ["civilization_discovered", 0]
+  ]);
+  let zero = action.top_limb_u256(0);
+  body.update("key", zero);
+  ship.update("active_skill_type", 0);
+  ship.update("action_serial", next_action_serial);
+  var next_ship_key = action.random();
+  rotate_key(ship, next_ship_key);
+}
+fn survey_replacement_ship_core(action, next_ship, ship, sector) {
+  prove_fixed_versions(action, ship);
+  prove_fixed_versions(action, sector);
+  action.st_sum(sector.body_bank_version, 0, 1);
+  var ship_id = bind_ship_id(action, ship);
+
+  var extraction_amount = unsafe { ship.extraction_amount - 0 };
+  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
+  action.st_sum(ship.extraction_amount, 0, extraction_amount);
+  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
+
+  var x = unsafe { ship.x - 0 };
+  var y = unsafe { ship.y - 0 };
+  var z = unsafe { ship.z - 0 };
+  var epoch = unsafe { ship.epoch - 0 };
+  action.st_sum(ship.x, 0, x);
+  action.st_sum(sector.x, 0, x);
+  action.st_sum(ship.y, 0, y);
+  action.st_sum(sector.y, 0, y);
+  action.st_sum(ship.z, 0, z);
+  action.st_sum(sector.z, 0, z);
+  action.st_sum(ship.epoch, 0, epoch);
+  action.st_sum(sector.epoch, 0, epoch);
+
+  var claim_serial = unsafe { ship.claim_serial - 0 };
+  action.st_sum(ship.claim_serial, 0, claim_serial);
+  var discovery_serial = unsafe { ship.discovery_serial - 0 };
+  action.st_sum(ship.discovery_serial, 0, discovery_serial);
+  var satellite_serial = unsafe { ship.satellite_serial - 0 };
+  action.st_sum(ship.satellite_serial, 0, satellite_serial);
+  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
+  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
+
+  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
+  action.st_sum(ship.action_serial, 1, next_action_serial);
+
+  next_ship.set([
+    ["schema_version", 1],
+    ["mechanics_version", 1],
+    ["universe_version", 1],
+    ["extraction_amount", extraction_amount],
+    ["rare_extraction_amount", rare_extraction_amount],
+    ["x", x],
+    ["y", y],
+    ["z", z],
+    ["epoch", epoch],
+    ["active_skill_type", 0],
+    ["action_serial", next_action_serial],
+    ["claim_serial", claim_serial],
+    ["discovery_serial", discovery_serial],
+    ["satellite_serial", satellite_serial],
+    ["civilization_scan_serial", civilization_scan_serial],
+    ["ship_id", ship_id]
+  ]);
+}
+fn finish_detect_replacement_ship_core(
+  action,
+  next_ship,
+  ship,
+  ship_id,
+  extraction_amount,
+  rare_extraction_amount,
+  x,
+  y,
+  z,
+  epoch
+) {
+  var claim_serial = unsafe { ship.claim_serial - 0 };
+  action.st_sum(ship.claim_serial, 0, claim_serial);
+  var satellite_serial = unsafe { ship.satellite_serial - 0 };
+  action.st_sum(ship.satellite_serial, 0, satellite_serial);
+  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
+  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
+
+  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
+  action.st_sum(ship.action_serial, 1, next_action_serial);
+  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
+  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
+
+  next_ship.set([
+    ["schema_version", 1],
+    ["mechanics_version", 1],
+    ["universe_version", 1],
+    ["extraction_amount", extraction_amount],
+    ["rare_extraction_amount", rare_extraction_amount],
+    ["x", x],
+    ["y", y],
+    ["z", z],
+    ["epoch", epoch],
+    ["active_skill_type", 0],
+    ["action_serial", next_action_serial],
+    ["claim_serial", claim_serial],
+    ["discovery_serial", next_discovery_serial],
+    ["satellite_serial", satellite_serial],
+    ["civilization_scan_serial", civilization_scan_serial],
+    ["ship_id", ship_id]
+  ]);
 }
 fn BuildShipSmall(action) {
   var ship = action.output("MicroverseShip");
@@ -915,59 +1287,7 @@ fn SurveySector_01_Sparse(action) {
   var next_ship = action.output("MicroverseShip");
   var ship = action.input("MicroverseShip");
   var sector = action.mutate("MicroverseSector");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, sector);
-  action.st_sum(sector.body_bank_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(sector.x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(sector.y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(sector.z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(sector.epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  survey_replacement_ship_core(action, next_ship, ship, sector);
 
   action.st_sum(sector.sector_type, 0, 0);
   action.st_sum(sector.survey_profile, 0, 0);
@@ -1013,59 +1333,7 @@ fn SurveySector_02_Standard(action) {
   var next_ship = action.output("MicroverseShip");
   var ship = action.input("MicroverseShip");
   var sector = action.mutate("MicroverseSector");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, sector);
-  action.st_sum(sector.body_bank_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(sector.x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(sector.y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(sector.z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(sector.epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  survey_replacement_ship_core(action, next_ship, ship, sector);
 
   action.st_sum(sector.sector_type, 0, 0);
   action.st_sum(sector.survey_profile, 0, 0);
@@ -1115,59 +1383,7 @@ fn SurveySector_03_Rich(action) {
   var next_ship = action.output("MicroverseShip");
   var ship = action.input("MicroverseShip");
   var sector = action.mutate("MicroverseSector");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, sector);
-  action.st_sum(sector.body_bank_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(sector.x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(sector.y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(sector.z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(sector.epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  survey_replacement_ship_core(action, next_ship, ship, sector);
 
   action.st_sum(sector.sector_type, 0, 0);
   action.st_sum(sector.survey_profile, 0, 0);
@@ -1219,59 +1435,7 @@ fn SurveySector_04_Ancient(action) {
   var next_ship = action.output("MicroverseShip");
   var ship = action.input("MicroverseShip");
   var sector = action.mutate("MicroverseSector");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, sector);
-  action.st_sum(sector.body_bank_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(sector.x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(sector.y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(sector.z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(sector.epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  survey_replacement_ship_core(action, next_ship, ship, sector);
 
   action.st_sum(sector.sector_type, 0, 0);
   action.st_sum(sector.survey_profile, 0, 0);
@@ -1323,59 +1487,7 @@ fn SurveySector_05_Anomalous(action) {
   var next_ship = action.output("MicroverseShip");
   var ship = action.input("MicroverseShip");
   var sector = action.mutate("MicroverseSector");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, sector);
-  action.st_sum(sector.body_bank_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(sector.x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(sector.y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(sector.z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(sector.epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  survey_replacement_ship_core(action, next_ship, ship, sector);
 
   action.st_sum(sector.sector_type, 0, 0);
   action.st_sum(sector.survey_profile, 0, 0);
@@ -1453,36 +1565,7 @@ fn DetectCelestialSignal_00_RedDwarf(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -1544,36 +1627,7 @@ fn DetectCelestialSignal_01_MainSequenceStar(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -1635,36 +1689,7 @@ fn DetectCelestialSignal_02_GiantStar(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -1726,36 +1751,7 @@ fn DetectCelestialSignal_03_RockyPlanet(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -1817,36 +1813,7 @@ fn DetectCelestialSignal_04_OceanPlanet(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -1908,36 +1875,7 @@ fn DetectCelestialSignal_05_GardenPlanet(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -1999,36 +1937,7 @@ fn DetectCelestialSignal_06_GasGiant(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -2090,36 +1999,7 @@ fn DetectCelestialSignal_07_IceGiant(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -2181,36 +2061,7 @@ fn DetectCelestialSignal_08_BarrenPlanet(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -2272,36 +2123,7 @@ fn DetectCelestialSignal_09_NeutronStar(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -2363,36 +2185,7 @@ fn DetectCelestialSignal_10_BlackHole(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -2454,36 +2247,7 @@ fn DetectCelestialSignal_11_Anomaly(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -2545,36 +2309,7 @@ fn DetectCelestialSignal_12_Megastructure(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -2636,36 +2371,7 @@ fn DetectCelestialSignal_13_GasCluster(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -2727,36 +2433,7 @@ fn DetectCelestialSignal_14_StellarRemnant(action) {
   action.st_sum(ship.epoch, 0, epoch);
   action.st_sum(sector.epoch, 0, epoch);
 
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-  var next_discovery_serial = unsafe { ship.discovery_serial - (0 - 1) };
-  action.st_sum(ship.discovery_serial, 1, next_discovery_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", next_discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
+  finish_detect_replacement_ship_core(action, next_ship, ship, ship_id, extraction_amount, rare_extraction_amount, x, y, z, epoch);
 
   action.st_sum(sector.sector_type, 0, 1);
   action.st_gt(sector.survey_profile, 0);
@@ -2794,916 +2471,91 @@ fn ScanCelestialBody_00_RedDwarf(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 2);
-  action.st_sum(signal.candidate_code, 0, 0);
-  let target = action.top_limb_u256(2305843009213693952);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 0],
-    ["body_type", 2],
-    ["life_stat", 0],
-    ["matter_remaining", 4000],
-    ["crystal_remaining", 0],
-    ["gas_remaining", 4000],
-    ["energy_remaining", 22000],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 2, 0, 2305843009213693952, 2, 0, 4000, 0, 4000, 22000, 0);
 }
 fn ScanCelestialBody_01_MainSequenceStar(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 2);
-  action.st_sum(signal.candidate_code, 0, 1);
-  let target = action.top_limb_u256(576460752303423488);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 1],
-    ["body_type", 2],
-    ["life_stat", 0],
-    ["matter_remaining", 3000],
-    ["crystal_remaining", 0],
-    ["gas_remaining", 4000],
-    ["energy_remaining", 27000],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 2, 1, 576460752303423488, 2, 0, 3000, 0, 4000, 27000, 0);
 }
 fn ScanCelestialBody_02_GiantStar(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 2);
-  action.st_sum(signal.candidate_code, 0, 2);
-  let target = action.top_limb_u256(72057594037927936);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 2],
-    ["body_type", 2],
-    ["life_stat", 0],
-    ["matter_remaining", 3000],
-    ["crystal_remaining", 0],
-    ["gas_remaining", 4000],
-    ["energy_remaining", 33000],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 2, 2, 72057594037927936, 2, 0, 3000, 0, 4000, 33000, 0);
 }
 fn ScanCelestialBody_03_RockyPlanet(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 1);
-  action.st_sum(signal.candidate_code, 0, 3);
-  let target = action.top_limb_u256(2305843009213693952);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 3],
-    ["body_type", 1],
-    ["life_stat", 0],
-    ["matter_remaining", 19000],
-    ["crystal_remaining", 5000],
-    ["gas_remaining", 3000],
-    ["energy_remaining", 3000],
-    ["satellites_remaining", 1],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 1, 3, 2305843009213693952, 1, 0, 19000, 5000, 3000, 3000, 1);
 }
 fn ScanCelestialBody_04_OceanPlanet(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 1);
-  action.st_sum(signal.candidate_code, 0, 4);
-  let target = action.top_limb_u256(576460752303423488);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 4],
-    ["body_type", 1],
-    ["life_stat", 2],
-    ["matter_remaining", 14000],
-    ["crystal_remaining", 3000],
-    ["gas_remaining", 14000],
-    ["energy_remaining", 3000],
-    ["satellites_remaining", 2],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 1, 4, 576460752303423488, 1, 2, 14000, 3000, 14000, 3000, 2);
 }
 fn ScanCelestialBody_05_GardenPlanet(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 1);
-  action.st_sum(signal.candidate_code, 0, 5);
-  let target = action.top_limb_u256(144115188075855872);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 5],
-    ["body_type", 1],
-    ["life_stat", 4],
-    ["matter_remaining", 17000],
-    ["crystal_remaining", 9000],
-    ["gas_remaining", 6000],
-    ["energy_remaining", 6000],
-    ["satellites_remaining", 1],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 1, 5, 144115188075855872, 1, 4, 17000, 9000, 6000, 6000, 1);
 }
 fn ScanCelestialBody_06_GasGiant(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 3);
-  action.st_sum(signal.candidate_code, 0, 6);
-  let target = action.top_limb_u256(1152921504606846976);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 6],
-    ["body_type", 3],
-    ["life_stat", 0],
-    ["matter_remaining", 2000],
-    ["crystal_remaining", 0],
-    ["gas_remaining", 24000],
-    ["energy_remaining", 6000],
-    ["satellites_remaining", 4],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 3, 6, 1152921504606846976, 3, 0, 2000, 0, 24000, 6000, 4);
 }
 fn ScanCelestialBody_07_IceGiant(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 4);
-  action.st_sum(signal.candidate_code, 0, 7);
-  let target = action.top_limb_u256(576460752303423488);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 7],
-    ["body_type", 4],
-    ["life_stat", 0],
-    ["matter_remaining", 4000],
-    ["crystal_remaining", 9000],
-    ["gas_remaining", 17000],
-    ["energy_remaining", 4000],
-    ["satellites_remaining", 3],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 4, 7, 576460752303423488, 4, 0, 4000, 9000, 17000, 4000, 3);
 }
 fn ScanCelestialBody_08_BarrenPlanet(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 1);
-  action.st_sum(signal.candidate_code, 0, 8);
-  let target = action.top_limb_u256(1152921504606846976);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 8],
-    ["body_type", 1],
-    ["life_stat", 0],
-    ["matter_remaining", 23000],
-    ["crystal_remaining", 9000],
-    ["gas_remaining", 0],
-    ["energy_remaining", 0],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 1, 8, 1152921504606846976, 1, 0, 23000, 9000, 0, 0, 0);
 }
 fn ScanCelestialBody_09_NeutronStar(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 5);
-  action.st_sum(signal.candidate_code, 0, 9);
-  let target = action.top_limb_u256(9007199254740992);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 9],
-    ["body_type", 5],
-    ["life_stat", 0],
-    ["matter_remaining", 2000],
-    ["crystal_remaining", 1000],
-    ["gas_remaining", 0],
-    ["energy_remaining", 43000],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 5, 9, 9007199254740992, 5, 0, 2000, 1000, 0, 43000, 0);
 }
 fn ScanCelestialBody_10_BlackHole(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 6);
-  action.st_sum(signal.candidate_code, 0, 10);
-  let target = action.top_limb_u256(2251799813685248);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 10],
-    ["body_type", 6],
-    ["life_stat", 0],
-    ["matter_remaining", 0],
-    ["crystal_remaining", 0],
-    ["gas_remaining", 0],
-    ["energy_remaining", 50000],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 6, 10, 2251799813685248, 6, 0, 0, 0, 0, 50000, 0);
 }
 fn ScanCelestialBody_11_Anomaly(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 7);
-  action.st_sum(signal.candidate_code, 0, 11);
-  let target = action.top_limb_u256(562949953421312);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 11],
-    ["body_type", 7],
-    ["life_stat", 0],
-    ["matter_remaining", 18000],
-    ["crystal_remaining", 9000],
-    ["gas_remaining", 9000],
-    ["energy_remaining", 18000],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 7, 11, 562949953421312, 7, 0, 18000, 9000, 9000, 18000, 0);
 }
 fn ScanCelestialBody_12_Megastructure(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 8);
-  action.st_sum(signal.candidate_code, 0, 12);
-  let target = action.top_limb_u256(2305843009213693952);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 12],
-    ["body_type", 8],
-    ["life_stat", 0],
-    ["matter_remaining", 10000],
-    ["crystal_remaining", 10000],
-    ["gas_remaining", 0],
-    ["energy_remaining", 10000],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 8, 12, 2305843009213693952, 8, 0, 10000, 10000, 0, 10000, 0);
 }
 fn ScanCelestialBody_13_GasCluster(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 9);
-  action.st_sum(signal.candidate_code, 0, 13);
-  let target = action.top_limb_u256(2305843009213693952);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 13],
-    ["body_type", 9],
-    ["life_stat", 0],
-    ["matter_remaining", 5000],
-    ["crystal_remaining", 0],
-    ["gas_remaining", 20000],
-    ["energy_remaining", 5000],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 9, 13, 2305843009213693952, 9, 0, 5000, 0, 20000, 5000, 0);
 }
 fn ScanCelestialBody_14_StellarRemnant(action) {
   var body = action.output("MicroverseCelestialBody");
   var signal = action.input("MicroverseCelestialSignal");
   var ship = action.mutate("MicroverseShip");
-  prove_fixed_versions(action, signal);
-  prove_fixed_versions(action, ship);
-  action.st_sum(signal.body_bank_version, 0, 1);
-  action.st_sum(signal.category_code, 0, 10);
-  action.st_sum(signal.candidate_code, 0, 14);
-  let target = action.top_limb_u256(2305843009213693952);
-
-  action.st_gt(signal.slot_serial, -1);
-
-  var source_signal_identifier = action.random();
-  var_assign(source_signal_identifier, signal.stable_identifier);
-  signal.update("stable_identifier", source_signal_identifier);
-
-  var sector_x = unsafe { signal.sector_x - 0 };
-  var sector_y = unsafe { signal.sector_y - 0 };
-  var sector_z = unsafe { signal.sector_z - 0 };
-  var sector_epoch = unsafe { signal.sector_epoch - 0 };
-  action.st_sum(signal.sector_x, 0, sector_x);
-  action.st_sum(signal.sector_y, 0, sector_y);
-  action.st_sum(signal.sector_z, 0, sector_z);
-  action.st_sum(signal.sector_epoch, 0, sector_epoch);
-  action.st_sum(ship.x, 0, sector_x);
-  action.st_sum(ship.y, 0, sector_y);
-  action.st_sum(ship.z, 0, sector_z);
-  action.st_sum(ship.epoch, 0, sector_epoch);
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  action.intro_lt_eq_u256(signal, target);
-  body.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["body_bank_version", 1],
-    ["source_signal_identifier", source_signal_identifier],
-    ["sector_x", sector_x],
-    ["sector_y", sector_y],
-    ["sector_z", sector_z],
-    ["sector_epoch", sector_epoch],
-    ["candidate_code", 14],
-    ["body_type", 10],
-    ["life_stat", 0],
-    ["matter_remaining", 10000],
-    ["crystal_remaining", 0],
-    ["gas_remaining", 0],
-    ["energy_remaining", 20000],
-    ["satellites_remaining", 0],
-    ["next_satellite_serial", 0],
-    ["civilization_discovered", 0]
-  ]);
-  let zero = action.top_limb_u256(0);
-  body.update("key", zero);
-  ship.update("active_skill_type", 0);
-  ship.update("action_serial", next_action_serial);
-  var next_ship_key = action.random();
-  rotate_key(ship, next_ship_key);
+  scan_body_core(action, body, signal, ship, 10, 14, 2305843009213693952, 10, 0, 10000, 0, 0, 20000, 0);
 }
 fn ExtractAnomalyWarpCoordinate(action) {
   var next_ship = action.output("MicroverseShip");
@@ -10539,81 +9391,17 @@ fn RefineFusionGasToHydrogen(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 119);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    119,
+    "child_1_remaining",
+    153
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 153],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -10622,81 +9410,17 @@ fn RefineFusionGasToHelium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 119);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    119,
+    "child_2_remaining",
+    154
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 154],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -10705,81 +9429,17 @@ fn RefineFusionGasToDeuterium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 119);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    119,
+    "child_3_remaining",
+    155
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 155],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -10788,81 +9448,17 @@ fn RefineMetalRichOreToIron(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 120);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    120,
+    "child_1_remaining",
+    156
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 156],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -10871,81 +9467,17 @@ fn RefineMetalRichOreToNickel(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 120);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    120,
+    "child_2_remaining",
+    157
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 157],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -10954,81 +9486,17 @@ fn RefineMetalRichOreToCobalt(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 120);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    120,
+    "child_3_remaining",
+    158
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 158],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -11037,81 +9505,17 @@ fn RefineFerrousOreToIron(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 122);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    122,
+    "child_1_remaining",
+    156
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 156],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11120,81 +9524,17 @@ fn RefineFerrousOreToChromium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 122);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    122,
+    "child_2_remaining",
+    159
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 159],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11203,81 +9543,17 @@ fn RefineFerrousOreToManganese(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 122);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    122,
+    "child_3_remaining",
+    160
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 160],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11286,81 +9562,17 @@ fn RefineBaseMetalOreToCopper(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 123);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    123,
+    "child_1_remaining",
+    161
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 161],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11369,81 +9581,17 @@ fn RefineBaseMetalOreToZinc(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 123);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    123,
+    "child_2_remaining",
+    162
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 162],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11452,81 +9600,17 @@ fn RefineBaseMetalOreToTin(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 123);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    123,
+    "child_3_remaining",
+    163
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 163],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11535,81 +9619,17 @@ fn RefineSilicateMineralToSilicon(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 124);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    124,
+    "child_1_remaining",
+    164
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 164],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11618,81 +9638,17 @@ fn RefineSilicateMineralToMagnesium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 124);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    124,
+    "child_2_remaining",
+    165
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 165],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11701,81 +9657,17 @@ fn RefineSilicateMineralToQuartz(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 124);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    124,
+    "child_3_remaining",
+    166
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 166],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11784,81 +9676,17 @@ fn RefineIndustrialMineralToLimestone(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 125);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    125,
+    "child_1_remaining",
+    167
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 167],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11867,81 +9695,17 @@ fn RefineIndustrialMineralToClay(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 125);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    125,
+    "child_2_remaining",
+    168
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 168],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -11950,81 +9714,17 @@ fn RefineIndustrialMineralToGypsum(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 125);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    125,
+    "child_3_remaining",
+    169
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 169],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -12033,81 +9733,17 @@ fn RefineSeawaterMineralsToSodiumChloride(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 127);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    127,
+    "child_1_remaining",
+    170
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 170],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -12116,81 +9752,17 @@ fn RefineSeawaterMineralsToMagnesium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 127);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    127,
+    "child_2_remaining",
+    165
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 165],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -12199,81 +9771,17 @@ fn RefineSeawaterMineralsToCalcium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 127);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    127,
+    "child_3_remaining",
+    171
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 171],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -12282,81 +9790,17 @@ fn RefineAtmosphericGasToNitrogen(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 128);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    128,
+    "child_1_remaining",
+    172
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 172],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -12365,81 +9809,17 @@ fn RefineAtmosphericGasToOxygen(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 128);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    128,
+    "child_2_remaining",
+    173
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 173],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -12448,81 +9828,17 @@ fn RefineAtmosphericGasToCarbonDioxide(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 128);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    128,
+    "child_3_remaining",
+    174
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 174],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -12531,81 +9847,17 @@ fn RefineBiomassToCellulose(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 129);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    129,
+    "child_1_remaining",
+    175
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 175],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -12614,81 +9866,17 @@ fn RefineBiomassToProtein(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 129);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    129,
+    "child_2_remaining",
+    176
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 176],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -12697,81 +9885,17 @@ fn RefineBiomassToLipid(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 129);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    129,
+    "child_3_remaining",
+    177
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 177],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -12780,81 +9904,17 @@ fn RefineGeneticMaterialToDNA(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 5);
-  action.st_sum(parent.resource_type, 0, 130);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    5,
+    130,
+    "child_1_remaining",
+    178
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 178],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -12863,81 +9923,17 @@ fn RefineGeneticMaterialToRNA(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 5);
-  action.st_sum(parent.resource_type, 0, 130);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    5,
+    130,
+    "child_2_remaining",
+    179
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 179],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -12946,81 +9942,17 @@ fn RefineGeneticMaterialToPlasmid(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 5);
-  action.st_sum(parent.resource_type, 0, 130);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    5,
+    130,
+    "child_3_remaining",
+    180
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 180],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -13029,81 +9961,17 @@ fn RefineBiochemicalMixtureToAminoAcid(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 5);
-  action.st_sum(parent.resource_type, 0, 131);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    5,
+    131,
+    "child_1_remaining",
+    181
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 181],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -13112,81 +9980,17 @@ fn RefineBiochemicalMixtureToEnzyme(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 5);
-  action.st_sum(parent.resource_type, 0, 131);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    5,
+    131,
+    "child_2_remaining",
+    182
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 182],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -13195,81 +9999,17 @@ fn RefineBiochemicalMixtureToAlkaloid(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 5);
-  action.st_sum(parent.resource_type, 0, 131);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    5,
+    131,
+    "child_3_remaining",
+    183
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 183],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -13278,81 +10018,17 @@ fn RefineMicrobialCultureToBacterialCulture(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 132);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    132,
+    "child_1_remaining",
+    184
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 184],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -13361,81 +10037,17 @@ fn RefineMicrobialCultureToFungalCulture(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 132);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    132,
+    "child_2_remaining",
+    185
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 185],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -13444,81 +10056,17 @@ fn RefineMicrobialCultureToArchaealCulture(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 132);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    132,
+    "child_3_remaining",
+    186
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 186],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -13527,81 +10075,17 @@ fn RefineNaturalMaterialToWoodFiber(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 133);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    133,
+    "child_1_remaining",
+    187
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 187],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -13610,81 +10094,17 @@ fn RefineNaturalMaterialToChitin(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 133);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    133,
+    "child_2_remaining",
+    188
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 188],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -13693,81 +10113,17 @@ fn RefineNaturalMaterialToNaturalRubber(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 133);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    133,
+    "child_3_remaining",
+    189
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 189],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -13776,81 +10132,17 @@ fn RefineNobleGasToArgon(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 134);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    134,
+    "child_1_remaining",
+    190
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 190],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -13859,81 +10151,17 @@ fn RefineNobleGasToNeon(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 134);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    134,
+    "child_2_remaining",
+    191
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 191],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -13942,81 +10170,17 @@ fn RefineNobleGasToXenon(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 134);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    134,
+    "child_3_remaining",
+    192
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 192],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -14025,81 +10189,17 @@ fn RefineVolatileIceToWaterIce(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 135);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    135,
+    "child_1_remaining",
+    193
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 193],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -14108,81 +10208,17 @@ fn RefineVolatileIceToMethaneIce(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 135);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    135,
+    "child_2_remaining",
+    194
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 194],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -14191,81 +10227,17 @@ fn RefineVolatileIceToAmmoniaIce(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 135);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    135,
+    "child_3_remaining",
+    195
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 195],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -14274,81 +10246,17 @@ fn RefineLightMetalOreToAluminum(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 136);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    136,
+    "child_1_remaining",
+    196
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 196],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -14357,81 +10265,17 @@ fn RefineLightMetalOreToTitanium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 136);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    136,
+    "child_2_remaining",
+    197
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 197],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -14440,81 +10284,17 @@ fn RefineLightMetalOreToLithium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 136);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    136,
+    "child_3_remaining",
+    198
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 198],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -14523,81 +10303,17 @@ fn RefinePreciousMetalOreToSilver(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 137);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    137,
+    "child_1_remaining",
+    199
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 199],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -14606,81 +10322,17 @@ fn RefinePreciousMetalOreToGold(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 137);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    137,
+    "child_2_remaining",
+    200
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 200],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -14689,81 +10341,17 @@ fn RefinePreciousMetalOreToPlatinum(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 137);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    137,
+    "child_3_remaining",
+    201
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 201],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -14772,81 +10360,17 @@ fn RefineNuclearOreToUranium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 138);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    138,
+    "child_1_remaining",
+    202
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 202],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -14855,81 +10379,17 @@ fn RefineNuclearOreToThorium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 138);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    138,
+    "child_2_remaining",
+    203
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 203],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -14938,81 +10398,17 @@ fn RefineNuclearOreToRadium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 138);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    138,
+    "child_3_remaining",
+    204
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 204],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -15021,81 +10417,17 @@ fn RefineCarbonaceousDepositToCarbon(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 139);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    139,
+    "child_1_remaining",
+    205
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 205],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -15104,81 +10436,17 @@ fn RefineCarbonaceousDepositToGraphite(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 139);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    139,
+    "child_2_remaining",
+    206
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 206],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -15187,81 +10455,17 @@ fn RefineCarbonaceousDepositToDiamond(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 139);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    139,
+    "child_3_remaining",
+    207
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 207],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -15270,81 +10474,17 @@ fn RefineFertilizerMineralToPhosphate(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 140);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    140,
+    "child_1_remaining",
+    208
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 208],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -15353,81 +10493,17 @@ fn RefineFertilizerMineralToSulfur(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 140);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    140,
+    "child_2_remaining",
+    209
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 209],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -15436,81 +10512,17 @@ fn RefineFertilizerMineralToPotash(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 140);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    140,
+    "child_3_remaining",
+    210
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 210],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -15519,81 +10531,17 @@ fn RefineStructuralSalvageToSteel(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 148);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    148,
+    "child_1_remaining",
+    211
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 211],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -15602,81 +10550,17 @@ fn RefineStructuralSalvageToAluminum(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 148);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    148,
+    "child_2_remaining",
+    196
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 196],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -15685,81 +10569,17 @@ fn RefineStructuralSalvageToCarbonComposite(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 148);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    148,
+    "child_3_remaining",
+    212
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 212],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -15768,81 +10588,17 @@ fn RefineElectronicSalvageToCopper(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 2);
-  action.st_sum(parent.resource_type, 0, 149);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    2,
+    149,
+    "child_1_remaining",
+    161
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 161],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -15851,81 +10607,17 @@ fn RefineElectronicSalvageToSilicon(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 2);
-  action.st_sum(parent.resource_type, 0, 149);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    2,
+    149,
+    "child_2_remaining",
+    164
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 164],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -15934,81 +10626,17 @@ fn RefineElectronicSalvageToGold(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 2);
-  action.st_sum(parent.resource_type, 0, 149);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    2,
+    149,
+    "child_3_remaining",
+    200
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 200],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -16017,81 +10645,17 @@ fn RefineCeramicSalvageToCeramic(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 150);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    150,
+    "child_1_remaining",
+    213
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 213],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -16100,81 +10664,17 @@ fn RefineCeramicSalvageToGlass(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 150);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    150,
+    "child_2_remaining",
+    214
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 214],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -16183,81 +10683,17 @@ fn RefineCeramicSalvageToSiliconCarbide(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 150);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    150,
+    "child_3_remaining",
+    215
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 215],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -16266,81 +10702,17 @@ fn RefineOrganicOreToMethanol(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 152);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    152,
+    "child_1_remaining",
+    216
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 216],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -16349,81 +10721,17 @@ fn RefineOrganicOreToFormaldehyde(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 152);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    152,
+    "child_2_remaining",
+    217
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 217],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -16432,81 +10740,17 @@ fn RefineOrganicOreToBenzene(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 152);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    152,
+    "child_3_remaining",
+    218
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 218],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -16515,81 +10759,17 @@ fn RefineDenseMetalOreToLead(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 141);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    141,
+    "child_1_remaining",
+    219
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 219],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -16598,81 +10778,17 @@ fn RefineDenseMetalOreToNickel(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 141);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    141,
+    "child_2_remaining",
+    157
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 157],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -16681,81 +10797,17 @@ fn RefineDenseMetalOreToCobalt(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 141);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    141,
+    "child_3_remaining",
+    158
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 158],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -16764,81 +10816,17 @@ fn RefineRareEarthOreToCerium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 142);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    142,
+    "child_1_remaining",
+    220
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 220],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -16847,81 +10835,17 @@ fn RefineRareEarthOreToLanthanum(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 142);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    142,
+    "child_2_remaining",
+    221
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 221],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -16930,81 +10854,17 @@ fn RefineRareEarthOreToNeodymium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 142);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    142,
+    "child_3_remaining",
+    222
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 222],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -17013,81 +10873,17 @@ fn RefineRedDwarfPlasmaToIonizedHydrogen(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 8);
-  action.st_sum(parent.resource_type, 0, 223);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    8,
+    223,
+    "child_1_remaining",
+    261
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 261],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17096,81 +10892,17 @@ fn RefineRedDwarfPlasmaToIonizedHelium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 8);
-  action.st_sum(parent.resource_type, 0, 223);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    8,
+    223,
+    "child_2_remaining",
+    262
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 262],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17179,81 +10911,17 @@ fn RefineRedDwarfPlasmaToElectronPlasma(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 8);
-  action.st_sum(parent.resource_type, 0, 223);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    8,
+    223,
+    "child_3_remaining",
+    263
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 263],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17262,81 +10930,17 @@ fn RefineMagneticStellarCondensateToFerriteDust(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 224);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    224,
+    "child_1_remaining",
+    264
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 264],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17345,81 +10949,17 @@ fn RefineMagneticStellarCondensateToMagnetiteGrain(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 224);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    224,
+    "child_2_remaining",
+    265
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 265],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17428,81 +10968,17 @@ fn RefineMagneticStellarCondensateToCobaltFerrite(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 224);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    224,
+    "child_3_remaining",
+    266
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 266],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17511,81 +10987,17 @@ fn RefinePhotosphericPlasmaToProtonPlasma(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 8);
-  action.st_sum(parent.resource_type, 0, 226);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    8,
+    226,
+    "child_1_remaining",
+    267
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 267],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17594,81 +11006,17 @@ fn RefinePhotosphericPlasmaToAlphaParticlePlasma(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 8);
-  action.st_sum(parent.resource_type, 0, 226);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    8,
+    226,
+    "child_2_remaining",
+    268
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 268],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17677,81 +11025,17 @@ fn RefinePhotosphericPlasmaToPhotosphericElectronPlasma(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 8);
-  action.st_sum(parent.resource_type, 0, 226);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    8,
+    226,
+    "child_3_remaining",
+    269
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 269],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17760,81 +11044,17 @@ fn RefinePhotosphericMineralToCalciumIonDust(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 8);
-  action.st_sum(parent.resource_type, 0, 227);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    8,
+    227,
+    "child_1_remaining",
+    270
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 270],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17843,81 +11063,17 @@ fn RefinePhotosphericMineralToSodiumIonDust(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 8);
-  action.st_sum(parent.resource_type, 0, 227);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    8,
+    227,
+    "child_2_remaining",
+    271
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 271],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -17926,81 +11082,17 @@ fn RefinePhotosphericMineralToMagnesiumIonDust(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 8);
-  action.st_sum(parent.resource_type, 0, 227);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    8,
+    227,
+    "child_3_remaining",
+    272
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 272],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -18009,81 +11101,17 @@ fn RefineHeliumCarbonEjectaToHelium3(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 229);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    229,
+    "child_1_remaining",
+    273
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 273],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -18092,81 +11120,17 @@ fn RefineHeliumCarbonEjectaToCarbon12(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 229);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    229,
+    "child_2_remaining",
+    274
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 274],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -18175,81 +11139,17 @@ fn RefineHeliumCarbonEjectaToOxygen16(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 229);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    229,
+    "child_3_remaining",
+    275
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 275],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -18258,81 +11158,17 @@ fn RefineHeavyElementCondensateToStrontium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 230);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    230,
+    "child_1_remaining",
+    276
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 276],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -18341,81 +11177,17 @@ fn RefineHeavyElementCondensateToBarium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 230);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    230,
+    "child_2_remaining",
+    277
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 277],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -18424,81 +11196,17 @@ fn RefineHeavyElementCondensateToEuropium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 230);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    230,
+    "child_3_remaining",
+    278
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 278],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -18507,81 +11215,17 @@ fn RefineIgneousRockToBasalt(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 6);
-  action.st_sum(parent.resource_type, 0, 232);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    6,
+    232,
+    "child_1_remaining",
+    279
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 279],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -18590,81 +11234,17 @@ fn RefineIgneousRockToGranite(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 6);
-  action.st_sum(parent.resource_type, 0, 232);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    6,
+    232,
+    "child_2_remaining",
+    280
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 280],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -18673,81 +11253,17 @@ fn RefineIgneousRockToObsidian(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 6);
-  action.st_sum(parent.resource_type, 0, 232);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    6,
+    232,
+    "child_3_remaining",
+    281
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 281],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -18756,81 +11272,17 @@ fn RefineSeafloorSulfideOreToPyrite(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 234);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    234,
+    "child_1_remaining",
+    282
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 282],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -18839,81 +11291,17 @@ fn RefineSeafloorSulfideOreToChalcopyrite(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 234);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    234,
+    "child_2_remaining",
+    283
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 283],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -18922,81 +11310,17 @@ fn RefineSeafloorSulfideOreToSphalerite(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 234);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    234,
+    "child_3_remaining",
+    284
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 284],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -19005,81 +11329,17 @@ fn RefineMarineBiomassToAlgalFiber(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 235);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    235,
+    "child_1_remaining",
+    285
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 285],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -19088,81 +11348,17 @@ fn RefineMarineBiomassToMarineProtein(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 235);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    235,
+    "child_2_remaining",
+    286
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 286],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -19171,81 +11367,17 @@ fn RefineMarineBiomassToAlgalOil(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 235);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    235,
+    "child_3_remaining",
+    287
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 287],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -19254,81 +11386,17 @@ fn RefineLivingSoilToHumus(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 17);
-  action.st_sum(parent.resource_type, 0, 237);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    17,
+    237,
+    "child_1_remaining",
+    288
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 288],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -19337,81 +11405,17 @@ fn RefineLivingSoilToMycorrhizalCulture(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 17);
-  action.st_sum(parent.resource_type, 0, 237);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    17,
+    237,
+    "child_2_remaining",
+    289
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 289],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -19420,81 +11424,17 @@ fn RefineLivingSoilToSoilMicrobiome(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 17);
-  action.st_sum(parent.resource_type, 0, 237);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    17,
+    237,
+    "child_3_remaining",
+    290
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 290],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -19503,81 +11443,17 @@ fn RefineDeepAtmosphereGasToAmmoniaVapor(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 238);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    238,
+    "child_1_remaining",
+    291
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 291],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -19586,81 +11462,17 @@ fn RefineDeepAtmosphereGasToMethaneVapor(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 238);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    238,
+    "child_2_remaining",
+    292
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 292],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -19669,81 +11481,17 @@ fn RefineDeepAtmosphereGasToHydrogenSulfide(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 238);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    238,
+    "child_3_remaining",
+    293
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 293],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -19752,81 +11500,17 @@ fn RefineHydrocarbonCloudToEthane(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 239);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    239,
+    "child_1_remaining",
+    294
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 294],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -19835,81 +11519,17 @@ fn RefineHydrocarbonCloudToPropane(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 239);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    239,
+    "child_2_remaining",
+    295
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 295],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -19918,81 +11538,17 @@ fn RefineHydrocarbonCloudToAcetylene(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 239);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    239,
+    "child_3_remaining",
+    296
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 296],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -20001,81 +11557,17 @@ fn RefineCryogenicVolatileToLiquidMethane(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 241);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    241,
+    "child_1_remaining",
+    297
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 297],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -20084,81 +11576,17 @@ fn RefineCryogenicVolatileToLiquidAmmonia(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 241);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    241,
+    "child_2_remaining",
+    298
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 298],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -20167,81 +11595,17 @@ fn RefineCryogenicVolatileToSuperionicWater(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 241);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    241,
+    "child_3_remaining",
+    299
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 299],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -20250,81 +11614,17 @@ fn RefineIceMantleMaterialToHighPressureIce(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 242);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    242,
+    "child_1_remaining",
+    300
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 300],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -20333,81 +11633,17 @@ fn RefineIceMantleMaterialToMethaneClathrate(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 242);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    242,
+    "child_2_remaining",
+    301
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 301],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -20416,81 +11652,17 @@ fn RefineIceMantleMaterialToAmmoniaHydrate(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 242);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    242,
+    "child_3_remaining",
+    302
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 302],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -20499,81 +11671,17 @@ fn RefineRProcessEjectaToOsmium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 244);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    244,
+    "child_1_remaining",
+    303
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 303],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -20582,81 +11690,17 @@ fn RefineRProcessEjectaToIridium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 244);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    244,
+    "child_2_remaining",
+    304
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 304],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -20665,81 +11709,17 @@ fn RefineRProcessEjectaToRhenium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 244);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    244,
+    "child_3_remaining",
+    305
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 305],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -20748,81 +11728,17 @@ fn RefineDegenerateCrustMaterialToNuclearPasta(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 245);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    245,
+    "child_1_remaining",
+    306
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 306],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -20831,81 +11747,17 @@ fn RefineDegenerateCrustMaterialToNeutronRichAlloy(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 245);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    245,
+    "child_2_remaining",
+    307
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 307],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -20914,81 +11766,17 @@ fn RefineDegenerateCrustMaterialToSuperdenseCarbon(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 245);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    245,
+    "child_3_remaining",
+    308
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 308],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -20997,81 +11785,17 @@ fn RefineAccretionDiskMatterToIonizedIron(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 247);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    247,
+    "child_1_remaining",
+    309
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 309],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -21080,81 +11804,17 @@ fn RefineAccretionDiskMatterToCarbonPlasma(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 247);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    247,
+    "child_2_remaining",
+    310
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 310],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -21163,81 +11823,17 @@ fn RefineAccretionDiskMatterToSilicatePlasma(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 247);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    247,
+    "child_3_remaining",
+    311
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 311],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -21246,81 +11842,17 @@ fn RefineRelativisticPlasmaToPairPlasma(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 248);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    248,
+    "child_1_remaining",
+    312
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 312],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -21329,81 +11861,17 @@ fn RefineRelativisticPlasmaToSynchrotronPlasma(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 248);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    248,
+    "child_2_remaining",
+    313
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 313],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -21412,81 +11880,17 @@ fn RefineRelativisticPlasmaToRelativisticIonBeam(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 248);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    248,
+    "child_3_remaining",
+    314
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 314],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -21495,81 +11899,17 @@ fn RefinePhaseShiftedMatterToMetastableIsotope(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 250);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    250,
+    "child_1_remaining",
+    315
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 315],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -21578,81 +11918,17 @@ fn RefinePhaseShiftedMatterToPhaseLockedCrystal(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 14);
-  action.st_sum(parent.resource_type, 0, 250);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    14,
+    250,
+    "child_2_remaining",
+    316
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 316],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -21661,81 +11937,17 @@ fn RefinePhaseShiftedMatterToVacuumPolarizedMatter(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 14);
-  action.st_sum(parent.resource_type, 0, 250);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    14,
+    250,
+    "child_3_remaining",
+    317
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 317],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -21744,81 +11956,17 @@ fn RefinePolymerSalvageToThermoplastic(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 10);
-  action.st_sum(parent.resource_type, 0, 253);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    10,
+    253,
+    "child_1_remaining",
+    318
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 318],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -21827,81 +11975,17 @@ fn RefinePolymerSalvageToThermosetResin(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 10);
-  action.st_sum(parent.resource_type, 0, 253);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    10,
+    253,
+    "child_2_remaining",
+    319
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 319],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -21910,81 +11994,17 @@ fn RefinePolymerSalvageToElastomer(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 10);
-  action.st_sum(parent.resource_type, 0, 253);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    10,
+    253,
+    "child_3_remaining",
+    320
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 320],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -21993,81 +12013,17 @@ fn RefineOpticalSalvageToOpticalGlass(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 15);
-  action.st_sum(parent.resource_type, 0, 254);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    15,
+    254,
+    "child_1_remaining",
+    321
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 321],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -22076,81 +12032,17 @@ fn RefineOpticalSalvageToPhotonicCrystal(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 15);
-  action.st_sum(parent.resource_type, 0, 254);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    15,
+    254,
+    "child_2_remaining",
+    322
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 322],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -22159,81 +12051,17 @@ fn RefineOpticalSalvageToLaserCrystal(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 15);
-  action.st_sum(parent.resource_type, 0, 254);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    15,
+    254,
+    "child_3_remaining",
+    323
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 323],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -22242,81 +12070,17 @@ fn RefineMolecularCloudGasToMolecularHydrogen(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 255);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    255,
+    "child_1_remaining",
+    324
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 324],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -22325,81 +12089,17 @@ fn RefineMolecularCloudGasToCarbonMonoxide(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 255);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    255,
+    "child_2_remaining",
+    325
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 325],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -22408,81 +12108,17 @@ fn RefineMolecularCloudGasToHydrogenCyanide(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 255);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    255,
+    "child_3_remaining",
+    326
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 326],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(2, parent);
   parent.update("work", next_work);
 }
@@ -22491,81 +12127,17 @@ fn RefineInterstellarDustToSilicateDust(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 256);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    256,
+    "child_1_remaining",
+    327
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 327],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -22574,81 +12146,17 @@ fn RefineInterstellarDustToCarbonDust(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 256);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    256,
+    "child_2_remaining",
+    328
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 328],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -22657,81 +12165,17 @@ fn RefineInterstellarDustToIceGrain(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 256);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    256,
+    "child_3_remaining",
+    329
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 329],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -22740,81 +12184,17 @@ fn RefineSupernovaEjectaToCalcium44(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 258);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    258,
+    "child_1_remaining",
+    330
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 330],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -22823,81 +12203,17 @@ fn RefineSupernovaEjectaToTitanium44(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 258);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    258,
+    "child_2_remaining",
+    331
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 331],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -22906,81 +12222,17 @@ fn RefineSupernovaEjectaToNickel56(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 258);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    258,
+    "child_3_remaining",
+    332
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 332],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -22989,81 +12241,17 @@ fn RefineRadioisotopeDepositToCobalt60(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 259);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    259,
+    "child_1_remaining",
+    333
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 333],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23072,81 +12260,17 @@ fn RefineRadioisotopeDepositToCesium137(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 259);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    259,
+    "child_2_remaining",
+    334
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 334],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23155,81 +12279,17 @@ fn RefineRadioisotopeDepositToStrontium90(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 259);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    259,
+    "child_3_remaining",
+    335
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 335],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23238,81 +12298,17 @@ fn RefineStellarRefractoryDustToCorundum(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 336);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    336,
+    "child_1_remaining",
+    354
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 354],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23321,81 +12317,17 @@ fn RefineStellarRefractoryDustToSpinel(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 336);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    336,
+    "child_2_remaining",
+    355
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 355],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23404,81 +12336,17 @@ fn RefineStellarRefractoryDustToPerovskite(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 7);
-  action.st_sum(parent.resource_type, 0, 336);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    7,
+    336,
+    "child_3_remaining",
+    356
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 356],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23487,81 +12355,17 @@ fn RefineSolarWindCondensateToLithium7(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 337);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    337,
+    "child_1_remaining",
+    357
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 357],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23570,81 +12374,17 @@ fn RefineSolarWindCondensateToBeryllium9(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 337);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    337,
+    "child_2_remaining",
+    358
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 358],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23653,81 +12393,17 @@ fn RefineSolarWindCondensateToBoron11(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 4);
-  action.st_sum(parent.resource_type, 0, 337);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    4,
+    337,
+    "child_3_remaining",
+    359
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 359],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23736,81 +12412,17 @@ fn RefineSProcessEjectaToYttrium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 338);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    338,
+    "child_1_remaining",
+    360
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 360],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23819,81 +12431,17 @@ fn RefineSProcessEjectaToZirconium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 338);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    338,
+    "child_2_remaining",
+    361
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 361],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23902,81 +12450,17 @@ fn RefineSProcessEjectaToMolybdenum(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 16);
-  action.st_sum(parent.resource_type, 0, 338);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    16,
+    338,
+    "child_3_remaining",
+    362
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 362],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(12, parent);
   parent.update("work", next_work);
 }
@@ -23985,81 +12469,17 @@ fn RefineSedimentaryRockToSandstone(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 339);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    339,
+    "child_1_remaining",
+    363
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 363],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -24068,81 +12488,17 @@ fn RefineSedimentaryRockToShale(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 339);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    339,
+    "child_2_remaining",
+    364
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 364],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -24151,81 +12507,17 @@ fn RefineSedimentaryRockToDolomite(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 339);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    339,
+    "child_3_remaining",
+    365
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 365],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -24234,81 +12526,17 @@ fn RefineDissolvedTraceMineralsToBromine(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 340);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    340,
+    "child_1_remaining",
+    366
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 366],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -24317,81 +12545,17 @@ fn RefineDissolvedTraceMineralsToIodine(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 340);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    340,
+    "child_2_remaining",
+    367
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 367],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -24400,81 +12564,17 @@ fn RefineDissolvedTraceMineralsToBoron(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 340);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    340,
+    "child_3_remaining",
+    368
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 368],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -24483,81 +12583,17 @@ fn RefinePlantExtractToStarch(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 341);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    341,
+    "child_1_remaining",
+    369
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 369],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -24566,81 +12602,17 @@ fn RefinePlantExtractToSucrose(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 341);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    341,
+    "child_2_remaining",
+    370
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 370],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -24649,81 +12621,17 @@ fn RefinePlantExtractToLignin(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 12);
-  action.st_sum(parent.resource_type, 0, 341);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    12,
+    341,
+    "child_3_remaining",
+    371
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 371],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -24732,81 +12640,17 @@ fn RefineSulfurCloudToSulfurDioxide(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 342);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    342,
+    "child_1_remaining",
+    372
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 372],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -24815,81 +12659,17 @@ fn RefineSulfurCloudToAmmoniumHydrosulfide(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 342);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    342,
+    "child_2_remaining",
+    373
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 373],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -24898,81 +12678,17 @@ fn RefineSulfurCloudToPolysulfurAerosol(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 342);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    342,
+    "child_3_remaining",
+    374
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 374],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -24981,81 +12697,17 @@ fn RefineAlkaliMineralOreToSodium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 344);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    344,
+    "child_1_remaining",
+    375
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 375],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -25064,81 +12716,17 @@ fn RefineAlkaliMineralOreToPotassium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 344);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    344,
+    "child_2_remaining",
+    376
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 376],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -25147,81 +12735,17 @@ fn RefineAlkaliMineralOreToRubidium(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 3);
-  action.st_sum(parent.resource_type, 0, 344);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    3,
+    344,
+    "child_3_remaining",
+    377
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 377],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(8, parent);
   parent.update("work", next_work);
 }
@@ -25230,81 +12754,17 @@ fn RefineMagnetosphericParticleFluxToPositronPlasma(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 345);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    345,
+    "child_1_remaining",
+    378
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 378],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -25313,81 +12773,17 @@ fn RefineMagnetosphericParticleFluxToMuonFlux(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 345);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    345,
+    "child_2_remaining",
+    379
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 379],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -25396,81 +12792,17 @@ fn RefineMagnetosphericParticleFluxToHeavyIonFlux(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 345);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    345,
+    "child_3_remaining",
+    380
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 380],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -25479,81 +12811,17 @@ fn RefineAccretionAerosolToIronOxideAerosol(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 347);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    347,
+    "child_1_remaining",
+    381
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 381],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -25562,81 +12830,17 @@ fn RefineAccretionAerosolToSilicateAerosol(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 347);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    347,
+    "child_2_remaining",
+    382
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 382],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -25645,81 +12849,17 @@ fn RefineAccretionAerosolToCarbonaceousAerosol(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 13);
-  action.st_sum(parent.resource_type, 0, 347);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    13,
+    347,
+    "child_3_remaining",
+    383
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 383],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(20, parent);
   parent.update("work", next_work);
 }
@@ -25728,81 +12868,17 @@ fn RefineMechanicalSalvageToBearingSteel(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 351);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    351,
+    "child_1_remaining",
+    384
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 384],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -25811,81 +12887,17 @@ fn RefineMechanicalSalvageToToolSteel(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 351);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    351,
+    "child_2_remaining",
+    385
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 385],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -25894,81 +12906,17 @@ fn RefineMechanicalSalvageToIndustrialLubricant(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(parent.resource_type, 0, 351);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    1,
+    351,
+    "child_3_remaining",
+    386
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 386],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(32, parent);
   parent.update("work", next_work);
 }
@@ -25977,81 +12925,17 @@ fn RefinePrebioticMoleculeMixtureToGlycine(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 5);
-  action.st_sum(parent.resource_type, 0, 352);
-  action.st_gt(parent.child_1_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_1_remaining - 0
-  };
-  action.st_sum(
-    parent.child_1_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    5,
+    352,
+    "child_1_remaining",
+    387
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 387],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_1_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -26060,81 +12944,17 @@ fn RefinePrebioticMoleculeMixtureToFormamide(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 5);
-  action.st_sum(parent.resource_type, 0, 352);
-  action.st_gt(parent.child_2_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_2_remaining - 0
-  };
-  action.st_sum(
-    parent.child_2_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    5,
+    352,
+    "child_2_remaining",
+    388
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 388],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_2_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -26143,81 +12963,17 @@ fn RefinePrebioticMoleculeMixtureToAcetonitrile(action) {
   var resource = action.output("MicroverseResource");
   var ship = action.input("MicroverseShip");
   var parent = action.mutate("MicroverseCompositeResource");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, parent);
-  action.st_sum(parent.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(parent.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(parent.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(parent.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(parent.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(ship.active_skill_type, 0, 5);
-  action.st_sum(parent.resource_type, 0, 352);
-  action.st_gt(parent.child_3_remaining, 0);
-  var refinement_amount = unsafe {
-    parent.child_3_remaining - 0
-  };
-  action.st_sum(
-    parent.child_3_remaining,
-    0,
-    refinement_amount
+  refine_resource_core(
+    action,
+    next_ship,
+    resource,
+    ship,
+    parent,
+    5,
+    352,
+    "child_3_remaining",
+    389
   );
-  resource.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["resource_type", 389],
-    ["amount", refinement_amount]
-  ]);
-  parent.update("child_3_remaining", 0);
-  var next_parent_key = action.random();
-  rotate_key(parent, next_parent_key);
   var next_work = action.intro_vdf(4, parent);
   parent.update("work", next_work);
 }
@@ -26226,1350 +12982,288 @@ fn DevelopTypeIIndustrialFabricationSkill(action) {
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    1,
+    1,
     1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 1],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIElectronicsSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    1,
+    2,
     1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 2],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIChemicalEngineeringSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    1,
+    3,
     1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 3],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeINuclearEngineeringSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    1,
+    4,
     1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 4],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIGeneticEngineeringSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    1,
+    5,
     1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 5],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIPlanetaryInfrastructureSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    1,
+    6,
     1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 6],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIMetamaterialEngineeringSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    2
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    2,
+    7,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 7],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIStellarEnergySystemsSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    2
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    2,
+    8,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 8],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIISyntheticIntelligenceSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    2
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    2,
+    9,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 9],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIMolecularFabricationSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    2
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    2,
+    10,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 10],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIInterstellarNavigationSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    2
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    2,
+    11,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 11],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIBiosphereEngineeringSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    2
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    2,
+    12,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 12],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIIExoticMatterEngineeringSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    3
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    3,
+    13,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 13],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIISpacetimeEngineeringSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    3
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    3,
+    14,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 14],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIIGalacticIntelligenceArchitectureSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    3
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    3,
+    15,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 15],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIIStellarEngineeringSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    3
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    3,
+    16,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 16],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIIWorldSeedingSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    3
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    3,
+    17,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 17],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn DevelopTypeIIICivilizationEngineeringSkill(action) {
   var next_ship = action.output("MicroverseShip");
   var technology_skill = action.output("MicroverseTechnologySkill");
   var ship = action.input("MicroverseShip");
   var civilization = action.mutate("MicroverseCivilization");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, civilization);
-  action.st_sum(civilization.civilization_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(civilization.sector_x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(civilization.sector_y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(civilization.sector_z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(civilization.origin_epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-
-  action.st_sum(
-    civilization.civilization_type,
-    0,
-    3
+  develop_technology_skill_core(
+    action,
+    next_ship,
+    technology_skill,
+    ship,
+    civilization,
+    3,
+    18,
+    1
   );
-  technology_skill.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["civilization_version", 1],
-    ["skill_type", 18],
-    ["reusable", 1]
-  ]);
-  var next_civilization_key = action.random();
-  rotate_key(civilization, next_civilization_key);
 }
 fn UseTechnologySkill(action) {
   var next_ship = action.output("MicroverseShip");
@@ -27668,193 +13362,40 @@ fn AuthorizeLargeShipIndustrial(action) {
   var next_ship = action.output("MicroverseShip");
   var ship = action.input("MicroverseShip");
   var permit = action.mutate("MicroverseShipyardPermit");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, permit);
-  action.st_sum(permit.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(permit.x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(permit.y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(permit.z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(permit.epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-  action.st_sum(ship.active_skill_type, 0, 1);
-  action.st_sum(permit.permit_type, 0, 1);
-  action.st_sum(permit.industrial_authorized, 0, 0);
-  permit.update("industrial_authorized", 1);
-  var next_permit_key = action.random();
-  rotate_key(permit, next_permit_key);
+  authorize_large_ship_permit_core(
+    action,
+    next_ship,
+    ship,
+    permit,
+    1,
+    "industrial_authorized"
+  );
 }
 fn AuthorizeLargeShipElectronics(action) {
   var next_ship = action.output("MicroverseShip");
   var ship = action.input("MicroverseShip");
   var permit = action.mutate("MicroverseShipyardPermit");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, permit);
-  action.st_sum(permit.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(permit.x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(permit.y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(permit.z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(permit.epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-  action.st_sum(ship.active_skill_type, 0, 2);
-  action.st_sum(permit.permit_type, 0, 1);
-  action.st_sum(permit.electronics_authorized, 0, 0);
-  permit.update("electronics_authorized", 1);
-  var next_permit_key = action.random();
-  rotate_key(permit, next_permit_key);
+  authorize_large_ship_permit_core(
+    action,
+    next_ship,
+    ship,
+    permit,
+    2,
+    "electronics_authorized"
+  );
 }
 fn AuthorizeLargeShipMolecular(action) {
   var next_ship = action.output("MicroverseShip");
   var ship = action.input("MicroverseShip");
   var permit = action.mutate("MicroverseShipyardPermit");
-  prove_fixed_versions(action, ship);
-  prove_fixed_versions(action, permit);
-  action.st_sum(permit.schema_version, 0, 1);
-  var ship_id = bind_ship_id(action, ship);
-
-  var extraction_amount = unsafe { ship.extraction_amount - 0 };
-  var rare_extraction_amount = unsafe { ship.rare_extraction_amount - 0 };
-  action.st_sum(ship.extraction_amount, 0, extraction_amount);
-  action.st_sum(ship.rare_extraction_amount, 0, rare_extraction_amount);
-
-  var x = unsafe { ship.x - 0 };
-  var y = unsafe { ship.y - 0 };
-  var z = unsafe { ship.z - 0 };
-  var epoch = unsafe { ship.epoch - 0 };
-  action.st_sum(ship.x, 0, x);
-  action.st_sum(permit.x, 0, x);
-  action.st_sum(ship.y, 0, y);
-  action.st_sum(permit.y, 0, y);
-  action.st_sum(ship.z, 0, z);
-  action.st_sum(permit.z, 0, z);
-  action.st_sum(ship.epoch, 0, epoch);
-  action.st_sum(permit.epoch, 0, epoch);
-
-  var claim_serial = unsafe { ship.claim_serial - 0 };
-  action.st_sum(ship.claim_serial, 0, claim_serial);
-  var discovery_serial = unsafe { ship.discovery_serial - 0 };
-  action.st_sum(ship.discovery_serial, 0, discovery_serial);
-  var satellite_serial = unsafe { ship.satellite_serial - 0 };
-  action.st_sum(ship.satellite_serial, 0, satellite_serial);
-  var civilization_scan_serial = unsafe { ship.civilization_scan_serial - 0 };
-  action.st_sum(ship.civilization_scan_serial, 0, civilization_scan_serial);
-
-  var next_action_serial = unsafe { ship.action_serial - (0 - 1) };
-  action.st_sum(ship.action_serial, 1, next_action_serial);
-
-  next_ship.set([
-    ["schema_version", 1],
-    ["mechanics_version", 1],
-    ["universe_version", 1],
-    ["extraction_amount", extraction_amount],
-    ["rare_extraction_amount", rare_extraction_amount],
-    ["x", x],
-    ["y", y],
-    ["z", z],
-    ["epoch", epoch],
-    ["active_skill_type", 0],
-    ["action_serial", next_action_serial],
-    ["claim_serial", claim_serial],
-    ["discovery_serial", discovery_serial],
-    ["satellite_serial", satellite_serial],
-    ["civilization_scan_serial", civilization_scan_serial],
-    ["ship_id", ship_id]
-  ]);
-  action.st_sum(ship.active_skill_type, 0, 10);
-  action.st_sum(permit.permit_type, 0, 1);
-  action.st_sum(permit.molecular_authorized, 0, 0);
-  permit.update("molecular_authorized", 1);
-  var next_permit_key = action.random();
-  rotate_key(permit, next_permit_key);
+  authorize_large_ship_permit_core(
+    action,
+    next_ship,
+    ship,
+    permit,
+    10,
+    "molecular_authorized"
+  );
 }
 fn IssueAuxiliaryShipPermit(action) {
   var permit = action.output("MicroverseShipyardPermit");
