@@ -1,0 +1,4503 @@
+[plugin]
+name = "microverse-celestial-prototype"
+version = "0.1.0"
+module_hash = "87d8b4bd227e5eb11759d630eee2f6c5c0c8ff7e2a3eb33e8161e3d11269f6a0"
+
+[[classes]]
+name = "MicroverseShip"
+emoji = "🚀"
+description = "Microverse Small, Medium, or Large Ship; the tier is encoded in its movement and extraction fields."
+
+[[classes]]
+name = "MicroverseSector"
+emoji = "🧭"
+description = "A claimed region of the Microverse."
+
+[[classes]]
+name = "MicroverseCelestialSignal"
+emoji = "📡"
+description = "A detected celestial signal ready to be scanned."
+
+[[classes]]
+name = "MicroverseCelestialBody"
+emoji = "🪐"
+description = "A scanned celestial body with resource pools."
+
+[[classes]]
+name = "MicroverseCompositeResource"
+emoji = "🧱"
+description = "A Microverse resource that can yield component resources."
+
+[[classes]]
+name = "MicroverseResource"
+emoji = "📦"
+description = "A transferable quantity of a Microverse resource."
+
+[[classes]]
+name = "MicroverseSatellite"
+emoji = "🛰️"
+description = "A satellite discovered around a celestial body."
+
+[[classes]]
+name = "MicroverseLifeSignal"
+emoji = "🧬"
+description = "A detected intelligent-life signal."
+
+[[classes]]
+name = "MicroverseCivilization"
+emoji = "🏛️"
+description = "A Type I, Type II, or Type III Microverse civilization."
+
+[[classes]]
+name = "MicroverseTechnologySkill"
+emoji = "🧠"
+description = "A reusable technology capability learned from a civilization."
+
+[[classes]]
+name = "MicroverseShipyardPermit"
+emoji = "🏗️"
+description = "A location-bound permit for constructing a Microverse Ship."
+
+[[classes]]
+name = "MicroverseWarpCoordinate"
+emoji = "WC"
+description = "A sealed, deterministic, limited-use position destination."
+
+[[classes]]
+name = "MicroverseTimeCoordinate"
+emoji = "TC"
+description = "A sealed, deterministic, limited-use absolute epoch destination."
+
+[[actions]]
+name = "BuildShipSmall"
+emoji = "MV"
+description = "create a free VDF-gated Small Ship."
+hidden = false
+
+[[actions]]
+name = "BuildShipMedium"
+emoji = "MV"
+description = "atomically construct a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "BuildShipLarge"
+emoji = "MV"
+description = "atomically construct a Large Ship."
+hidden = false
+
+[[actions]]
+name = "MovePositiveX"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MovePositiveXMedium"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MovePositiveXLarge"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MoveNegativeX"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MoveNegativeXMedium"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MoveNegativeXLarge"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MovePositiveY"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MovePositiveYMedium"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MovePositiveYLarge"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MoveNegativeY"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MoveNegativeYMedium"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MoveNegativeYLarge"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MovePositiveZ"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MovePositiveZMedium"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MovePositiveZLarge"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MoveNegativeZ"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MoveNegativeZMedium"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "MoveNegativeZLarge"
+emoji = "MV"
+description = "movement."
+hidden = false
+
+[[actions]]
+name = "TimeWarpSmall"
+emoji = "MV"
+description = "timewarp."
+hidden = false
+
+[[actions]]
+name = "TimeWarpMedium"
+emoji = "MV"
+description = "timewarp."
+hidden = false
+
+[[actions]]
+name = "TimeWarpLarge"
+emoji = "MV"
+description = "timewarp."
+hidden = false
+
+[[actions]]
+name = "ClaimSector"
+emoji = "MV"
+description = "claim a deterministic Sector at the Ship's exact position and epoch."
+hidden = false
+
+[[actions]]
+name = "SurveySector_01_Sparse"
+emoji = "MV"
+description = "survey an EMPTY Sector into the deterministic Sparse CELESTIAL allocation profile."
+hidden = false
+
+[[actions]]
+name = "SurveySector_02_Standard"
+emoji = "MV"
+description = "survey an EMPTY Sector into the deterministic Standard CELESTIAL allocation profile."
+hidden = false
+
+[[actions]]
+name = "SurveySector_03_Rich"
+emoji = "MV"
+description = "survey an EMPTY Sector into the deterministic Rich CELESTIAL allocation profile."
+hidden = false
+
+[[actions]]
+name = "SurveySector_04_Ancient"
+emoji = "MV"
+description = "survey an EMPTY Sector into the deterministic Ancient CELESTIAL allocation profile."
+hidden = false
+
+[[actions]]
+name = "SurveySector_05_Anomalous"
+emoji = "MV"
+description = "survey an EMPTY Sector into the deterministic Anomalous CELESTIAL allocation profile."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_00_RedDwarf"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_01_MainSequenceStar"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_02_GiantStar"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_03_RockyPlanet"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_04_OceanPlanet"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_05_GardenPlanet"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_06_GasGiant"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_07_IceGiant"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_08_BarrenPlanet"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_09_NeutronStar"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_10_BlackHole"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_11_Anomaly"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_12_Megastructure"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_13_GasCluster"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "DetectCelestialSignal_14_StellarRemnant"
+emoji = "MV"
+description = "detect_signal."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_00_RedDwarf"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_01_MainSequenceStar"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_02_GiantStar"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_03_RockyPlanet"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_04_OceanPlanet"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_05_GardenPlanet"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_06_GasGiant"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_07_IceGiant"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_08_BarrenPlanet"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_09_NeutronStar"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_10_BlackHole"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_11_Anomaly"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_12_Megastructure"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_13_GasCluster"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ScanCelestialBody_14_StellarRemnant"
+emoji = "MV"
+description = "scan_body."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyWarpCoordinate"
+emoji = "MV"
+description = "extract one sealed Warp Coordinate from an Anomaly with Spacetime Engineering."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyTimeCoordinate"
+emoji = "MV"
+description = "extract one sealed Time Coordinate from an Anomaly with Spacetime Engineering."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate001"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 1 from its deterministic stable-identifier band with 10 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate002"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 2 from its deterministic stable-identifier band with 3 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate003"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 3 from its deterministic stable-identifier band with 3 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate004"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 4 from its deterministic stable-identifier band with 3 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate005"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 5 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate006"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 6 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate007"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 7 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate008"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 8 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate009"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 9 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate010"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 10 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate011"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 11 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate012"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 12 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate013"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 13 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate014"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 14 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate015"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 15 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate016"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 16 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate017"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 17 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate018"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 18 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate019"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 19 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate020"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 20 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate021"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 21 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate022"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 22 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate023"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 23 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate024"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 24 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate025"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 25 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate026"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 26 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate027"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 27 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate028"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 28 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate029"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 29 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate030"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 30 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate031"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 31 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate032"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 32 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate033"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 33 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate034"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 34 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate035"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 35 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate036"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 36 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate037"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 37 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate038"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 38 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate039"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 39 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate040"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 40 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate041"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 41 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate042"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 42 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate043"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 43 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate044"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 44 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate045"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 45 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate046"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 46 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate047"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 47 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate048"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 48 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate049"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 49 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate050"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 50 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate051"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 51 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate052"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 52 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate053"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 53 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate054"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 54 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate055"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 55 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate056"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 56 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate057"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 57 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate058"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 58 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate059"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 59 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate060"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 60 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate061"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 61 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate062"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 62 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate063"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 63 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate064"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 64 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate065"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 65 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate066"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 66 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate067"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 67 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate068"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 68 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate069"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 69 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate070"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 70 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate071"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 71 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate072"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 72 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate073"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 73 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate074"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 74 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate075"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 75 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate076"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 76 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate077"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 77 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate078"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 78 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate079"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 79 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate080"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 80 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate081"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 81 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate082"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 82 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate083"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 83 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate084"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 84 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate085"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 85 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate086"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 86 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate087"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 87 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate088"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 88 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate089"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 89 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate090"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 90 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate091"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 91 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate092"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 92 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate093"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 93 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate094"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 94 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate095"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 95 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate096"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 96 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate097"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 97 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate098"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 98 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate099"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 99 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate100"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 100 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate101"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 101 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate102"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 102 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate103"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 103 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate104"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 104 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate105"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 105 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate106"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 106 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate107"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 107 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate108"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 108 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate109"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 109 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate110"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 110 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate111"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 111 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate112"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 112 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate113"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 113 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate114"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 114 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate115"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 115 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate116"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 116 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate117"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 117 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate118"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 118 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate119"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 119 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate120"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 120 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate121"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 121 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate122"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 122 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate123"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 123 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate124"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 124 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealWarpCoordinate125"
+emoji = "MV"
+description = "reveal Warp Coordinate destination 125 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate01"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 1 from its deterministic stable-identifier band with 10 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate02"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 2 from its deterministic stable-identifier band with 3 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate03"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 3 from its deterministic stable-identifier band with 3 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate04"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 4 from its deterministic stable-identifier band with 3 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate05"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 5 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate06"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 6 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate07"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 7 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate08"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 8 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate09"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 9 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate10"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 10 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate11"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 11 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate12"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 12 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate13"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 13 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate14"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 14 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate15"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 15 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate16"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 16 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate17"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 17 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate18"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 18 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate19"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 19 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate20"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 20 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate21"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 21 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate22"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 22 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate23"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 23 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate24"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 24 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate25"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 25 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate26"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 26 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate27"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 27 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate28"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 28 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate29"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 29 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate30"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 30 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate31"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 31 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate32"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 32 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate33"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 33 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate34"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 34 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate35"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 35 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate36"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 36 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate37"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 37 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate38"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 38 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate39"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 39 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate40"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 40 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate41"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 41 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate42"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 42 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate43"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 43 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate44"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 44 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate45"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 45 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate46"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 46 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate47"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 47 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate48"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 48 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate49"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 49 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate50"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 50 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate51"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 51 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate52"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 52 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate53"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 53 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate54"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 54 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate55"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 55 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate56"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 56 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate57"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 57 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate58"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 58 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate59"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 59 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate60"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 60 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate61"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 61 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate62"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 62 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate63"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 63 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate64"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 64 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate65"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 65 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate66"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 66 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate67"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 67 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate68"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 68 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate69"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 69 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate70"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 70 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate71"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 71 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate72"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 72 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate73"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 73 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate74"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 74 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate75"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 75 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate76"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 76 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate77"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 77 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate78"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 78 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate79"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 79 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate80"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 80 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate81"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 81 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate82"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 82 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate83"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 83 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate84"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 84 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate85"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 85 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "RevealTimeCoordinate86"
+emoji = "MV"
+description = "reveal Time Coordinate epoch 86 from its deterministic stable-identifier band with 1 use(s)."
+hidden = false
+
+[[actions]]
+name = "WarpToCoordinateReusable"
+emoji = "MV"
+description = "warp a Ship and decrement a reusable Warp Coordinate."
+hidden = false
+
+[[actions]]
+name = "WarpToCoordinateFinal"
+emoji = "MV"
+description = "warp a Ship and consume the final Warp Coordinate use."
+hidden = false
+
+[[actions]]
+name = "TimeWarpToCoordinateReusable"
+emoji = "MV"
+description = "time-warp a Ship and decrement a reusable Time Coordinate."
+hidden = false
+
+[[actions]]
+name = "TimeWarpToCoordinateFinal"
+emoji = "MV"
+description = "time-warp a Ship and consume the final Time Coordinate use."
+hidden = false
+
+[[actions]]
+name = "ExtractMatter"
+emoji = "MV"
+description = "extract Matter with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMatterMedium"
+emoji = "MV"
+description = "extract Matter with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMatterLarge"
+emoji = "MV"
+description = "extract Matter with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractCrystal"
+emoji = "MV"
+description = "extract Crystal with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractCrystalMedium"
+emoji = "MV"
+description = "extract Crystal with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractCrystalLarge"
+emoji = "MV"
+description = "extract Crystal with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGas"
+emoji = "MV"
+description = "extract Gas with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasMedium"
+emoji = "MV"
+description = "extract Gas with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasLarge"
+emoji = "MV"
+description = "extract Gas with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractEnergy"
+emoji = "MV"
+description = "extract Energy with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractEnergyMedium"
+emoji = "MV"
+description = "extract Energy with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractEnergyLarge"
+emoji = "MV"
+description = "extract Energy with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "DiscoverSatellite"
+emoji = "MV"
+description = "discover_satellite."
+hidden = false
+
+[[actions]]
+name = "DetectIntelligentLife"
+emoji = "MV"
+description = "detect_intelligent_life."
+hidden = false
+
+[[actions]]
+name = "MaterializeCivilizationTypeI"
+emoji = "MV"
+description = "materialize a deterministic rarity-gated Type I Civilization."
+hidden = false
+
+[[actions]]
+name = "MaterializeCivilizationTypeII"
+emoji = "MV"
+description = "materialize a deterministic rarity-gated Type II Civilization."
+hidden = false
+
+[[actions]]
+name = "MaterializeCivilizationTypeIII"
+emoji = "MV"
+description = "materialize a deterministic rarity-gated Type III Civilization."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfFusionGas"
+emoji = "MV"
+description = "extract Fusion Gas from a Red Dwarf with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfFusionGasLarge"
+emoji = "MV"
+description = "extract Fusion Gas from a Red Dwarf with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfMetalRichOre"
+emoji = "MV"
+description = "extract Metal-Rich Ore from a Red Dwarf with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfMetalRichOreLarge"
+emoji = "MV"
+description = "extract Metal-Rich Ore from a Red Dwarf with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfRadiantEnergy"
+emoji = "MV"
+description = "extract Radiant Energy from a Red Dwarf with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfRadiantEnergyLarge"
+emoji = "MV"
+description = "extract Radiant Energy from a Red Dwarf with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfRedDwarfPlasma"
+emoji = "MV"
+description = "extract Red-Dwarf Plasma from a Red Dwarf with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfRedDwarfPlasmaLarge"
+emoji = "MV"
+description = "extract Red-Dwarf Plasma from a Red Dwarf with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfMagneticStellarCondensate"
+emoji = "MV"
+description = "extract Magnetic Stellar Condensate from a Red Dwarf with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfMagneticStellarCondensateLarge"
+emoji = "MV"
+description = "extract Magnetic Stellar Condensate from a Red Dwarf with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfFlareSpectrumData"
+emoji = "MV"
+description = "extract Flare Spectrum Data from a Red Dwarf with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfFlareSpectrumDataLarge"
+emoji = "MV"
+description = "extract Flare Spectrum Data from a Red Dwarf with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfStellarRefractoryDust"
+emoji = "MV"
+description = "extract Stellar Refractory Dust from a Red Dwarf with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRedDwarfStellarRefractoryDustLarge"
+emoji = "MV"
+description = "extract Stellar Refractory Dust from a Red Dwarf with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarFusionGas"
+emoji = "MV"
+description = "extract Fusion Gas from a Main Sequence Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarFusionGasLarge"
+emoji = "MV"
+description = "extract Fusion Gas from a Main Sequence Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarMetalRichOre"
+emoji = "MV"
+description = "extract Metal-Rich Ore from a Main Sequence Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarMetalRichOreLarge"
+emoji = "MV"
+description = "extract Metal-Rich Ore from a Main Sequence Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarRadiantEnergy"
+emoji = "MV"
+description = "extract Radiant Energy from a Main Sequence Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarRadiantEnergyLarge"
+emoji = "MV"
+description = "extract Radiant Energy from a Main Sequence Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarPhotosphericPlasma"
+emoji = "MV"
+description = "extract Photospheric Plasma from a Main Sequence Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarPhotosphericPlasmaLarge"
+emoji = "MV"
+description = "extract Photospheric Plasma from a Main Sequence Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarPhotosphericMineral"
+emoji = "MV"
+description = "extract Photospheric Mineral from a Main Sequence Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarPhotosphericMineralLarge"
+emoji = "MV"
+description = "extract Photospheric Mineral from a Main Sequence Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarStellarSpectrumData"
+emoji = "MV"
+description = "extract Stellar Spectrum Data from a Main Sequence Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarStellarSpectrumDataLarge"
+emoji = "MV"
+description = "extract Stellar Spectrum Data from a Main Sequence Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarSolarWindCondensate"
+emoji = "MV"
+description = "extract Solar-Wind Condensate from a Main Sequence Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMainSequenceStarSolarWindCondensateLarge"
+emoji = "MV"
+description = "extract Solar-Wind Condensate from a Main Sequence Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarFusionGas"
+emoji = "MV"
+description = "extract Fusion Gas from a Giant Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarFusionGasLarge"
+emoji = "MV"
+description = "extract Fusion Gas from a Giant Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarMetalRichOre"
+emoji = "MV"
+description = "extract Metal-Rich Ore from a Giant Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarMetalRichOreLarge"
+emoji = "MV"
+description = "extract Metal-Rich Ore from a Giant Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarRadiantEnergy"
+emoji = "MV"
+description = "extract Radiant Energy from a Giant Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarRadiantEnergyLarge"
+emoji = "MV"
+description = "extract Radiant Energy from a Giant Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarHeliumCarbonEjecta"
+emoji = "MV"
+description = "extract Helium-Carbon Ejecta from a Giant Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarHeliumCarbonEjectaLarge"
+emoji = "MV"
+description = "extract Helium-Carbon Ejecta from a Giant Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarHeavyElementCondensate"
+emoji = "MV"
+description = "extract Heavy-Element Condensate from a Giant Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarHeavyElementCondensateLarge"
+emoji = "MV"
+description = "extract Heavy-Element Condensate from a Giant Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarNeutrinoData"
+emoji = "MV"
+description = "extract Neutrino Data from a Giant Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarNeutrinoDataLarge"
+emoji = "MV"
+description = "extract Neutrino Data from a Giant Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarSProcessEjecta"
+emoji = "MV"
+description = "extract S-Process Ejecta from a Giant Star with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGiantStarSProcessEjectaLarge"
+emoji = "MV"
+description = "extract S-Process Ejecta from a Giant Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetFerrousOre"
+emoji = "MV"
+description = "extract Ferrous Ore from a Rocky Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetFerrousOreMedium"
+emoji = "MV"
+description = "extract Ferrous Ore from a Rocky Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetFerrousOreLarge"
+emoji = "MV"
+description = "extract Ferrous Ore from a Rocky Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetBaseMetalOre"
+emoji = "MV"
+description = "extract Base-Metal Ore from a Rocky Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetBaseMetalOreMedium"
+emoji = "MV"
+description = "extract Base-Metal Ore from a Rocky Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetBaseMetalOreLarge"
+emoji = "MV"
+description = "extract Base-Metal Ore from a Rocky Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetSilicateMineral"
+emoji = "MV"
+description = "extract Silicate Mineral from a Rocky Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetSilicateMineralMedium"
+emoji = "MV"
+description = "extract Silicate Mineral from a Rocky Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetSilicateMineralLarge"
+emoji = "MV"
+description = "extract Silicate Mineral from a Rocky Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetIndustrialMineral"
+emoji = "MV"
+description = "extract Industrial Mineral from a Rocky Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetIndustrialMineralMedium"
+emoji = "MV"
+description = "extract Industrial Mineral from a Rocky Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetIndustrialMineralLarge"
+emoji = "MV"
+description = "extract Industrial Mineral from a Rocky Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetIgneousRock"
+emoji = "MV"
+description = "extract Igneous Rock from a Rocky Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetIgneousRockMedium"
+emoji = "MV"
+description = "extract Igneous Rock from a Rocky Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetIgneousRockLarge"
+emoji = "MV"
+description = "extract Igneous Rock from a Rocky Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetGeothermalEnergy"
+emoji = "MV"
+description = "extract Geothermal Energy from a Rocky Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetGeothermalEnergyMedium"
+emoji = "MV"
+description = "extract Geothermal Energy from a Rocky Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetGeothermalEnergyLarge"
+emoji = "MV"
+description = "extract Geothermal Energy from a Rocky Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetSedimentaryRock"
+emoji = "MV"
+description = "extract Sedimentary Rock from a Rocky Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetSedimentaryRockMedium"
+emoji = "MV"
+description = "extract Sedimentary Rock from a Rocky Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractRockyPlanetSedimentaryRockLarge"
+emoji = "MV"
+description = "extract Sedimentary Rock from a Rocky Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetWater"
+emoji = "MV"
+description = "extract Water from a Ocean Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetWaterMedium"
+emoji = "MV"
+description = "extract Water from a Ocean Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetWaterLarge"
+emoji = "MV"
+description = "extract Water from a Ocean Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetSeawaterMinerals"
+emoji = "MV"
+description = "extract Seawater Minerals from a Ocean Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetSeawaterMineralsMedium"
+emoji = "MV"
+description = "extract Seawater Minerals from a Ocean Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetSeawaterMineralsLarge"
+emoji = "MV"
+description = "extract Seawater Minerals from a Ocean Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetAtmosphericGas"
+emoji = "MV"
+description = "extract Atmospheric Gas from a Ocean Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetAtmosphericGasMedium"
+emoji = "MV"
+description = "extract Atmospheric Gas from a Ocean Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetAtmosphericGasLarge"
+emoji = "MV"
+description = "extract Atmospheric Gas from a Ocean Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetSeafloorSulfideOre"
+emoji = "MV"
+description = "extract Seafloor Sulfide Ore from a Ocean Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetSeafloorSulfideOreMedium"
+emoji = "MV"
+description = "extract Seafloor Sulfide Ore from a Ocean Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetSeafloorSulfideOreLarge"
+emoji = "MV"
+description = "extract Seafloor Sulfide Ore from a Ocean Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetMarineBiomass"
+emoji = "MV"
+description = "extract Marine Biomass from a Ocean Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetMarineBiomassMedium"
+emoji = "MV"
+description = "extract Marine Biomass from a Ocean Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetMarineBiomassLarge"
+emoji = "MV"
+description = "extract Marine Biomass from a Ocean Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetTidalEnergy"
+emoji = "MV"
+description = "extract Tidal Energy from a Ocean Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetTidalEnergyMedium"
+emoji = "MV"
+description = "extract Tidal Energy from a Ocean Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetTidalEnergyLarge"
+emoji = "MV"
+description = "extract Tidal Energy from a Ocean Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetDissolvedTraceMinerals"
+emoji = "MV"
+description = "extract Dissolved Trace Minerals from a Ocean Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetDissolvedTraceMineralsMedium"
+emoji = "MV"
+description = "extract Dissolved Trace Minerals from a Ocean Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractOceanPlanetDissolvedTraceMineralsLarge"
+emoji = "MV"
+description = "extract Dissolved Trace Minerals from a Ocean Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetBiomass"
+emoji = "MV"
+description = "extract Biomass from a Garden Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetBiomassMedium"
+emoji = "MV"
+description = "extract Biomass from a Garden Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetBiomassLarge"
+emoji = "MV"
+description = "extract Biomass from a Garden Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetGeneticMaterial"
+emoji = "MV"
+description = "extract Genetic Material from a Garden Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetGeneticMaterialMedium"
+emoji = "MV"
+description = "extract Genetic Material from a Garden Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetGeneticMaterialLarge"
+emoji = "MV"
+description = "extract Genetic Material from a Garden Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetBiochemicalMixture"
+emoji = "MV"
+description = "extract Biochemical Mixture from a Garden Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetBiochemicalMixtureMedium"
+emoji = "MV"
+description = "extract Biochemical Mixture from a Garden Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetBiochemicalMixtureLarge"
+emoji = "MV"
+description = "extract Biochemical Mixture from a Garden Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetMicrobialCulture"
+emoji = "MV"
+description = "extract Microbial Culture from a Garden Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetMicrobialCultureMedium"
+emoji = "MV"
+description = "extract Microbial Culture from a Garden Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetMicrobialCultureLarge"
+emoji = "MV"
+description = "extract Microbial Culture from a Garden Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetNaturalMaterial"
+emoji = "MV"
+description = "extract Natural Material from a Garden Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetNaturalMaterialMedium"
+emoji = "MV"
+description = "extract Natural Material from a Garden Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetNaturalMaterialLarge"
+emoji = "MV"
+description = "extract Natural Material from a Garden Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetLivingSoil"
+emoji = "MV"
+description = "extract Living Soil from a Garden Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetLivingSoilMedium"
+emoji = "MV"
+description = "extract Living Soil from a Garden Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetLivingSoilLarge"
+emoji = "MV"
+description = "extract Living Soil from a Garden Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetPlantExtract"
+emoji = "MV"
+description = "extract Plant Extract from a Garden Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetPlantExtractMedium"
+emoji = "MV"
+description = "extract Plant Extract from a Garden Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGardenPlanetPlantExtractLarge"
+emoji = "MV"
+description = "extract Plant Extract from a Garden Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantFusionGas"
+emoji = "MV"
+description = "extract Fusion Gas from a Gas Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantFusionGasLarge"
+emoji = "MV"
+description = "extract Fusion Gas from a Gas Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantAtmosphericGas"
+emoji = "MV"
+description = "extract Atmospheric Gas from a Gas Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantAtmosphericGasLarge"
+emoji = "MV"
+description = "extract Atmospheric Gas from a Gas Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantNobleGas"
+emoji = "MV"
+description = "extract Noble Gas from a Gas Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantNobleGasLarge"
+emoji = "MV"
+description = "extract Noble Gas from a Gas Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantDeepAtmosphereGas"
+emoji = "MV"
+description = "extract Deep-Atmosphere Gas from a Gas Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantDeepAtmosphereGasLarge"
+emoji = "MV"
+description = "extract Deep-Atmosphere Gas from a Gas Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantHydrocarbonCloud"
+emoji = "MV"
+description = "extract Hydrocarbon Cloud from a Gas Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantHydrocarbonCloudLarge"
+emoji = "MV"
+description = "extract Hydrocarbon Cloud from a Gas Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantStormFieldData"
+emoji = "MV"
+description = "extract Storm Field Data from a Gas Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantStormFieldDataLarge"
+emoji = "MV"
+description = "extract Storm Field Data from a Gas Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantSulfurCloud"
+emoji = "MV"
+description = "extract Sulfur Cloud from a Gas Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasGiantSulfurCloudLarge"
+emoji = "MV"
+description = "extract Sulfur Cloud from a Gas Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantFusionGas"
+emoji = "MV"
+description = "extract Fusion Gas from a Ice Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantFusionGasLarge"
+emoji = "MV"
+description = "extract Fusion Gas from a Ice Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantVolatileIce"
+emoji = "MV"
+description = "extract Volatile Ice from a Ice Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantVolatileIceLarge"
+emoji = "MV"
+description = "extract Volatile Ice from a Ice Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantNobleGas"
+emoji = "MV"
+description = "extract Noble Gas from a Ice Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantNobleGasLarge"
+emoji = "MV"
+description = "extract Noble Gas from a Ice Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantCryogenicVolatile"
+emoji = "MV"
+description = "extract Cryogenic Volatile from a Ice Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantCryogenicVolatileLarge"
+emoji = "MV"
+description = "extract Cryogenic Volatile from a Ice Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantIceMantleMaterial"
+emoji = "MV"
+description = "extract Ice-Mantle Material from a Ice Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantIceMantleMaterialLarge"
+emoji = "MV"
+description = "extract Ice-Mantle Material from a Ice Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantHighPressurePhaseData"
+emoji = "MV"
+description = "extract High-Pressure Phase Data from a Ice Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantHighPressurePhaseDataLarge"
+emoji = "MV"
+description = "extract High-Pressure Phase Data from a Ice Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantCryosphereSpectrumData"
+emoji = "MV"
+description = "extract Cryosphere Spectrum Data from a Ice Giant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractIceGiantCryosphereSpectrumDataLarge"
+emoji = "MV"
+description = "extract Cryosphere Spectrum Data from a Ice Giant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetLightMetalOre"
+emoji = "MV"
+description = "extract Light-Metal Ore from a Barren Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetLightMetalOreMedium"
+emoji = "MV"
+description = "extract Light-Metal Ore from a Barren Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetLightMetalOreLarge"
+emoji = "MV"
+description = "extract Light-Metal Ore from a Barren Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetPreciousMetalOre"
+emoji = "MV"
+description = "extract Precious-Metal Ore from a Barren Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetPreciousMetalOreMedium"
+emoji = "MV"
+description = "extract Precious-Metal Ore from a Barren Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetPreciousMetalOreLarge"
+emoji = "MV"
+description = "extract Precious-Metal Ore from a Barren Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetNuclearOre"
+emoji = "MV"
+description = "extract Nuclear Ore from a Barren Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetNuclearOreLarge"
+emoji = "MV"
+description = "extract Nuclear Ore from a Barren Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetCarbonaceousDeposit"
+emoji = "MV"
+description = "extract Carbonaceous Deposit from a Barren Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetCarbonaceousDepositMedium"
+emoji = "MV"
+description = "extract Carbonaceous Deposit from a Barren Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetCarbonaceousDepositLarge"
+emoji = "MV"
+description = "extract Carbonaceous Deposit from a Barren Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetFertilizerMineral"
+emoji = "MV"
+description = "extract Fertilizer Mineral from a Barren Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetFertilizerMineralMedium"
+emoji = "MV"
+description = "extract Fertilizer Mineral from a Barren Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetFertilizerMineralLarge"
+emoji = "MV"
+description = "extract Fertilizer Mineral from a Barren Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetDenseMetalOre"
+emoji = "MV"
+description = "extract Dense-Metal Ore from a Barren Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetDenseMetalOreLarge"
+emoji = "MV"
+description = "extract Dense-Metal Ore from a Barren Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetRareEarthOre"
+emoji = "MV"
+description = "extract Rare-Earth Ore from a Barren Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetRareEarthOreLarge"
+emoji = "MV"
+description = "extract Rare-Earth Ore from a Barren Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetAlkaliMineralOre"
+emoji = "MV"
+description = "extract Alkali Mineral Ore from a Barren Planet with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetAlkaliMineralOreMedium"
+emoji = "MV"
+description = "extract Alkali Mineral Ore from a Barren Planet with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBarrenPlanetAlkaliMineralOreLarge"
+emoji = "MV"
+description = "extract Alkali Mineral Ore from a Barren Planet with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractNeutronStarMetalRichOre"
+emoji = "MV"
+description = "extract Metal-Rich Ore from a Neutron Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractNeutronStarHighEnergyRadiation"
+emoji = "MV"
+description = "extract High-Energy Radiation from a Neutron Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractNeutronStarGravitationalData"
+emoji = "MV"
+description = "extract Gravitational Data from a Neutron Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractNeutronStarRProcessEjecta"
+emoji = "MV"
+description = "extract R-Process Ejecta from a Neutron Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractNeutronStarDegenerateCrustMaterial"
+emoji = "MV"
+description = "extract Degenerate-Crust Material from a Neutron Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractNeutronStarPulsarEmissionData"
+emoji = "MV"
+description = "extract Pulsar Emission Data from a Neutron Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractNeutronStarMagnetosphericParticleFlux"
+emoji = "MV"
+description = "extract Magnetospheric Particle Flux from a Neutron Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractNeutronStarPulsarTimingData"
+emoji = "MV"
+description = "extract Pulsar Timing Data from a Neutron Star with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBlackHoleHighEnergyRadiation"
+emoji = "MV"
+description = "extract High-Energy Radiation from a Black Hole with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBlackHoleGravitationalData"
+emoji = "MV"
+description = "extract Gravitational Data from a Black Hole with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBlackHoleAccretionData"
+emoji = "MV"
+description = "extract Accretion Data from a Black Hole with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBlackHoleAccretionDiskMatter"
+emoji = "MV"
+description = "extract Accretion-Disk Matter from a Black Hole with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBlackHoleRelativisticPlasma"
+emoji = "MV"
+description = "extract Relativistic Plasma from a Black Hole with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBlackHoleLensingData"
+emoji = "MV"
+description = "extract Lensing Data from a Black Hole with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBlackHoleAccretionAerosol"
+emoji = "MV"
+description = "extract Accretion Aerosol from a Black Hole with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractBlackHoleHawkingRadiationData"
+emoji = "MV"
+description = "extract Hawking Radiation Data from a Black Hole with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyTemporalData"
+emoji = "MV"
+description = "extract Temporal Data from a Anomaly with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyGravitationalData"
+emoji = "MV"
+description = "extract Gravitational Data from a Anomaly with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyFieldData"
+emoji = "MV"
+description = "extract Field Data from a Anomaly with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyPhaseShiftedMatter"
+emoji = "MV"
+description = "extract Phase-Shifted Matter from a Anomaly with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyMagneticObservation"
+emoji = "MV"
+description = "extract Magnetic Observation from a Anomaly with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyRadiationObservation"
+emoji = "MV"
+description = "extract Radiation Observation from a Anomaly with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyPolarizationData"
+emoji = "MV"
+description = "extract Polarization Data from a Anomaly with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractAnomalyVacuumFluctuationData"
+emoji = "MV"
+description = "extract Vacuum Fluctuation Data from a Anomaly with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureStructuralSalvage"
+emoji = "MV"
+description = "extract Structural Salvage from a Megastructure with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureStructuralSalvageMedium"
+emoji = "MV"
+description = "extract Structural Salvage from a Megastructure with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureStructuralSalvageLarge"
+emoji = "MV"
+description = "extract Structural Salvage from a Megastructure with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureElectronicSalvage"
+emoji = "MV"
+description = "extract Electronic Salvage from a Megastructure with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureElectronicSalvageLarge"
+emoji = "MV"
+description = "extract Electronic Salvage from a Megastructure with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureCeramicSalvage"
+emoji = "MV"
+description = "extract Ceramic Salvage from a Megastructure with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureCeramicSalvageLarge"
+emoji = "MV"
+description = "extract Ceramic Salvage from a Megastructure with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureArchiveData"
+emoji = "MV"
+description = "extract Archive Data from a Megastructure with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructurePolymerSalvage"
+emoji = "MV"
+description = "extract Polymer Salvage from a Megastructure with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructurePolymerSalvageMedium"
+emoji = "MV"
+description = "extract Polymer Salvage from a Megastructure with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructurePolymerSalvageLarge"
+emoji = "MV"
+description = "extract Polymer Salvage from a Megastructure with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureOpticalSalvage"
+emoji = "MV"
+description = "extract Optical Salvage from a Megastructure with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureOpticalSalvageMedium"
+emoji = "MV"
+description = "extract Optical Salvage from a Megastructure with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureOpticalSalvageLarge"
+emoji = "MV"
+description = "extract Optical Salvage from a Megastructure with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureMechanicalSalvage"
+emoji = "MV"
+description = "extract Mechanical Salvage from a Megastructure with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureMechanicalSalvageMedium"
+emoji = "MV"
+description = "extract Mechanical Salvage from a Megastructure with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractMegastructureMechanicalSalvageLarge"
+emoji = "MV"
+description = "extract Mechanical Salvage from a Megastructure with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterFusionGas"
+emoji = "MV"
+description = "extract Fusion Gas from a Gas Cluster with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterFusionGasMedium"
+emoji = "MV"
+description = "extract Fusion Gas from a Gas Cluster with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterFusionGasLarge"
+emoji = "MV"
+description = "extract Fusion Gas from a Gas Cluster with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterNobleGas"
+emoji = "MV"
+description = "extract Noble Gas from a Gas Cluster with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterNobleGasMedium"
+emoji = "MV"
+description = "extract Noble Gas from a Gas Cluster with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterNobleGasLarge"
+emoji = "MV"
+description = "extract Noble Gas from a Gas Cluster with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterOrganicOre"
+emoji = "MV"
+description = "extract Organic Ore from a Gas Cluster with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterOrganicOreMedium"
+emoji = "MV"
+description = "extract Organic Ore from a Gas Cluster with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterOrganicOreLarge"
+emoji = "MV"
+description = "extract Organic Ore from a Gas Cluster with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterMolecularCloudGas"
+emoji = "MV"
+description = "extract Molecular-Cloud Gas from a Gas Cluster with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterMolecularCloudGasMedium"
+emoji = "MV"
+description = "extract Molecular-Cloud Gas from a Gas Cluster with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterMolecularCloudGasLarge"
+emoji = "MV"
+description = "extract Molecular-Cloud Gas from a Gas Cluster with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterInterstellarDust"
+emoji = "MV"
+description = "extract Interstellar Dust from a Gas Cluster with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterInterstellarDustMedium"
+emoji = "MV"
+description = "extract Interstellar Dust from a Gas Cluster with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterInterstellarDustLarge"
+emoji = "MV"
+description = "extract Interstellar Dust from a Gas Cluster with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterMolecularSpectrumData"
+emoji = "MV"
+description = "extract Molecular Spectrum Data from a Gas Cluster with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterMolecularSpectrumDataMedium"
+emoji = "MV"
+description = "extract Molecular Spectrum Data from a Gas Cluster with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterMolecularSpectrumDataLarge"
+emoji = "MV"
+description = "extract Molecular Spectrum Data from a Gas Cluster with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterPrebioticMoleculeMixture"
+emoji = "MV"
+description = "extract Prebiotic Molecule Mixture from a Gas Cluster with a Small Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterPrebioticMoleculeMixtureMedium"
+emoji = "MV"
+description = "extract Prebiotic Molecule Mixture from a Gas Cluster with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractGasClusterPrebioticMoleculeMixtureLarge"
+emoji = "MV"
+description = "extract Prebiotic Molecule Mixture from a Gas Cluster with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantMetalRichOre"
+emoji = "MV"
+description = "extract Metal-Rich Ore from a Stellar Remnant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantMetalRichOreLarge"
+emoji = "MV"
+description = "extract Metal-Rich Ore from a Stellar Remnant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantNuclearOre"
+emoji = "MV"
+description = "extract Nuclear Ore from a Stellar Remnant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantNuclearOreLarge"
+emoji = "MV"
+description = "extract Nuclear Ore from a Stellar Remnant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantCarbonaceousDeposit"
+emoji = "MV"
+description = "extract Carbonaceous Deposit from a Stellar Remnant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantCarbonaceousDepositLarge"
+emoji = "MV"
+description = "extract Carbonaceous Deposit from a Stellar Remnant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantSupernovaEjecta"
+emoji = "MV"
+description = "extract Supernova Ejecta from a Stellar Remnant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantSupernovaEjectaLarge"
+emoji = "MV"
+description = "extract Supernova Ejecta from a Stellar Remnant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantRadioisotopeDeposit"
+emoji = "MV"
+description = "extract Radioisotope Deposit from a Stellar Remnant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantRadioisotopeDepositLarge"
+emoji = "MV"
+description = "extract Radioisotope Deposit from a Stellar Remnant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantShockwaveSpectrumData"
+emoji = "MV"
+description = "extract Shockwave Spectrum Data from a Stellar Remnant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantShockwaveSpectrumDataLarge"
+emoji = "MV"
+description = "extract Shockwave Spectrum Data from a Stellar Remnant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantDecaySpectrumData"
+emoji = "MV"
+description = "extract Decay Spectrum Data from a Stellar Remnant with a Medium Ship."
+hidden = false
+
+[[actions]]
+name = "ExtractStellarRemnantDecaySpectrumDataLarge"
+emoji = "MV"
+description = "extract Decay Spectrum Data from a Stellar Remnant with a Large Ship."
+hidden = false
+
+[[actions]]
+name = "RefineFusionGasToHydrogen"
+emoji = "MV"
+description = "refine Hydrogen from Fusion Gas."
+hidden = false
+
+[[actions]]
+name = "RefineFusionGasToHelium"
+emoji = "MV"
+description = "refine Helium from Fusion Gas."
+hidden = false
+
+[[actions]]
+name = "RefineFusionGasToDeuterium"
+emoji = "MV"
+description = "refine Deuterium from Fusion Gas."
+hidden = false
+
+[[actions]]
+name = "RefineMetalRichOreToIron"
+emoji = "MV"
+description = "refine Iron from Metal-Rich Ore."
+hidden = false
+
+[[actions]]
+name = "RefineMetalRichOreToNickel"
+emoji = "MV"
+description = "refine Nickel from Metal-Rich Ore."
+hidden = false
+
+[[actions]]
+name = "RefineMetalRichOreToCobalt"
+emoji = "MV"
+description = "refine Cobalt from Metal-Rich Ore."
+hidden = false
+
+[[actions]]
+name = "RefineFerrousOreToIron"
+emoji = "MV"
+description = "refine Iron from Ferrous Ore."
+hidden = false
+
+[[actions]]
+name = "RefineFerrousOreToChromium"
+emoji = "MV"
+description = "refine Chromium from Ferrous Ore."
+hidden = false
+
+[[actions]]
+name = "RefineFerrousOreToManganese"
+emoji = "MV"
+description = "refine Manganese from Ferrous Ore."
+hidden = false
+
+[[actions]]
+name = "RefineBaseMetalOreToCopper"
+emoji = "MV"
+description = "refine Copper from Base-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefineBaseMetalOreToZinc"
+emoji = "MV"
+description = "refine Zinc from Base-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefineBaseMetalOreToTin"
+emoji = "MV"
+description = "refine Tin from Base-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefineSilicateMineralToSilicon"
+emoji = "MV"
+description = "refine Silicon from Silicate Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineSilicateMineralToMagnesium"
+emoji = "MV"
+description = "refine Magnesium from Silicate Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineSilicateMineralToQuartz"
+emoji = "MV"
+description = "refine Quartz from Silicate Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineIndustrialMineralToLimestone"
+emoji = "MV"
+description = "refine Limestone from Industrial Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineIndustrialMineralToClay"
+emoji = "MV"
+description = "refine Clay from Industrial Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineIndustrialMineralToGypsum"
+emoji = "MV"
+description = "refine Gypsum from Industrial Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineSeawaterMineralsToSodiumChloride"
+emoji = "MV"
+description = "refine Sodium Chloride from Seawater Minerals."
+hidden = false
+
+[[actions]]
+name = "RefineSeawaterMineralsToMagnesium"
+emoji = "MV"
+description = "refine Magnesium from Seawater Minerals."
+hidden = false
+
+[[actions]]
+name = "RefineSeawaterMineralsToCalcium"
+emoji = "MV"
+description = "refine Calcium from Seawater Minerals."
+hidden = false
+
+[[actions]]
+name = "RefineAtmosphericGasToNitrogen"
+emoji = "MV"
+description = "refine Nitrogen from Atmospheric Gas."
+hidden = false
+
+[[actions]]
+name = "RefineAtmosphericGasToOxygen"
+emoji = "MV"
+description = "refine Oxygen from Atmospheric Gas."
+hidden = false
+
+[[actions]]
+name = "RefineAtmosphericGasToCarbonDioxide"
+emoji = "MV"
+description = "refine Carbon Dioxide from Atmospheric Gas."
+hidden = false
+
+[[actions]]
+name = "RefineBiomassToCellulose"
+emoji = "MV"
+description = "refine Cellulose from Biomass."
+hidden = false
+
+[[actions]]
+name = "RefineBiomassToProtein"
+emoji = "MV"
+description = "refine Protein from Biomass."
+hidden = false
+
+[[actions]]
+name = "RefineBiomassToLipid"
+emoji = "MV"
+description = "refine Lipid from Biomass."
+hidden = false
+
+[[actions]]
+name = "RefineGeneticMaterialToDNA"
+emoji = "MV"
+description = "refine DNA from Genetic Material."
+hidden = false
+
+[[actions]]
+name = "RefineGeneticMaterialToRNA"
+emoji = "MV"
+description = "refine RNA from Genetic Material."
+hidden = false
+
+[[actions]]
+name = "RefineGeneticMaterialToPlasmid"
+emoji = "MV"
+description = "refine Plasmid from Genetic Material."
+hidden = false
+
+[[actions]]
+name = "RefineBiochemicalMixtureToAminoAcid"
+emoji = "MV"
+description = "refine Amino Acid from Biochemical Mixture."
+hidden = false
+
+[[actions]]
+name = "RefineBiochemicalMixtureToEnzyme"
+emoji = "MV"
+description = "refine Enzyme from Biochemical Mixture."
+hidden = false
+
+[[actions]]
+name = "RefineBiochemicalMixtureToAlkaloid"
+emoji = "MV"
+description = "refine Alkaloid from Biochemical Mixture."
+hidden = false
+
+[[actions]]
+name = "RefineMicrobialCultureToBacterialCulture"
+emoji = "MV"
+description = "refine Bacterial Culture from Microbial Culture."
+hidden = false
+
+[[actions]]
+name = "RefineMicrobialCultureToFungalCulture"
+emoji = "MV"
+description = "refine Fungal Culture from Microbial Culture."
+hidden = false
+
+[[actions]]
+name = "RefineMicrobialCultureToArchaealCulture"
+emoji = "MV"
+description = "refine Archaeal Culture from Microbial Culture."
+hidden = false
+
+[[actions]]
+name = "RefineNaturalMaterialToWoodFiber"
+emoji = "MV"
+description = "refine Wood Fiber from Natural Material."
+hidden = false
+
+[[actions]]
+name = "RefineNaturalMaterialToChitin"
+emoji = "MV"
+description = "refine Chitin from Natural Material."
+hidden = false
+
+[[actions]]
+name = "RefineNaturalMaterialToNaturalRubber"
+emoji = "MV"
+description = "refine Natural Rubber from Natural Material."
+hidden = false
+
+[[actions]]
+name = "RefineNobleGasToArgon"
+emoji = "MV"
+description = "refine Argon from Noble Gas."
+hidden = false
+
+[[actions]]
+name = "RefineNobleGasToNeon"
+emoji = "MV"
+description = "refine Neon from Noble Gas."
+hidden = false
+
+[[actions]]
+name = "RefineNobleGasToXenon"
+emoji = "MV"
+description = "refine Xenon from Noble Gas."
+hidden = false
+
+[[actions]]
+name = "RefineVolatileIceToWaterIce"
+emoji = "MV"
+description = "refine Water Ice from Volatile Ice."
+hidden = false
+
+[[actions]]
+name = "RefineVolatileIceToMethaneIce"
+emoji = "MV"
+description = "refine Methane Ice from Volatile Ice."
+hidden = false
+
+[[actions]]
+name = "RefineVolatileIceToAmmoniaIce"
+emoji = "MV"
+description = "refine Ammonia Ice from Volatile Ice."
+hidden = false
+
+[[actions]]
+name = "RefineLightMetalOreToAluminum"
+emoji = "MV"
+description = "refine Aluminum from Light-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefineLightMetalOreToTitanium"
+emoji = "MV"
+description = "refine Titanium from Light-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefineLightMetalOreToLithium"
+emoji = "MV"
+description = "refine Lithium from Light-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefinePreciousMetalOreToSilver"
+emoji = "MV"
+description = "refine Silver from Precious-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefinePreciousMetalOreToGold"
+emoji = "MV"
+description = "refine Gold from Precious-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefinePreciousMetalOreToPlatinum"
+emoji = "MV"
+description = "refine Platinum from Precious-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefineNuclearOreToUranium"
+emoji = "MV"
+description = "refine Uranium from Nuclear Ore."
+hidden = false
+
+[[actions]]
+name = "RefineNuclearOreToThorium"
+emoji = "MV"
+description = "refine Thorium from Nuclear Ore."
+hidden = false
+
+[[actions]]
+name = "RefineNuclearOreToRadium"
+emoji = "MV"
+description = "refine Radium from Nuclear Ore."
+hidden = false
+
+[[actions]]
+name = "RefineCarbonaceousDepositToCarbon"
+emoji = "MV"
+description = "refine Carbon from Carbonaceous Deposit."
+hidden = false
+
+[[actions]]
+name = "RefineCarbonaceousDepositToGraphite"
+emoji = "MV"
+description = "refine Graphite from Carbonaceous Deposit."
+hidden = false
+
+[[actions]]
+name = "RefineCarbonaceousDepositToDiamond"
+emoji = "MV"
+description = "refine Diamond from Carbonaceous Deposit."
+hidden = false
+
+[[actions]]
+name = "RefineFertilizerMineralToPhosphate"
+emoji = "MV"
+description = "refine Phosphate from Fertilizer Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineFertilizerMineralToSulfur"
+emoji = "MV"
+description = "refine Sulfur from Fertilizer Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineFertilizerMineralToPotash"
+emoji = "MV"
+description = "refine Potash from Fertilizer Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineStructuralSalvageToSteel"
+emoji = "MV"
+description = "refine Steel from Structural Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineStructuralSalvageToAluminum"
+emoji = "MV"
+description = "refine Aluminum from Structural Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineStructuralSalvageToCarbonComposite"
+emoji = "MV"
+description = "refine Carbon Composite from Structural Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineElectronicSalvageToCopper"
+emoji = "MV"
+description = "refine Copper from Electronic Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineElectronicSalvageToSilicon"
+emoji = "MV"
+description = "refine Silicon from Electronic Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineElectronicSalvageToGold"
+emoji = "MV"
+description = "refine Gold from Electronic Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineCeramicSalvageToCeramic"
+emoji = "MV"
+description = "refine Ceramic from Ceramic Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineCeramicSalvageToGlass"
+emoji = "MV"
+description = "refine Glass from Ceramic Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineCeramicSalvageToSiliconCarbide"
+emoji = "MV"
+description = "refine Silicon Carbide from Ceramic Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineOrganicOreToMethanol"
+emoji = "MV"
+description = "refine Methanol from Organic Ore."
+hidden = false
+
+[[actions]]
+name = "RefineOrganicOreToFormaldehyde"
+emoji = "MV"
+description = "refine Formaldehyde from Organic Ore."
+hidden = false
+
+[[actions]]
+name = "RefineOrganicOreToBenzene"
+emoji = "MV"
+description = "refine Benzene from Organic Ore."
+hidden = false
+
+[[actions]]
+name = "RefineDenseMetalOreToLead"
+emoji = "MV"
+description = "refine Lead from Dense-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefineDenseMetalOreToNickel"
+emoji = "MV"
+description = "refine Nickel from Dense-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefineDenseMetalOreToCobalt"
+emoji = "MV"
+description = "refine Cobalt from Dense-Metal Ore."
+hidden = false
+
+[[actions]]
+name = "RefineRareEarthOreToCerium"
+emoji = "MV"
+description = "refine Cerium from Rare-Earth Ore."
+hidden = false
+
+[[actions]]
+name = "RefineRareEarthOreToLanthanum"
+emoji = "MV"
+description = "refine Lanthanum from Rare-Earth Ore."
+hidden = false
+
+[[actions]]
+name = "RefineRareEarthOreToNeodymium"
+emoji = "MV"
+description = "refine Neodymium from Rare-Earth Ore."
+hidden = false
+
+[[actions]]
+name = "RefineRedDwarfPlasmaToIonizedHydrogen"
+emoji = "MV"
+description = "refine Ionized Hydrogen from Red-Dwarf Plasma."
+hidden = false
+
+[[actions]]
+name = "RefineRedDwarfPlasmaToIonizedHelium"
+emoji = "MV"
+description = "refine Ionized Helium from Red-Dwarf Plasma."
+hidden = false
+
+[[actions]]
+name = "RefineRedDwarfPlasmaToElectronPlasma"
+emoji = "MV"
+description = "refine Electron Plasma from Red-Dwarf Plasma."
+hidden = false
+
+[[actions]]
+name = "RefineMagneticStellarCondensateToFerriteDust"
+emoji = "MV"
+description = "refine Ferrite Dust from Magnetic Stellar Condensate."
+hidden = false
+
+[[actions]]
+name = "RefineMagneticStellarCondensateToMagnetiteGrain"
+emoji = "MV"
+description = "refine Magnetite Grain from Magnetic Stellar Condensate."
+hidden = false
+
+[[actions]]
+name = "RefineMagneticStellarCondensateToCobaltFerrite"
+emoji = "MV"
+description = "refine Cobalt Ferrite from Magnetic Stellar Condensate."
+hidden = false
+
+[[actions]]
+name = "RefinePhotosphericPlasmaToProtonPlasma"
+emoji = "MV"
+description = "refine Proton Plasma from Photospheric Plasma."
+hidden = false
+
+[[actions]]
+name = "RefinePhotosphericPlasmaToAlphaParticlePlasma"
+emoji = "MV"
+description = "refine Alpha-Particle Plasma from Photospheric Plasma."
+hidden = false
+
+[[actions]]
+name = "RefinePhotosphericPlasmaToPhotosphericElectronPlasma"
+emoji = "MV"
+description = "refine Photospheric Electron Plasma from Photospheric Plasma."
+hidden = false
+
+[[actions]]
+name = "RefinePhotosphericMineralToCalciumIonDust"
+emoji = "MV"
+description = "refine Calcium Ion Dust from Photospheric Mineral."
+hidden = false
+
+[[actions]]
+name = "RefinePhotosphericMineralToSodiumIonDust"
+emoji = "MV"
+description = "refine Sodium Ion Dust from Photospheric Mineral."
+hidden = false
+
+[[actions]]
+name = "RefinePhotosphericMineralToMagnesiumIonDust"
+emoji = "MV"
+description = "refine Magnesium Ion Dust from Photospheric Mineral."
+hidden = false
+
+[[actions]]
+name = "RefineHeliumCarbonEjectaToHelium3"
+emoji = "MV"
+description = "refine Helium-3 from Helium-Carbon Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineHeliumCarbonEjectaToCarbon12"
+emoji = "MV"
+description = "refine Carbon-12 from Helium-Carbon Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineHeliumCarbonEjectaToOxygen16"
+emoji = "MV"
+description = "refine Oxygen-16 from Helium-Carbon Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineHeavyElementCondensateToStrontium"
+emoji = "MV"
+description = "refine Strontium from Heavy-Element Condensate."
+hidden = false
+
+[[actions]]
+name = "RefineHeavyElementCondensateToBarium"
+emoji = "MV"
+description = "refine Barium from Heavy-Element Condensate."
+hidden = false
+
+[[actions]]
+name = "RefineHeavyElementCondensateToEuropium"
+emoji = "MV"
+description = "refine Europium from Heavy-Element Condensate."
+hidden = false
+
+[[actions]]
+name = "RefineIgneousRockToBasalt"
+emoji = "MV"
+description = "refine Basalt from Igneous Rock."
+hidden = false
+
+[[actions]]
+name = "RefineIgneousRockToGranite"
+emoji = "MV"
+description = "refine Granite from Igneous Rock."
+hidden = false
+
+[[actions]]
+name = "RefineIgneousRockToObsidian"
+emoji = "MV"
+description = "refine Obsidian from Igneous Rock."
+hidden = false
+
+[[actions]]
+name = "RefineSeafloorSulfideOreToPyrite"
+emoji = "MV"
+description = "refine Pyrite from Seafloor Sulfide Ore."
+hidden = false
+
+[[actions]]
+name = "RefineSeafloorSulfideOreToChalcopyrite"
+emoji = "MV"
+description = "refine Chalcopyrite from Seafloor Sulfide Ore."
+hidden = false
+
+[[actions]]
+name = "RefineSeafloorSulfideOreToSphalerite"
+emoji = "MV"
+description = "refine Sphalerite from Seafloor Sulfide Ore."
+hidden = false
+
+[[actions]]
+name = "RefineMarineBiomassToAlgalFiber"
+emoji = "MV"
+description = "refine Algal Fiber from Marine Biomass."
+hidden = false
+
+[[actions]]
+name = "RefineMarineBiomassToMarineProtein"
+emoji = "MV"
+description = "refine Marine Protein from Marine Biomass."
+hidden = false
+
+[[actions]]
+name = "RefineMarineBiomassToAlgalOil"
+emoji = "MV"
+description = "refine Algal Oil from Marine Biomass."
+hidden = false
+
+[[actions]]
+name = "RefineLivingSoilToHumus"
+emoji = "MV"
+description = "refine Humus from Living Soil."
+hidden = false
+
+[[actions]]
+name = "RefineLivingSoilToMycorrhizalCulture"
+emoji = "MV"
+description = "refine Mycorrhizal Culture from Living Soil."
+hidden = false
+
+[[actions]]
+name = "RefineLivingSoilToSoilMicrobiome"
+emoji = "MV"
+description = "refine Soil Microbiome from Living Soil."
+hidden = false
+
+[[actions]]
+name = "RefineDeepAtmosphereGasToAmmoniaVapor"
+emoji = "MV"
+description = "refine Ammonia Vapor from Deep-Atmosphere Gas."
+hidden = false
+
+[[actions]]
+name = "RefineDeepAtmosphereGasToMethaneVapor"
+emoji = "MV"
+description = "refine Methane Vapor from Deep-Atmosphere Gas."
+hidden = false
+
+[[actions]]
+name = "RefineDeepAtmosphereGasToHydrogenSulfide"
+emoji = "MV"
+description = "refine Hydrogen Sulfide from Deep-Atmosphere Gas."
+hidden = false
+
+[[actions]]
+name = "RefineHydrocarbonCloudToEthane"
+emoji = "MV"
+description = "refine Ethane from Hydrocarbon Cloud."
+hidden = false
+
+[[actions]]
+name = "RefineHydrocarbonCloudToPropane"
+emoji = "MV"
+description = "refine Propane from Hydrocarbon Cloud."
+hidden = false
+
+[[actions]]
+name = "RefineHydrocarbonCloudToAcetylene"
+emoji = "MV"
+description = "refine Acetylene from Hydrocarbon Cloud."
+hidden = false
+
+[[actions]]
+name = "RefineCryogenicVolatileToLiquidMethane"
+emoji = "MV"
+description = "refine Liquid Methane from Cryogenic Volatile."
+hidden = false
+
+[[actions]]
+name = "RefineCryogenicVolatileToLiquidAmmonia"
+emoji = "MV"
+description = "refine Liquid Ammonia from Cryogenic Volatile."
+hidden = false
+
+[[actions]]
+name = "RefineCryogenicVolatileToSuperionicWater"
+emoji = "MV"
+description = "refine Superionic Water from Cryogenic Volatile."
+hidden = false
+
+[[actions]]
+name = "RefineIceMantleMaterialToHighPressureIce"
+emoji = "MV"
+description = "refine High-Pressure Ice from Ice-Mantle Material."
+hidden = false
+
+[[actions]]
+name = "RefineIceMantleMaterialToMethaneClathrate"
+emoji = "MV"
+description = "refine Methane Clathrate from Ice-Mantle Material."
+hidden = false
+
+[[actions]]
+name = "RefineIceMantleMaterialToAmmoniaHydrate"
+emoji = "MV"
+description = "refine Ammonia Hydrate from Ice-Mantle Material."
+hidden = false
+
+[[actions]]
+name = "RefineRProcessEjectaToOsmium"
+emoji = "MV"
+description = "refine Osmium from R-Process Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineRProcessEjectaToIridium"
+emoji = "MV"
+description = "refine Iridium from R-Process Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineRProcessEjectaToRhenium"
+emoji = "MV"
+description = "refine Rhenium from R-Process Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineDegenerateCrustMaterialToNuclearPasta"
+emoji = "MV"
+description = "refine Nuclear Pasta from Degenerate-Crust Material."
+hidden = false
+
+[[actions]]
+name = "RefineDegenerateCrustMaterialToNeutronRichAlloy"
+emoji = "MV"
+description = "refine Neutron-Rich Alloy from Degenerate-Crust Material."
+hidden = false
+
+[[actions]]
+name = "RefineDegenerateCrustMaterialToSuperdenseCarbon"
+emoji = "MV"
+description = "refine Superdense Carbon from Degenerate-Crust Material."
+hidden = false
+
+[[actions]]
+name = "RefineAccretionDiskMatterToIonizedIron"
+emoji = "MV"
+description = "refine Ionized Iron from Accretion-Disk Matter."
+hidden = false
+
+[[actions]]
+name = "RefineAccretionDiskMatterToCarbonPlasma"
+emoji = "MV"
+description = "refine Carbon Plasma from Accretion-Disk Matter."
+hidden = false
+
+[[actions]]
+name = "RefineAccretionDiskMatterToSilicatePlasma"
+emoji = "MV"
+description = "refine Silicate Plasma from Accretion-Disk Matter."
+hidden = false
+
+[[actions]]
+name = "RefineRelativisticPlasmaToPairPlasma"
+emoji = "MV"
+description = "refine Pair Plasma from Relativistic Plasma."
+hidden = false
+
+[[actions]]
+name = "RefineRelativisticPlasmaToSynchrotronPlasma"
+emoji = "MV"
+description = "refine Synchrotron Plasma from Relativistic Plasma."
+hidden = false
+
+[[actions]]
+name = "RefineRelativisticPlasmaToRelativisticIonBeam"
+emoji = "MV"
+description = "refine Relativistic Ion Beam from Relativistic Plasma."
+hidden = false
+
+[[actions]]
+name = "RefinePhaseShiftedMatterToMetastableIsotope"
+emoji = "MV"
+description = "refine Metastable Isotope from Phase-Shifted Matter."
+hidden = false
+
+[[actions]]
+name = "RefinePhaseShiftedMatterToPhaseLockedCrystal"
+emoji = "MV"
+description = "refine Phase-Locked Crystal from Phase-Shifted Matter."
+hidden = false
+
+[[actions]]
+name = "RefinePhaseShiftedMatterToVacuumPolarizedMatter"
+emoji = "MV"
+description = "refine Vacuum-Polarized Matter from Phase-Shifted Matter."
+hidden = false
+
+[[actions]]
+name = "RefinePolymerSalvageToThermoplastic"
+emoji = "MV"
+description = "refine Thermoplastic from Polymer Salvage."
+hidden = false
+
+[[actions]]
+name = "RefinePolymerSalvageToThermosetResin"
+emoji = "MV"
+description = "refine Thermoset Resin from Polymer Salvage."
+hidden = false
+
+[[actions]]
+name = "RefinePolymerSalvageToElastomer"
+emoji = "MV"
+description = "refine Elastomer from Polymer Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineOpticalSalvageToOpticalGlass"
+emoji = "MV"
+description = "refine Optical Glass from Optical Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineOpticalSalvageToPhotonicCrystal"
+emoji = "MV"
+description = "refine Photonic Crystal from Optical Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineOpticalSalvageToLaserCrystal"
+emoji = "MV"
+description = "refine Laser Crystal from Optical Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineMolecularCloudGasToMolecularHydrogen"
+emoji = "MV"
+description = "refine Molecular Hydrogen from Molecular-Cloud Gas."
+hidden = false
+
+[[actions]]
+name = "RefineMolecularCloudGasToCarbonMonoxide"
+emoji = "MV"
+description = "refine Carbon Monoxide from Molecular-Cloud Gas."
+hidden = false
+
+[[actions]]
+name = "RefineMolecularCloudGasToHydrogenCyanide"
+emoji = "MV"
+description = "refine Hydrogen Cyanide from Molecular-Cloud Gas."
+hidden = false
+
+[[actions]]
+name = "RefineInterstellarDustToSilicateDust"
+emoji = "MV"
+description = "refine Silicate Dust from Interstellar Dust."
+hidden = false
+
+[[actions]]
+name = "RefineInterstellarDustToCarbonDust"
+emoji = "MV"
+description = "refine Carbon Dust from Interstellar Dust."
+hidden = false
+
+[[actions]]
+name = "RefineInterstellarDustToIceGrain"
+emoji = "MV"
+description = "refine Ice Grain from Interstellar Dust."
+hidden = false
+
+[[actions]]
+name = "RefineSupernovaEjectaToCalcium44"
+emoji = "MV"
+description = "refine Calcium-44 from Supernova Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineSupernovaEjectaToTitanium44"
+emoji = "MV"
+description = "refine Titanium-44 from Supernova Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineSupernovaEjectaToNickel56"
+emoji = "MV"
+description = "refine Nickel-56 from Supernova Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineRadioisotopeDepositToCobalt60"
+emoji = "MV"
+description = "refine Cobalt-60 from Radioisotope Deposit."
+hidden = false
+
+[[actions]]
+name = "RefineRadioisotopeDepositToCesium137"
+emoji = "MV"
+description = "refine Cesium-137 from Radioisotope Deposit."
+hidden = false
+
+[[actions]]
+name = "RefineRadioisotopeDepositToStrontium90"
+emoji = "MV"
+description = "refine Strontium-90 from Radioisotope Deposit."
+hidden = false
+
+[[actions]]
+name = "RefineStellarRefractoryDustToCorundum"
+emoji = "MV"
+description = "refine Corundum from Stellar Refractory Dust."
+hidden = false
+
+[[actions]]
+name = "RefineStellarRefractoryDustToSpinel"
+emoji = "MV"
+description = "refine Spinel from Stellar Refractory Dust."
+hidden = false
+
+[[actions]]
+name = "RefineStellarRefractoryDustToPerovskite"
+emoji = "MV"
+description = "refine Perovskite from Stellar Refractory Dust."
+hidden = false
+
+[[actions]]
+name = "RefineSolarWindCondensateToLithium7"
+emoji = "MV"
+description = "refine Lithium-7 from Solar-Wind Condensate."
+hidden = false
+
+[[actions]]
+name = "RefineSolarWindCondensateToBeryllium9"
+emoji = "MV"
+description = "refine Beryllium-9 from Solar-Wind Condensate."
+hidden = false
+
+[[actions]]
+name = "RefineSolarWindCondensateToBoron11"
+emoji = "MV"
+description = "refine Boron-11 from Solar-Wind Condensate."
+hidden = false
+
+[[actions]]
+name = "RefineSProcessEjectaToYttrium"
+emoji = "MV"
+description = "refine Yttrium from S-Process Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineSProcessEjectaToZirconium"
+emoji = "MV"
+description = "refine Zirconium from S-Process Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineSProcessEjectaToMolybdenum"
+emoji = "MV"
+description = "refine Molybdenum from S-Process Ejecta."
+hidden = false
+
+[[actions]]
+name = "RefineSedimentaryRockToSandstone"
+emoji = "MV"
+description = "refine Sandstone from Sedimentary Rock."
+hidden = false
+
+[[actions]]
+name = "RefineSedimentaryRockToShale"
+emoji = "MV"
+description = "refine Shale from Sedimentary Rock."
+hidden = false
+
+[[actions]]
+name = "RefineSedimentaryRockToDolomite"
+emoji = "MV"
+description = "refine Dolomite from Sedimentary Rock."
+hidden = false
+
+[[actions]]
+name = "RefineDissolvedTraceMineralsToBromine"
+emoji = "MV"
+description = "refine Bromine from Dissolved Trace Minerals."
+hidden = false
+
+[[actions]]
+name = "RefineDissolvedTraceMineralsToIodine"
+emoji = "MV"
+description = "refine Iodine from Dissolved Trace Minerals."
+hidden = false
+
+[[actions]]
+name = "RefineDissolvedTraceMineralsToBoron"
+emoji = "MV"
+description = "refine Boron from Dissolved Trace Minerals."
+hidden = false
+
+[[actions]]
+name = "RefinePlantExtractToStarch"
+emoji = "MV"
+description = "refine Starch from Plant Extract."
+hidden = false
+
+[[actions]]
+name = "RefinePlantExtractToSucrose"
+emoji = "MV"
+description = "refine Sucrose from Plant Extract."
+hidden = false
+
+[[actions]]
+name = "RefinePlantExtractToLignin"
+emoji = "MV"
+description = "refine Lignin from Plant Extract."
+hidden = false
+
+[[actions]]
+name = "RefineSulfurCloudToSulfurDioxide"
+emoji = "MV"
+description = "refine Sulfur Dioxide from Sulfur Cloud."
+hidden = false
+
+[[actions]]
+name = "RefineSulfurCloudToAmmoniumHydrosulfide"
+emoji = "MV"
+description = "refine Ammonium Hydrosulfide from Sulfur Cloud."
+hidden = false
+
+[[actions]]
+name = "RefineSulfurCloudToPolysulfurAerosol"
+emoji = "MV"
+description = "refine Polysulfur Aerosol from Sulfur Cloud."
+hidden = false
+
+[[actions]]
+name = "RefineAlkaliMineralOreToSodium"
+emoji = "MV"
+description = "refine Sodium from Alkali Mineral Ore."
+hidden = false
+
+[[actions]]
+name = "RefineAlkaliMineralOreToPotassium"
+emoji = "MV"
+description = "refine Potassium from Alkali Mineral Ore."
+hidden = false
+
+[[actions]]
+name = "RefineAlkaliMineralOreToRubidium"
+emoji = "MV"
+description = "refine Rubidium from Alkali Mineral Ore."
+hidden = false
+
+[[actions]]
+name = "RefineMagnetosphericParticleFluxToPositronPlasma"
+emoji = "MV"
+description = "refine Positron Plasma from Magnetospheric Particle Flux."
+hidden = false
+
+[[actions]]
+name = "RefineMagnetosphericParticleFluxToMuonFlux"
+emoji = "MV"
+description = "refine Muon Flux from Magnetospheric Particle Flux."
+hidden = false
+
+[[actions]]
+name = "RefineMagnetosphericParticleFluxToHeavyIonFlux"
+emoji = "MV"
+description = "refine Heavy-Ion Flux from Magnetospheric Particle Flux."
+hidden = false
+
+[[actions]]
+name = "RefineAccretionAerosolToIronOxideAerosol"
+emoji = "MV"
+description = "refine Iron Oxide Aerosol from Accretion Aerosol."
+hidden = false
+
+[[actions]]
+name = "RefineAccretionAerosolToSilicateAerosol"
+emoji = "MV"
+description = "refine Silicate Aerosol from Accretion Aerosol."
+hidden = false
+
+[[actions]]
+name = "RefineAccretionAerosolToCarbonaceousAerosol"
+emoji = "MV"
+description = "refine Carbonaceous Aerosol from Accretion Aerosol."
+hidden = false
+
+[[actions]]
+name = "RefineMechanicalSalvageToBearingSteel"
+emoji = "MV"
+description = "refine Bearing Steel from Mechanical Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineMechanicalSalvageToToolSteel"
+emoji = "MV"
+description = "refine Tool Steel from Mechanical Salvage."
+hidden = false
+
+[[actions]]
+name = "RefineMechanicalSalvageToIndustrialLubricant"
+emoji = "MV"
+description = "refine Industrial Lubricant from Mechanical Salvage."
+hidden = false
+
+[[actions]]
+name = "RefinePrebioticMoleculeMixtureToGlycine"
+emoji = "MV"
+description = "refine Glycine from Prebiotic Molecule Mixture."
+hidden = false
+
+[[actions]]
+name = "RefinePrebioticMoleculeMixtureToFormamide"
+emoji = "MV"
+description = "refine Formamide from Prebiotic Molecule Mixture."
+hidden = false
+
+[[actions]]
+name = "RefinePrebioticMoleculeMixtureToAcetonitrile"
+emoji = "MV"
+description = "refine Acetonitrile from Prebiotic Molecule Mixture."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIndustrialFabricationSkill"
+emoji = "MV"
+description = "develop reusable Industrial Fabrication Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIElectronicsSkill"
+emoji = "MV"
+description = "develop reusable Electronics Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIChemicalEngineeringSkill"
+emoji = "MV"
+description = "develop reusable Chemical Engineering Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeINuclearEngineeringSkill"
+emoji = "MV"
+description = "develop reusable Nuclear Engineering Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIGeneticEngineeringSkill"
+emoji = "MV"
+description = "develop reusable Genetic Engineering Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIPlanetaryInfrastructureSkill"
+emoji = "MV"
+description = "develop reusable Planetary Infrastructure Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIMetamaterialEngineeringSkill"
+emoji = "MV"
+description = "develop reusable Metamaterial Engineering Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIStellarEnergySystemsSkill"
+emoji = "MV"
+description = "develop reusable Stellar Energy Systems Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIISyntheticIntelligenceSkill"
+emoji = "MV"
+description = "develop reusable Synthetic Intelligence Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIMolecularFabricationSkill"
+emoji = "MV"
+description = "develop reusable Molecular Fabrication Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIInterstellarNavigationSkill"
+emoji = "MV"
+description = "develop reusable Interstellar Navigation Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIBiosphereEngineeringSkill"
+emoji = "MV"
+description = "develop reusable Biosphere Engineering Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIIExoticMatterEngineeringSkill"
+emoji = "MV"
+description = "develop reusable Exotic Matter Engineering Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIISpacetimeEngineeringSkill"
+emoji = "MV"
+description = "develop reusable Spacetime Engineering Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIIGalacticIntelligenceArchitectureSkill"
+emoji = "MV"
+description = "develop reusable Galactic Intelligence Architecture Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIIStellarEngineeringSkill"
+emoji = "MV"
+description = "develop reusable Stellar Engineering Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIIWorldSeedingSkill"
+emoji = "MV"
+description = "develop reusable World Seeding Skill."
+hidden = false
+
+[[actions]]
+name = "DevelopTypeIIICivilizationEngineeringSkill"
+emoji = "MV"
+description = "develop reusable Civilization Engineering Skill."
+hidden = false
+
+[[actions]]
+name = "UseTechnologySkill"
+emoji = "MV"
+description = "prove possession of a reusable TechnologySkill and prepare the Ship for one gated action."
+hidden = false
+
+[[actions]]
+name = "CreateLargeShipConstructionPermit"
+emoji = "MV"
+description = "create a location-bound permit for one Large Ship."
+hidden = false
+
+[[actions]]
+name = "AuthorizeLargeShipIndustrial"
+emoji = "MV"
+description = "authorize Large Ship construction with Industrial Fabrication."
+hidden = false
+
+[[actions]]
+name = "AuthorizeLargeShipElectronics"
+emoji = "MV"
+description = "authorize Large Ship construction with Electronics."
+hidden = false
+
+[[actions]]
+name = "AuthorizeLargeShipMolecular"
+emoji = "MV"
+description = "authorize Large Ship construction with Molecular Fabrication."
+hidden = false
+
+[[actions]]
+name = "IssueAuxiliaryShipPermit"
+emoji = "MV"
+description = "issue the one deterministic auxiliary build permit for a Large Ship."
+hidden = false
+
+[[actions]]
+name = "BuildAuxiliaryShipSmall"
+emoji = "MV"
+description = "atomically consume the Large Ship's one-use permit and complete the Small Ship recipe at the permit's proven location."
+hidden = false
+
+[[actions]]
+name = "BuildAuxiliaryShipMedium"
+emoji = "MV"
+description = "atomically consume the Large Ship's one-use permit and complete the Medium Ship recipe at the permit's proven location."
+hidden = false
