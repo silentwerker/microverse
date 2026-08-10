@@ -1,6 +1,7 @@
-__pycache__/
-*.py[cod]
-
-# Reproducible build, compiler, and test output.
-target/
-tools/commitment-wasm/target/
+# Keep this repository limited to its public release artifacts.
+/*
+!/.gitignore
+!/manifest.toml
+!/microverse.html
+!/microverse.pexe
+!/plugin.rhai
