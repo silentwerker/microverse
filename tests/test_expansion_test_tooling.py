@@ -1006,7 +1006,7 @@ class ExpansionTestToolingTests(unittest.TestCase):
                     )
                     self.assertEqual("pass", layout["status"], layout)
                     self.assertTrue(all(layout["checks"].values()), layout)
-                    self.assertEqual(921, layout["simple_wrapper_count"])
+                    self.assertEqual(570, layout["simple_wrapper_count"])
                     self.assertEqual(
                         production_generator.REFACTOR_PHASE6_LAYOUT_TARGETS[
                             profile
@@ -1020,7 +1020,7 @@ class ExpansionTestToolingTests(unittest.TestCase):
     def test_phase6_layout_is_token_exact_idempotent_and_fail_closed(self) -> None:
         actions, plugin = self.production_audit_inputs()
         simple_routes = production_generator.phase6_simple_adapter_helpers()
-        self.assertEqual(921, len(simple_routes))
+        self.assertEqual(570, len(simple_routes))
         extract_gas = production_generator.action_function_source(
             plugin, "ExtractGas"
         )
@@ -1741,16 +1741,16 @@ print(json.dumps({
         self.assertEqual(
             {
                 "expected_vdf_calls": 1352,
-                "expected_threshold_u256_calls": 23,
-                "explicit_action_identity_actions": 603,
-                "expected_stable_identifier_selection_calls": 0,
-                "expected_total_calls": 1375,
+                "expected_threshold_u256_calls": 0,
+                "explicit_action_identity_actions": 595,
+                "expected_stable_identifier_selection_calls": 307,
+                "expected_total_calls": 1659,
                 "observed_vdf_calls": 1352,
-                "observed_threshold_u256_calls": 23,
-                "observed_stable_identifier_selection_calls": 0,
-                "observed_total_calls": 1375,
+                "observed_threshold_u256_calls": 0,
+                "observed_stable_identifier_selection_calls": 307,
+                "observed_total_calls": 1659,
                 "physical_vdf_calls": 71,
-                "physical_u256_calls": 1,
+                "physical_u256_calls": 307,
                 "passed": True,
             },
             audit["configured_catalog_coverage"],
@@ -1801,9 +1801,9 @@ print(json.dumps({
             if (target, method) == ("signal", "set")
         )
         self.assertIn('["category_code",2]', signal_set)
-        self.assertIn('["candidate_code",0]', signal_set)
+        self.assertIn('["candidate_code",-1]', signal_set)
         self.assertNotIn('["2",2]', signal_set)
-        self.assertNotIn('["0",0]', signal_set)
+        self.assertNotIn('["-1",-1]', signal_set)
 
         self.assertEqual(23, sum(
             source.count("detect_signal_core(") == 1
@@ -1860,7 +1860,7 @@ print(json.dumps({
                 plugin,
                 audit["detect_action"],
                 lambda source: source.replace(
-                    "sector,2,0,", "sector,0,0,", 1
+                    "sector,2,-1,", "sector,0,-1,", 1
                 ),
             ),
             "helper_call": production_generator.replace_action_function(
@@ -1929,13 +1929,13 @@ print(json.dumps({
                 f"category_{candidate['code']}": production_generator.replace_action_function(
                     plugin, action_name, lambda source, category=category, candidate=candidate:
                     source.replace(
-                        f"sector,{category['code']},{candidate['code']},",
-                        f"sector,0,{candidate['code']},", 1),
+                        f"sector,{category['code']},{production_generator.UNRESOLVED_CANDIDATE_CODE},",
+                        f"sector,0,{production_generator.UNRESOLVED_CANDIDATE_CODE},", 1),
                 ),
                 f"candidate_{candidate['code']}": production_generator.replace_action_function(
                     plugin, action_name, lambda source, category=category, candidate=candidate:
                     source.replace(
-                        f"sector,{category['code']},{candidate['code']},",
+                        f"sector,{category['code']},{production_generator.UNRESOLVED_CANDIDATE_CODE},",
                         f"sector,{category['code']},99,", 1),
                 ),
                 f"remaining_{candidate['code']}": production_generator.replace_action_function(
@@ -2108,17 +2108,17 @@ print(json.dumps({
                 self.assertEqual(
                     (
                         {
-                            "st_sum": 574, "st_gt": 74, "unsafe": 288,
+                            "st_sum": 575, "st_gt": 73, "unsafe": 288,
                             "random": 66, "var_assign": 17,
                             "rotate_key": 44, "intro_vdf": 54,
-                            "intro_lt_eq_u256": 1,
+                            "intro_lt_eq_u256": 307,
                         }
                         if profile == "current"
                         else {
-                            "st_sum": 586, "st_gt": 64, "unsafe": 278,
+                            "st_sum": 587, "st_gt": 63, "unsafe": 278,
                             "random": 60, "var_assign": 17,
                             "rotate_key": 38, "intro_vdf": 71,
-                            "intro_lt_eq_u256": 1,
+                            "intro_lt_eq_u256": 307,
                         }
                     ),
                     profile_census["physical"],
@@ -2329,7 +2329,7 @@ print(json.dumps({
             self.assertFalse(census["canonical_release_profile"])
             self.assertEqual(1638, census["plugin"]["action_count"])
             self.assertEqual(659, census["logical_proof_counts"]["intro_vdf"])
-            self.assertEqual(23, census["logical_proof_counts"]["intro_lt_eq_u256"])
+            self.assertEqual(307, census["logical_proof_counts"]["intro_lt_eq_u256"])
             self.assertEqual(
                 {
                     "st_sum": -327, "st_gt": 0, "unsafe": 0,
@@ -2348,7 +2348,15 @@ print(json.dumps({
                 (production_generator.replace_named_function(plugin, "extract_base_vdf_4_core", lambda s: s.replace("extract_direct_resource_core", "action.st_sum(ship.x, 0, ship.x);\nextract_direct_resource_core", 1)), actions),
                 (plugin + '\nfn unused_current_proof() { action.st_sum(1, 0, 1); }\n', actions),
                 (production_generator.replace_named_function(plugin, "extract_base_vdf_4_core", lambda s: s.replace("intro_vdf(4,body)", "intro_vdf(5,body)", 1)), actions),
-                (plugin.replace("action.intro_lt_eq_u256(signal,target);", "action.intro_lt_eq_u256(signal,target);\naction.intro_lt_eq_u256(signal,target);", 1), actions),
+                (
+                    plugin.replace(
+                        "action.intro_lt_eq_u256(signal,body_selector_upper);",
+                        "action.intro_lt_eq_u256(signal,body_selector_upper);\n"
+                        "action.intro_lt_eq_u256(signal,body_selector_upper);",
+                        1,
+                    ),
+                    actions,
+                ),
             ):
                 self.assertEqual("fail", production_generator.refactor_census(mutant, mutant_actions)["status"])
         finally:
@@ -2437,11 +2445,19 @@ print(json.dumps({
             if action.get("selection_mode")
             == production_generator.EXPLICIT_SELECTION_MODE
         ]
-        self.assertEqual(603, len(selected))
-        self.assertEqual(1, plugin.count("action.intro_lt_eq_u256("))
+        deterministic = [
+            action
+            for action in actions
+            if action.get("selection_mode")
+            == production_generator.DETERMINISTIC_SELECTOR_MODE
+        ]
+        self.assertEqual(595, len(selected))
+        self.assertEqual(401, len(deterministic))
+        self.assertEqual(307, plugin.count("action.intro_lt_eq_u256("))
         self.assertNotIn("stable_identifier_profile_band", json.dumps(actions))
 
         by_name = {action["name"]: action for action in actions}
+        survey_bands = production_generator.survey_selector_bands()
         for profile in production_generator.SURVEY_PROFILES:
             name = f"SurveySector_{profile['code']:02d}_{profile['slug']}"
             source = production_generator.action_function_source(plugin, name)
@@ -2456,9 +2472,28 @@ print(json.dumps({
                     f"{profile['minimum_claim_serial'] - 1});",
                 )
             )
-            self.assertNotIn("intro_lt_eq_u256", source)
-            self.assertNotIn("sector.stable_identifier", source)
+            self.assertEqual(
+                production_generator.DETERMINISTIC_SELECTOR_MODE,
+                by_name[name]["selection_mode"],
+            )
+            self.assertEqual(
+                "sector.stable_identifier", by_name[name]["selector_subject"]
+            )
+            self.assertEqual(
+                survey_bands[profile["code"]], by_name[name]["selector_band"]
+            )
+            self.assertTrue(
+                production_generator.rhai_contains(
+                    source,
+                    production_generator.selector_constraints_source(
+                        "sector",
+                        survey_bands[profile["code"]],
+                        prefix="survey_selector",
+                    ),
+                )
+            )
 
+        civilization_bands = production_generator.civilization_selector_bands()
         for civilization_type in production_generator.CIVILIZATION_TYPES:
             name = civilization_type["action"]
             source = production_generator.action_function_source(plugin, name)
@@ -2471,6 +2506,28 @@ print(json.dumps({
                     source,
                     "action.st_gt(ship.civilization_scan_serial, "
                     f"{civilization_type['minimum_civilization_scan_serial'] - 1});",
+                )
+            )
+            self.assertEqual(
+                production_generator.DETERMINISTIC_SELECTOR_MODE,
+                by_name[name]["selection_mode"],
+            )
+            self.assertEqual(
+                "life_signal.stable_identifier",
+                by_name[name]["selector_subject"],
+            )
+            self.assertEqual(
+                civilization_bands[civilization_type["code"]],
+                by_name[name]["selector_band"],
+            )
+            self.assertTrue(
+                production_generator.rhai_contains(
+                    source,
+                    production_generator.selector_constraints_source(
+                        "life_signal",
+                        civilization_bands[civilization_type["code"]],
+                        prefix="civilization_selector",
+                    ),
                 )
             )
 

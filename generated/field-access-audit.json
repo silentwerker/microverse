@@ -24,10 +24,10 @@
     "sensor_radius": 0
   },
   "intro_audit_status": "pass",
-  "literal_update_calls": 233,
+  "literal_update_calls": 234,
   "note": "Unsafe additions/subtractions are each paired with explicit st_sum constraints in generated action templates.",
-  "st_gt_statements": 64,
-  "st_sum_statements": 586,
+  "st_gt_statements": 63,
+  "st_sum_statements": 587,
   "status": "pass",
   "unsafe_arithmetic_blocks": 278
 }

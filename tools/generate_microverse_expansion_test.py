@@ -110,14 +110,14 @@ SHAPE_J_CONSTRUCTOR_ROLE_CONTRACTS: dict[str, tuple[tuple[str, str], ...]] = {
     ),
 }
 FINAL_PRODUCTION_HASHES = {
-    "production_plugin_sha256": "2e9f6416d12963273fa7bde5474bbfaad4d81e42010f3862654bd1ad2e423849",
-    "production_manifest_sha256": "4ddb3c833967a8e16dddb6f39d62bc88e278a203ef1e9b21fce6280a540a06c8",
-    "production_module_hash": "dc9a7eeac0ce15b8e6dd0305daa3fab84c2cfda992838222924269590522c0d4",
+    "production_plugin_sha256": "d96fc8c22480f88375b49752cee2de86b7723c413719be6b00fa6d3b38b65236",
+    "production_manifest_sha256": "b019a23bdaea44fbdc14515e4e3ac590cccf18f1b83b2a5c73e7d840b3b18181",
+    "production_module_hash": "92b83e13252fff2cd258d6de0b36b922e7e064185b6bc698fdd923496e48e02f",
     "production_warp_catalog_sha256": "25a045616fbe4921fb667f31568ae287c6576b0de23a56e03c8953f28c2f0cdb",
-    "production_catalog_index_sha256": "e3d4f7cd6b730a46bf2961d38b32aa4b7a4ae232a53b781e12d8903c9173d335",
+    "production_catalog_index_sha256": "8ceffab36fae6a97e0bca45bcf4c132c4542c36f4547a22da48d498515825470",
     "production_schema_counts_sha256": "c2a845287737c3df45eb6784d9e688898a4eaa1af4a7ec9a7d6a367526fb8a61",
-    "production_universe_contract_sha256": "38063ca2f5948fa4ed0a3b40a18426c89255f9e116a49e1e9089cabc88fbb0c3",
-    "production_action_contract_sha256": "5eebef72ddcf241638b5145d5cdd77b325aa5f60e1e74b59a8c7ea81f764e600",
+    "production_universe_contract_sha256": "2981efd1147275b3e32bd59e6c944362b56e29a461e1be4b4392a9eeaa7777ef",
+    "production_action_contract_sha256": "e4b63f1ef344da4df6b42cbaa833e6b6dc16a9d2413e88c9288905ce0b9ec628",
 }
 
 # The warp shard keeps every production helper because helper definitions are

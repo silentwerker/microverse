@@ -81,6 +81,75 @@ class ExpansionValidatorTests(unittest.TestCase):
             self.finding_codes(validation),
         )
 
+    def test_rhai_deterministic_selector_contracts_are_exact_and_fail_closed(
+        self,
+    ) -> None:
+        plugin = (ROOT / "plugin.rhai").read_text(encoding="utf-8")
+        index = json.loads(
+            (ROOT / "catalog" / "microverse-catalog-index-v2.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        functions = validator.extract_rhai_functions(plugin)
+        action_set = {
+            row["name"] for row in index["actions"]
+            if isinstance(row.get("name"), str)
+        }
+
+        def findings(
+            selected_functions: dict[str, str],
+            selected_index: dict | None = None,
+        ) -> set[str]:
+            validation = validator.Validation()
+            validator.validate_deterministic_selector_contracts(
+                selected_functions,
+                action_set,
+                index if selected_index is None else selected_index,
+                validation,
+                ROOT / "plugin.rhai",
+            )
+            return self.finding_codes(validation)
+
+        self.assertFalse(findings(functions))
+
+        survey_name = "SurveySector_01_Sparse"
+        survey = functions[survey_name]
+        commented_survey = survey.replace(
+            "action.intro_lt_eq_u256(sector,survey_selector_upper);",
+            "// action.intro_lt_eq_u256(sector,survey_selector_upper);",
+            1,
+        )
+        commented_functions = dict(functions)
+        commented_functions[survey_name] = commented_survey
+        self.assertIn(
+            "rhai.deterministic_selector_contract",
+            findings(commented_functions),
+        )
+
+        zero_band_name = "ScanCelestialBody_06_GasGiant"
+        zero_band_functions = dict(functions)
+        zero_band_functions[zero_band_name] = functions[zero_band_name].replace(
+            "scan_body_core(",
+            "let body_selector_upper=action.top_limb_u256(0);\n"
+            "action.intro_lt_eq_u256(signal,body_selector_upper);\n"
+            "scan_body_core(",
+            1,
+        )
+        self.assertIn(
+            "rhai.deterministic_selector_contract",
+            findings(zero_band_functions),
+        )
+
+        wrong_index = json.loads(json.dumps(index))
+        next(
+            row for row in wrong_index["actions"]
+            if row["name"] == survey_name
+        )["fixed_literals"]["selector_band"]["upper_top_limb"] -= 1
+        self.assertIn(
+            "rhai.deterministic_selector_contract",
+            findings(functions, wrong_index),
+        )
+
     def test_warp_schemas_are_exact_raw_int_contracts_end_to_end(self) -> None:
         warp_path = ROOT / "catalog" / "microverse-warp-tree-v2.json"
         index_path = ROOT / "catalog" / "microverse-catalog-index-v2.json"
@@ -2030,7 +2099,7 @@ name = "ConstructWormholeLink"
                 with self.subTest(profile=profile):
                     actions, plugin, index = render(profile)
                     self.assertEqual(
-                        921, len(validator.phase6_layout_adapter_names(index))
+                        570, len(validator.phase6_layout_adapter_names(index))
                     )
                     self.assertFalse({
                         code for code in findings(actions, plugin, index)
