@@ -1,9 +1,0 @@
-* text=auto eol=lf
-
-# These generated artifacts have byte-exact release hashes and may contain
-# intentional mixed line endings or long lines that Git can misclassify.
-microverse.html -text
-catalog/*.json -text
-
-*.pexe binary
-*.wasm binary
