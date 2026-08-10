@@ -139,6 +139,19 @@ def replace_once_regex(source: str, pattern: str, replacement: str) -> str:
     return updated
 
 
+def replace_exact_once(source: str, old: str, new: str) -> str:
+    count = source.count(old)
+    if count != 1:
+        raise ValueError(f"expected one exact match, found {count}: {old[:96]!r}")
+    return source.replace(old, new, 1)
+
+
+def replace_exact_or_current(source: str, old: str, new: str) -> str:
+    if source.count(new) == 1 and source.count(old) == 0:
+        return source
+    return replace_exact_once(source, old, new)
+
+
 def skill_rows(skill_catalog: dict) -> list[dict]:
     rows = []
     for root in skill_catalog["roots"]:
@@ -900,6 +913,188 @@ for(const tab of document.querySelectorAll('.tab'))tab.addEventListener('click',
 </script></body></html>'''
 
 
+def update_deterministic_runtime(
+    source: str,
+    action_contract: dict,
+    resource_catalog: dict,
+    universe: dict,
+) -> str:
+    """Bind browser-side eligibility and previews to the PEXE selector contract."""
+
+    actions = action_contract["actions"]
+    detect_rows = [row for row in actions if row["family"] == "detect_signal"]
+    scan_rows = [row for row in actions if row["family"] == "scan_body"]
+    survey_rows = [row for row in actions if row["family"] == "survey_sector"]
+    base_categories = [
+        (1, "Planet", "planet"),
+        (2, "Star", "star"),
+        (3, "Gas Giant", "gas_giant"),
+        (4, "Ice Giant", "ice_giant"),
+        (5, "Neutron Star", "neutron_star"),
+        (6, "Black Hole", "black_hole"),
+        (7, "Anomaly", "anomaly"),
+        (8, "Megastructure", "megastructure"),
+        (9, "Gas Cluster", "gas_cluster"),
+        (10, "Stellar Remnant", "stellar_remnant"),
+    ]
+    categories = {
+        code: {
+            "category_code": code,
+            "name": name,
+            "runtime_name": name,
+            "remaining_field": f"{stem}_remaining",
+            "serial_field": f"next_{stem}_serial",
+        }
+        for code, name, stem in base_categories
+    }
+    categories.update(
+        {
+            int(row["category_code"]): row
+            for row in resource_catalog["celestial_categories"]
+        }
+    )
+    if sorted(categories) != list(range(1, 12)):
+        raise ValueError("celestial categories must be exactly 1..11")
+    if len(detect_rows) != 23 or len(scan_rows) != 23 or len(survey_rows) != 5:
+        raise ValueError("deterministic discovery action census drift")
+    if sorted(row["candidate_code"] for row in detect_rows) != list(range(23)):
+        raise ValueError("detect candidate codes must be exactly 0..22")
+    if any(row.get("output_candidate_code") != -1 for row in detect_rows):
+        raise ValueError("all detected Signals must remain untyped at candidate_code -1")
+
+    candidate_fields = {}
+    for row in detect_rows:
+        category = categories[int(row["signal_category_code"])]
+        candidate_fields[f"{int(row['candidate_code']):02d}"] = category[
+            "remaining_field"
+        ]
+    category_codes = {
+        row["remaining_field"]: int(row["category_code"])
+        for row in categories.values()
+    }
+    category_labels = {
+        row["remaining_field"]: row.get("runtime_name", row["name"]).lower()
+        for row in categories.values()
+    }
+    survey_counts = {
+        str(int(row["survey_profile"])): row["counts"]
+        for row in universe["survey_profiles"]
+    }
+    runtime_maps = (
+        "var Uc="
+        + compact_json(candidate_fields)
+        + ",Sn="
+        + compact_json(category_codes)
+        + ",vn="
+        + compact_json(category_labels)
+        + ",Jn="
+        + compact_json(survey_counts)
+        + ";"
+    )
+    source = replace_between(source, "var Uc=", "function zn", runtime_maps)
+
+    selector_runtime = r'''function mvStableBandMatch(A,e){if(!A||!e)return!1;let l=oo(A),c=e.lower_top_limb==null?0n:BigInt(e.lower_top_limb),a=e.upper_top_limb==null?18446744073709551615n:BigInt(e.upper_top_limb);return l>=c&&l<=a}function mvSelectedAction(A,e,l=null){return xl.actions.find(c=>c.family===A&&(!l||l(c))&&mvStableBandMatch(e,c.selector_band))||null}function Wl(A){return A?.stable_identifier?mvSelectedAction("survey_sector",A.stable_identifier)?.name||null:null}function ns(A,e=null){let l=A.predicateSource||"",c=$i(),a=c?N(c,"extraction_amount",10):10,o=l.match(/(?:ship\w*\.)?extraction_amount\s*,\s*0\s*,\s*(\d+)/);if(o&&Number(o[1])!==a)return!1;let d=tA(A);if(e&&d?.selection_mode==="stable_identifier_band_v1"){let t=e.driverObject||e,m=String(d.selector_subject||"").split(".").pop(),n=ae(t,m);if(!mvStableBandMatch(n,d.selector_band))return!1}if(e){let t=N(e.driverObject,"candidate_code"),m=l.match(/(?:body\w*\.)?candidate_code\s*,\s*0\s*,\s*(\d+)/);if(m&&Number(m[1])!==t)return!1}return!0}'''
+    selector_start = (
+        "function mvStableBandMatch("
+        if "function mvStableBandMatch(" in source
+        else "function Wl("
+    )
+    source = replace_between(source, selector_start, "function Po(", selector_runtime)
+
+    life_runtime = r'''function Po(A,e){let l=tA(A),c=e&&e.driverObject;if(!c)return"";if(l?.family==="detect_intelligent_life"){let a=N(c,"candidate_code",-1);if(!l.candidate_codes.includes(a))return"only Ocean and Garden planets can carry intelligent life";if(N(c,"life_stat")!==Number(l.initial_life_stat))return"intelligent life has already been detected";if(!mvStableBandMatch(ae(c,"source_signal_identifier"),l.selector_band))return"this planet's stable-ID band has no intelligent-life signal";if(N(c,"civilization_discovered")>0)return"life has already been scanned"}return l?.family==="discover_satellite"&&N(c,"satellites_remaining")<=0?"no satellites remain to discover":""}'''
+    source = replace_between(source, "function Po(", "function Yn(", life_runtime)
+
+    action_router = r'''function Yn(A,e=null){if(g.actionByName.has(A))return A;let l=i.mv.sectors.get(bA(i.focus.x,i.focus.y,i.focus.z,i.focus.t));if(A==="RevealSector")return Wl(l);if(A.startsWith("MaterializeCelestialBody_")){let c=A.slice(25);return[...g.actionByName.keys()].find(a=>a.startsWith(`ScanCelestialBody_${c.slice(0,2)}_`))||null}if(A==="MaterializeCivilization"){let c=e?.driverObject||e,a=c?.class?.name===H.lifeSignal?c:null;if(!a&&c){let o=ae(c,"stable_identifier");a=jA(H.lifeSignal).find(d=>ae(d,"source_body_identifier")===o)||null}a||=jA(H.lifeSignal)[0];return a?mvSelectedAction("materialize_civilization",ae(a,"stable_identifier"))?.name||null:null}let c=A.replace(/[^a-z0-9]/gi,"").toLowerCase();return[...g.actionByName.keys()].find(a=>a.replace(/[^a-z0-9]/gi,"").toLowerCase()===c)||null}'''
+    source = replace_between(source, "function Yn(", "Rc=function(e)", action_router)
+    source = replace_exact_or_current(
+        source,
+        "Rc=function(e){let l=Yn(e.action);",
+        "Rc=function(e){let l=Yn(e.action,e.driverObject);",
+    )
+
+    scan_runtime = r'''function gs(A){let e=String(A).padStart(2,"0");return[...g.actionByName.keys()].find(l=>l.startsWith(`ScanCelestialBody_${e}_`))}function mvSignalStable(A){let e=A?.driverObject||A;return ae(e,"stable_identifier")||T(A?.stable||A?.id||"")}function mvSignalCategory(A){let e=A?.driverObject||A;return Number(A?.category??A?.category_code??N(e,"category_code",-1))}function mvScanContract(A){let e=mvSignalStable(A),l=mvSignalCategory(A);return mvSelectedAction("scan_body",e,c=>Sn[Uc[String(c.candidate_code).padStart(2,"0")]]===l)}function us(A){return A?mvScanContract(A)?.name||null:null}function Ln(A){let e=Na(A);return e.known?e.eligible:null}function Na(A,e=null){let l=A?.driverObject||A;if(!l)return{known:!1,eligible:!1,reason:"The selected Signal object is unavailable."};if(N(l,"candidate_code",-1)!==-1)return{known:!0,eligible:!1,reason:"The selected Signal is already typed and is incompatible with deterministic Scan actions."};let c=mvScanContract(A);if(!c)return{known:!1,eligible:!1,reason:"No deterministic Scan band matches this Signal's stable identifier and category."};let a=String(c.candidate_code).padStart(2,"0"),o=GA(a),d=e==null||Number(e)===Number(c.candidate_code),t=mvSignalStable(A);return{known:!0,eligible:d,candidate:o,commitment:t,target:c.selector_band,reason:d?"":`${o?.name||"This Signal"} is selected by a different stable-ID band.`}}function Cs(A,e){if(tA(A)?.family!=="scan_body")return null;let l=ne(A).findIndex(a=>WA(a)===H.signal);if(l<0)return{known:!1,eligible:!1,reason:"The Scan action has no Signal input."};let c=Ao(e[l]);return Na(c,tA(A).candidate_code)}'''
+    source = replace_between(source, "function gs(", "function Dn(", scan_runtime)
+
+    prediction_runtime = r'''function Hn(A,e){let l=new Map,c=A?.driverObject,a=g.classByName.get(H.signal);if(!c||!a||!e.length)return l;let o=[T(c.contentHash),T(a.hash),...e.map(t=>T(t.hash))].join(":"),d=g.signalPredictions.get(o);if(d)return d;try{let t=["x","y","z","epoch"].map(r=>{let I=c._fields?.[r];if(I==null)throw new Error(`Sector is missing ${r}`);return BigInt(I)}),m=[...new Map(e.map(r=>[Number(tA(r)?.signal_category_code),r])).values()].map(r=>{let I=tA(r),G=Number(I.signal_category_code),b=Object.keys(Sn).find(p=>Sn[p]===G),p=`next_${b.replace(/_remaining$/,'')}_serial`;return{action:r,category:G,poolField:b,row:[...t,BigInt(G),BigInt(I.output_candidate_code),BigInt(N(c,p))]}}),n=Dn("signal_commitments",m.flatMap(r=>r.row),7,a.hash),r=new Map;m.forEach((I,G)=>{let b=n[G],p={category:I.category,stable:b.stable,object:b.object},C=Na(p);r.set(I.category,{known:C.known,eligible:C.eligible,candidate:C.candidate,stable:b.stable,object:b.object,reason:C.reason})});for(let I of e){let G=Number(tA(I)?.signal_category_code),b=r.get(G)||{known:!1,eligible:!1,reason:"No deterministic Signal prediction is available for this category."};l.set(I.action.name,b)}}catch(t){for(let m of e)l.set(m.action.name,{known:!1,eligible:!1,reason:`Signal prediction unavailable: ${t.message}`})}return g.signalPredictions.set(o,l),g.signalPredictions.size>32&&g.signalPredictions.delete(g.signalPredictions.keys().next().value),l}'''
+    source = replace_between(source, "function Hn(", "Ti=function", prediction_runtime)
+
+    detect_routes = r''',C=[...new Map(g.actions.filter(Q=>{let R=Number(tA(Q)?.signal_category_code),E=Object.keys(Sn).find(X=>Sn[X]===R);return/^DetectCelestialSignal_/.test(Q.action.name)&&$d(Q,H.sector)&&ns(Q)&&G.has(E)}).map(Q=>[Number(tA(Q)?.signal_category_code),Q])).values()]'''
+    detect_route_start = (
+        ",C=g.actions.filter"
+        if ",C=g.actions.filter" in source
+        else ",C=[...new Map(g.actions.filter"
+    )
+    source = replace_between(
+        source,
+        detect_route_start,
+        ',Z=$("Survey contacts"',
+        detect_routes,
+    )
+    detect_panel = r''',Z=$("Survey contacts",`${p} undetected \xB7 ${b-p} detected`),B=Hn(l,C);Z.appendChild(h("div","grp-empty",`${b} category contact${b===1?"":"s"} found. Each untyped Signal and its stable-ID-selected body are calculated locally before a proof begins.`));for(let Q of C){let R=Number(tA(Q)?.signal_category_code),E=Object.keys(Sn).find(y=>Sn[y]===R),X=G.get(E),y=!!X&&X.remaining>0,f=B.get(Q.action.name),S=y&&f?.known&&f.eligible,TA=X?.label||vn[E]||"celestial";if(!y)continue;Z.appendChild(j({label:`Detect ${TA} signal`,action:Q.action.name,ico:"scan",disabled:!S,cls:S?"go":"",sub:f?.known?f.eligible?`${f.candidate?.name||"Body type"} selected by stable ID \xB7 ${gA(Q)}`:"no deterministic body band":`${TA} contact \xB7 eligibility unavailable`,title:f?.reason||`Prospective untyped Signal ${Ze(f?.stable)} deterministically scans as ${f?.candidate?.name||"one body type"}.`}))}e.appendChild(Z)'''
+    source = replace_between(
+        source,
+        ',Z=$("Survey contacts"',
+        "}if(l.signals.length)",
+        detect_panel,
+    )
+
+    signal_inventory = r'''for(let C of jA(H.signal)){let Z=bl(C),B=i.mv.sectors.get(bA(Z.x,Z.y,Z.z,Z.t));if(!B)continue;let V={id:ae(C,"stable_identifier")||C.contentHash,code:"-1",category:N(C,"category_code",-1),driverObject:C,driverFile:C.fileName},Q=Na(V);Q.known&&Q.eligible&&Q.candidate&&(V.code=String(Q.candidate.code).padStart(2,"0"),B.signals.push(V))}'''
+    source = replace_between(
+        source,
+        "for(let C of jA(H.signal)){",
+        "i.charts.clear();",
+        signal_inventory,
+    )
+
+    source = replace_exact_or_current(
+        source,
+        "life:l.life,lifeScanned:!1",
+        'life:A.driverObject?N(A.driverObject,"life_stat",l.life):l.life,lifeScanned:!1',
+    )
+    source = replace_exact_or_current(
+        source,
+        "let t=to(a.class.name);",
+        "let t=to(a.class.name,{driverObject:a});",
+    )
+
+    visual_by_slug = {
+        "RedDwarf": "star",
+        "MainSequenceStar": "star",
+        "GiantStar": "star",
+        "RockyPlanet": "rocky",
+        "OceanPlanet": "rocky",
+        "GardenPlanet": "rocky",
+        "GasGiant": "giant",
+        "IceGiant": "ice",
+        "BarrenPlanet": "rocky",
+        "NeutronStar": "pulsar",
+        "BlackHole": "well",
+        "Anomaly": "anomaly",
+        "Megastructure": "derelict",
+        "GasCluster": "nebula",
+        "StellarRemnant": "pulsar",
+        "AsteroidBelt": "belt",
+        "VolcanicPlanet": "rocky",
+        "Nebula": "nebula",
+        "CometCluster": "ice",
+        "BrownDwarf": "star",
+        "WhiteDwarf": "pulsar",
+        "Magnetar": "pulsar",
+        "WormholeMouth": "anomaly",
+    }
+    body_visuals = {
+        f"{int(row['code']):02d}": visual_by_slug[row["slug"]]
+        for row in universe["body_bank"]
+    }
+    source = replace_between(
+        source,
+        "var cs=",
+        "function $m(",
+        "var cs=" + compact_json(body_visuals) + ";",
+    )
+    return source
+
+
 def build_updated_html(source: str) -> tuple[str, dict]:
     action_contract = load_json(GENERATED / "action-contract.json")
     body_bank = load_json(GENERATED / "body-bank.json")
@@ -975,6 +1170,12 @@ def build_updated_html(source: str) -> tuple[str, dict]:
         + compact_json(resource_pairs)
         + ");"
         + updated[ec_end:]
+    )
+    updated = update_deterministic_runtime(
+        updated,
+        action_contract,
+        resource_catalog,
+        universe,
     )
 
     module_hash = manifest["plugin"]["module_hash"]
