@@ -4668,6 +4668,148 @@ def flat_rhai_call_arguments(source: str, function_name: str) -> list[list[str]]
     ]
 
 
+DETERMINISTIC_SELECTOR_PREFIXES = {
+    "survey_sector": "survey_selector",
+    "scan_body": "body_selector",
+    "materialize_civilization": "civilization_selector",
+    "develop_technology_skill": "skill_selector",
+    "extract_civilization_tech_resource": "resource_selector",
+    "detect_intelligent_life": "life_selector",
+}
+
+
+def signed_rhai_u64(value: int) -> int:
+    """Render one indexed unsigned top limb as the Rhai signed i64 literal."""
+    if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value < 2**64:
+        raise ValueError(f"invalid stable-ID top limb: {value!r}")
+    return value if value < 2**63 else value - 2**64
+
+
+def deterministic_selector_statements(
+    action: Mapping[str, Any],
+) -> list[str] | None:
+    """Derive the exact executable stable-ID proof from indexed literals.
+
+    ``None`` means the action claims the deterministic mode but its contract is
+    malformed.  An empty list means the action does not use this selector mode.
+    Whole POD objects are deliberately used for Raw stable identifiers because
+    that is the SDK-supported LtEqU256 shape proven by the production PEXE.
+    """
+    fixed = action.get("fixed_literals")
+    if not isinstance(fixed, Mapping):
+        return []
+    mode = fixed.get("selection_mode")
+    if mode != DETERMINISTIC_SELECTOR_MODE:
+        return []
+    family = action.get("family")
+    prefix = DETERMINISTIC_SELECTOR_PREFIXES.get(family)
+    subject = fixed.get("selector_subject")
+    band = fixed.get("selector_band")
+    if (
+        not isinstance(prefix, str)
+        or not isinstance(subject, str)
+        or not isinstance(band, Mapping)
+        or set(band) != {"lower_top_limb", "upper_top_limb"}
+    ):
+        return None
+    runtime_subject = {
+        "sector.stable_identifier": "sector",
+        "signal.stable_identifier": "signal",
+        "life_signal.stable_identifier": "life_signal",
+    }.get(subject, subject)
+    lower = band.get("lower_top_limb")
+    upper = band.get("upper_top_limb")
+    try:
+        signed_lower = signed_rhai_u64(lower) if lower is not None else None
+        signed_upper = signed_rhai_u64(upper) if upper is not None else None
+    except ValueError:
+        return None
+    statements: list[str] = []
+    if signed_lower is not None:
+        statements.extend((
+            f"let {prefix}_lower = action.top_limb_u256({signed_lower});",
+            f"action.intro_lt_eq_u256({prefix}_lower, {runtime_subject});",
+        ))
+    if signed_upper is not None:
+        statements.extend((
+            f"let {prefix}_upper = action.top_limb_u256({signed_upper});",
+            f"action.intro_lt_eq_u256({runtime_subject}, {prefix}_upper);",
+        ))
+    return statements
+
+
+def deterministic_selector_contract_exact(
+    source: str,
+    action: Mapping[str, Any],
+) -> bool:
+    """Require the exact indexed stable-ID band and no extra LtEq proof."""
+    statements = deterministic_selector_statements(action)
+    if statements is None:
+        return False
+    fixed = action.get("fixed_literals")
+    family = action.get("family")
+    prefix = DETERMINISTIC_SELECTOR_PREFIXES.get(family)
+    band = fixed.get("selector_band") if isinstance(fixed, Mapping) else None
+    if not isinstance(prefix, str) or not isinstance(band, Mapping):
+        return False
+    executable = strip_rhai_comments(source)
+    expected_comparisons = sum(
+        band.get(boundary) is not None
+        for boundary in ("lower_top_limb", "upper_top_limb")
+    )
+    selector_declarations = re.findall(
+        rf"\blet\s+{re.escape(prefix)}_(lower|upper)\s*=\s*"
+        r"action\.top_limb_u256\s*\(",
+        executable,
+    )
+    comparisons = flat_rhai_call_arguments(executable, "intro_lt_eq_u256")
+    return (
+        len(selector_declarations) == expected_comparisons
+        and len(comparisons) == expected_comparisons
+        and (not statements or ordered_rhai_tokens(executable, statements))
+        and all(
+            compact_rhai_tokens(statement).strip()
+            in compact_rhai_tokens(executable)
+            for statement in statements
+        )
+    )
+
+
+def validate_deterministic_selector_contracts(
+    functions: Mapping[str, str],
+    action_set: set[str],
+    index: Mapping[str, Any],
+    validation: Validation,
+    rhai_path: Path,
+) -> None:
+    """Bind every deterministic hierarchy route to its indexed stable-ID band."""
+    rows = [
+        row
+        for row in action_rows(index)
+        if isinstance(row.get("fixed_literals"), Mapping)
+        and row["fixed_literals"].get("selection_mode")
+        == DETERMINISTIC_SELECTOR_MODE
+    ]
+    validation.check(
+        len(rows) == 401
+        and all(isinstance(row.get("name"), str) for row in rows),
+        "rhai.deterministic_selector_inventory",
+        "Rhai/index must retain exactly 401 named deterministic selector routes",
+        str(rhai_path),
+    )
+    for row in rows:
+        name = row.get("name")
+        source = functions.get(name, "") if isinstance(name, str) else ""
+        validation.check(
+            isinstance(name, str)
+            and name in action_set
+            and deterministic_selector_contract_exact(source, row),
+            "rhai.deterministic_selector_contract",
+            f"{name} must prove its exact indexed stable-ID band with no extra comparison",
+            f"{rhai_path}:{name}",
+        )
+
+
 def rhai_named_call_count(source: str, function_name: str) -> int:
     """Count balanced named calls in any expression context."""
     count = 0
@@ -4756,6 +4898,7 @@ def validate_phase3_canaries(
     source: str,
     functions: Mapping[str, str],
     action_set: set[str],
+    index: Mapping[str, Any],
     resource_catalog: Mapping[str, Any] | None,
     validation: Validation,
     rhai_path: Path,
@@ -4819,33 +4962,28 @@ def validate_phase3_canaries(
         "Survey helper must contain the configured ordered 24 zero assertions, including Minor-Body Field, and no revision work",
         f"{rhai_path}:prove_empty_survey_sector_core",
     )
-    validation.check(
-        rhai_object_roles(detect_wrapper)
-        == [
-            ("output", "MicroverseShip"),
-            ("output", "MicroverseCelestialSignal"),
-            ("input", "MicroverseShip"),
-            ("mutate", "MicroverseSector"),
-        ]
-        and flat_rhai_call_arguments(detect_wrapper, "detect_signal_core")
-        == [[
-            "action", "next_ship", "signal", "ship", "sector", "2", "0",
-            '"star_remaining"', '"next_star_serial"',
-        ]],
-        "rhai.phase3_detect_wrapper",
-        "DetectCelestialSignal_00_RedDwarf must retain direct roles and one exact 9-argument helper call",
-        f"{rhai_path}:{PHASE3_DETECT_ACTION}",
-    )
+    indexed = {
+        str(row.get("name")): row
+        for row in action_rows(index)
+        if isinstance(row.get("name"), str)
+    }
     for candidate_code, slug, category_code, remaining_field, serial_field in PHASE3_DETECT_SELECTIONS:
         action_name = f"DetectCelestialSignal_{candidate_code:02d}_{slug}"
         wrapper = functions.get(action_name, "")
+        row = indexed.get(action_name, {})
+        fixed = row.get("fixed_literals") if isinstance(row, Mapping) else None
         validation.check(
             rhai_object_roles(wrapper)
             == [("output", "MicroverseShip"), ("output", "MicroverseCelestialSignal"), ("input", "MicroverseShip"), ("mutate", "MicroverseSector")]
             and flat_rhai_call_arguments(wrapper, "detect_signal_core")
-            == [["action", "next_ship", "signal", "ship", "sector", str(category_code), str(candidate_code), f'"{remaining_field}"', f'"{serial_field}"']],
+            == [["action", "next_ship", "signal", "ship", "sector", str(category_code), "-1", f'"{remaining_field}"', f'"{serial_field}"']]
+            and isinstance(fixed, Mapping)
+            and fixed.get("candidate_code") == candidate_code
+            and fixed.get("output_candidate_code") == -1
+            and fixed.get("signal_category_code") == category_code
+            and fixed.get("selection_mode") == "category_slot_only",
             "rhai.phase3_detect_wrapper",
-            f"{action_name} must retain direct roles and its exact category/candidate/remaining/serial helper arguments",
+            f"{action_name} must retain direct roles and its exact category-only unresolved-signal helper arguments",
             f"{rhai_path}:{action_name}",
         )
     validation.check(
@@ -5193,8 +5331,9 @@ def phase4_wrapper_body_exact(
     kind: str,
     helper_name: str,
     arguments: Sequence[str],
+    selector_statements: Sequence[str] = (),
 ) -> bool:
-    """Require four direct roles followed by one adapter call and nothing else."""
+    """Require roles, the exact optional selector, then one adapter call."""
     output_handle = "composite_resource" if kind == "composite" else "resource"
     output_class = (
         "MicroverseCompositeResource"
@@ -5212,6 +5351,7 @@ def phase4_wrapper_body_exact(
         f'var {output_handle} = action.output("{output_class}");',
         'var ship = action.input("MicroverseShip");',
         f'var {mutate_handle} = action.mutate("{mutate_class}");',
+        *selector_statements,
         f"{helper_name}({', '.join(arguments)});",
     ))
     open_brace = wrapper.find("{")
@@ -5404,7 +5544,11 @@ def validate_phase4_adapter_canaries(
                 and expected_arguments is not None
                 and phase4_index_roles(action) == phase4_expected_roles(kind)
                 and phase4_wrapper_body_exact(
-                    wrapper, kind, expected_helper, expected_arguments
+                    wrapper,
+                    kind,
+                    expected_helper,
+                    expected_arguments,
+                    deterministic_selector_statements(action) or (),
                 )
             )
             all_current_wrappers_exact = all_current_wrappers_exact and exact
@@ -5494,7 +5638,11 @@ def validate_phase4_adapter_canaries(
             == [expected_arguments]
             and wrapper_core_calls == {expected_helper}
             and phase4_wrapper_body_exact(
-                wrapper, kind, expected_helper, expected_arguments
+                wrapper,
+                kind,
+                expected_helper,
+                expected_arguments,
+                deterministic_selector_statements(action) or (),
             )
         )
         no_old_scaffolding = (
@@ -6470,7 +6618,11 @@ def phase6_layout_adapter_names(index: Mapping[str, Any]) -> list[str]:
         for row in rows
         if isinstance(row, Mapping)
         and (
-            row.get("family") in PHASE4_RESOURCE_FAMILIES
+            (
+                row.get("family") in PHASE4_RESOURCE_FAMILIES
+                and row.get("family")
+                != "extract_civilization_tech_resource"
+            )
             or phase5_expected_route(row) is not None
         )
         and isinstance(row.get("name"), str)
@@ -6525,18 +6677,18 @@ def validate_phase6_layout_contract(
     validation: Validation,
     rhai_path: Path,
 ) -> None:
-    """Bind canonical readable-token layout for all Phase 4/5 adapters."""
+    """Bind canonical layout for the 570 selector-free Phase 4/5 adapters."""
     adapter_names = phase6_layout_adapter_names(index)
     if not adapter_names:
         return
     adapter_set = set(adapter_names)
     observed_order = [name for name in functions if name in adapter_set]
     validation.check(
-        len(adapter_names) == len(adapter_set) == 921
+        len(adapter_names) == len(adapter_set) == 570
         and adapter_set.issubset(action_set)
         and observed_order == adapter_names,
         "rhai.phase6_layout_inventory_order",
-        "layout contract requires exactly 921 ordered Phase 4/5 adapter wrappers",
+        "layout contract requires exactly 570 ordered selector-free Phase 4/5 adapter wrappers",
         str(rhai_path),
     )
     validation.check(
@@ -6606,7 +6758,7 @@ def validate_phase6_layout_contract(
     validation.check(
         all_canonical and all_tokens_equal,
         "rhai.phase6_layout_token_equality",
-        "all 921 adapter wrappers must equal their string/comment-aware canonical token layout",
+        "all 570 selector-free adapter wrappers must equal their string/comment-aware canonical token layout",
         str(rhai_path),
     )
     validation.check(
@@ -6963,10 +7115,18 @@ def validate_rhai(
                 f"{action_name} must not retain VDF/work or economy extraction-capacity gates",
                 f"{rhai_path}:{action_name}",
             )
+    validate_deterministic_selector_contracts(
+        functions,
+        action_set,
+        index,
+        validation,
+        rhai_path,
+    )
     validate_phase3_canaries(
         source,
         functions,
         action_set,
+        index,
         resource_catalog,
         validation,
         rhai_path,
@@ -7176,6 +7336,7 @@ def validate_rhai(
     for action_name, (profile, minimum) in expected_survey.items():
         function = functions.get(action_name, "")
         compact_function = re.sub(r"\s+", "", function)
+        indexed_row = indexed_source_by_name.get(action_name, {})
         validation.check(
             compact_function.count(
                 f"action.st_gt(ship.claim_serial,{minimum - 1});"
@@ -7185,12 +7346,10 @@ def validate_rhai(
                 f'sector.update("survey_profile",{profile});'
             )
             == 1
-            and "intro_lt_eq_u256" not in function
-            and "stable_identifier" not in function
-            and "top_limb_u256" not in function,
+            and deterministic_selector_contract_exact(function, indexed_row),
             "rhai.survey_selection_gate",
             f"{action_name} must deterministically select profile {profile} "
-            f"and prove claim_serial >= {minimum}, without a stable-ID range",
+            f"and prove claim_serial >= {minimum} through its exact stable-ID band",
             f"{rhai_path}:{action_name}",
         )
 
@@ -7210,6 +7369,7 @@ def validate_rhai(
     for action_name, (civilization_type, minimum) in expected_civilizations.items():
         function = functions.get(action_name, "")
         compact_function = re.sub(r"\s+", "", function)
+        indexed_row = indexed_source_by_name.get(action_name, {})
         binding_patterns = (
             r"var\s+source_life_signal_identifier\s*=\s*action\.random\(\)\s*;",
             r"var_assign\s*\(\s*source_life_signal_identifier\s*,\s*"
@@ -7244,11 +7404,10 @@ def validate_rhai(
             and ordered_binding
             and "unsafe{source_life_signal_identifier" not in compact_function
             and "st_sum(source_life_signal_identifier" not in compact_function
-            and "intro_lt_eq_u256" not in function
-            and "top_limb_u256(life_signal.stable_identifier" not in compact_function,
+            and deterministic_selector_contract_exact(function, indexed_row),
             "rhai.civilization_selection_and_raw_binding",
             f"{action_name} must prove civilization_scan_serial >= {minimum}, "
-            "select its fixed type, and securely bind the consumed LifeSignal "
+            "select its stable-ID-gated fixed type, and securely bind the consumed LifeSignal "
             "Raw stable identifier through random/var_assign/no-op update",
             f"{rhai_path}:{action_name}",
         )
@@ -7260,33 +7419,21 @@ def validate_rhai(
     compact_scan_helper = re.sub(r"\s+", "", scan_helper)
     validation.check(
         len(scan_names) == 23
-        and compact_scan_helper.count(
-            "lettarget=action.top_limb_u256(target_top_limb);"
-        )
-        == 1
-        and compact_scan_helper.count(
-            "action.intro_lt_eq_u256(signal,target);"
-        )
-        == 1
-        and "intro_lt_eq_u256(signal.stable_identifier" not in compact_scan_helper
-        and sum(
-            strip_rhai_comments(function).count("action.intro_lt_eq_u256(")
-            for function in functions.values()
-        )
-        == 1,
+        and "intro_lt_eq_u256" not in compact_scan_helper,
         "rhai.scan_whole_object_threshold",
-        "the 23 named Scan actions must share the sole physical LtEq call, "
-        "comparing the complete CelestialSignal object to fixed target_top_limb",
+        "scan_body_core must not choose a body type; each named Scan wrapper owns its indexed stable-ID proof",
         f"{rhai_path}:scan_body_core",
     )
     for action_name in scan_names:
+        indexed_row = indexed_source_by_name.get(action_name, {})
         validation.check(
             len(flat_rhai_call_arguments(functions.get(action_name, ""), "scan_body_core"))
             == 1
-            and "intro_lt_eq_u256" not in functions.get(action_name, ""),
+            and deterministic_selector_contract_exact(
+                functions.get(action_name, ""), indexed_row
+            ),
             "rhai.scan_named_action",
-            f"{action_name} must call scan_body_core exactly once and must not "
-            "own an additional LtEq comparison",
+            f"{action_name} must call scan_body_core once after its exact indexed stable-ID comparison",
             f"{rhai_path}:{action_name}",
         )
 

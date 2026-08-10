@@ -10527,23 +10527,14 @@ def intro_audit(
     scan_parameters = rhai_function_parameters(scan_source, "scan_body_core")
     expected_scan_parameters = [
         "action", "body", "signal", "ship", "category_code",
-        "candidate_code", "target_top_limb", "body_type", "life_stat",
-        "matter_remaining", "crystal_remaining", "gas_remaining",
-        "energy_remaining", "satellites_remaining",
+        "candidate_code", "body_type", "life_stat", "matter_remaining",
+        "crystal_remaining", "gas_remaining", "energy_remaining",
+        "satellites_remaining",
     ]
     scan_checks = {
         "source_present": bool(scan_source),
         "parameters_exact": scan_parameters == expected_scan_parameters,
-        "fixed_threshold_alias_exact": bool(
-            re.search(
-                r"\blet\s+target\s*=\s*action\.top_limb_u256\(\s*"
-                r"target_top_limb\s*\)\s*;",
-                mask_rhai_noncode(scan_source),
-            )
-        ),
-        "whole_object_comparison_exact": (
-            comparison_calls(scan_source) == [("signal", "target")]
-        ),
+        "selection_comparison_absent": not comparison_calls(scan_source),
         "no_vdf": not vdf_calls(scan_source),
     }
     helper_audits["scan_body_core"] = {
@@ -10562,6 +10553,8 @@ def intro_audit(
     expected_vdf_actions: set[str] = set()
     expected_threshold_actions: set[str] = set()
     expected_explicit_selection_actions: set[str] = set()
+    expected_stable_selection_actions: set[str] = set()
+    expected_stable_comparison_count = 0
     explicit_selection_helper_by_family = {
         "reveal_warp_coordinate": "reveal_p",
         "reveal_time_coordinate": "reveal_t",
@@ -10581,11 +10574,14 @@ def intro_audit(
                 "vdf",
                 "whole_object_threshold",
                 "explicit_action_identity",
+                "deterministic_selector",
             }
         )
         direct_vdfs = vdf_calls(source)
         direct_comparisons = comparison_calls(source)
         expected_helpers: set[str] = set()
+        if action["family"] == "scan_body":
+            expected_helpers.add("scan_body_core")
         checks: dict[str, bool] = {
             "source_present": bool(source),
             "contract_shape_exact": contract_shape,
@@ -10595,6 +10591,7 @@ def intro_audit(
                 "vdf": None,
                 "whole_object_threshold": None,
                 "explicit_action_identity": None,
+                "deterministic_selector": None,
             }
 
         selection_helper = explicit_selection_helper_by_family.get(
@@ -10804,7 +10801,82 @@ def intro_audit(
                 action.get("selection_mode") != EXPLICIT_SELECTION_MODE
             )
 
-        expected_direct_comparisons = 0
+        deterministic_contract = contract["deterministic_selector"]
+        expected_direct_comparison_rows: list[tuple[str, str]] = []
+        if deterministic_contract is not None:
+            expected_stable_selection_actions.add(name)
+            selector = {
+                "sector.stable_identifier": "sector",
+                "signal.stable_identifier": "signal",
+                "life_signal.stable_identifier": "life_signal",
+            }.get(
+                action.get("selector_subject"),
+                action.get("selector_subject"),
+            )
+            prefix = {
+                "survey_sector": "survey_selector",
+                "scan_body": "body_selector",
+                "materialize_civilization": "civilization_selector",
+                "develop_technology_skill": "skill_selector",
+                "extract_civilization_tech_resource": "resource_selector",
+                "detect_intelligent_life": "life_selector",
+            }.get(action["family"])
+            band = action.get("selector_band")
+            selector_source = (
+                selector_constraints_source(selector, band, prefix=prefix)
+                if isinstance(selector, str)
+                and isinstance(prefix, str)
+                and isinstance(band, dict)
+                else ""
+            )
+            expected_direct_comparison_rows = comparison_calls(
+                selector_source
+            )
+            expected_stable_comparison_count += len(
+                expected_direct_comparison_rows
+            )
+            checks["deterministic_selector_contract_exact"] = (
+                deterministic_contract
+                == {
+                    "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+                    "owner": "action",
+                    "subject": action.get("selector_subject"),
+                    "band": band,
+                    "comparison": "inclusive fixed lower/upper LtEqU256",
+                }
+                and action.get("selection_mode")
+                == DETERMINISTIC_SELECTOR_MODE
+                and direct_comparisons
+                == expected_direct_comparison_rows
+                and (
+                    not selector_source
+                    or rhai_contains(source, selector_source)
+                )
+            )
+            for left, right in expected_direct_comparison_rows:
+                calls.append({
+                    "action": name,
+                    "primitive": "intro_lt_eq_u256",
+                    "owner": "action",
+                    "role": "stable_identifier_selection",
+                    "argument": f"{left},{right}",
+                    "argument_shape": "indexed stable-ID band",
+                    "fixed_parameter": band,
+                    "fixed_parameter_shape": (
+                        "fixed inclusive top-limb band"
+                    ),
+                    "passed": direct_comparisons
+                    == expected_direct_comparison_rows,
+                })
+        else:
+            checks["deterministic_selector_absent_as_declared"] = (
+                action.get("selection_mode")
+                != DETERMINISTIC_SELECTOR_MODE
+            )
+
+        expected_direct_comparisons = len(
+            expected_direct_comparison_rows
+        )
         checks["direct_comparison_count_exact"] = (
             len(direct_comparisons) == expected_direct_comparisons
         )
@@ -10850,12 +10922,13 @@ def intro_audit(
             | phase6_vdf_helper_names
         )
     }) + 2
-    expected_physical_comparison_count = 1
+    expected_physical_comparison_count = expected_stable_comparison_count
     physical_vdf_count = len(vdf_calls(plugin))
     physical_comparison_count = len(comparison_calls(plugin))
     expected_total_count = (
         expected_vdf_count
         + expected_threshold_count
+        + expected_stable_comparison_count
     )
     coverage_checks = {
         "action_contract_names_match_defined_actions": (
@@ -10894,14 +10967,20 @@ def intro_audit(
                 if action.get("selection_mode")
                 == EXPLICIT_SELECTION_MODE
             }
-            and len(expected_explicit_selection_actions) == 603
+            and len(expected_explicit_selection_actions) == 595
         ),
-        "stable_identifier_selection_intro_calls_absent": (
-            physical_comparison_count == 1
-            and not any(
+        "stable_identifier_selection_intro_calls_exact": (
+            expected_stable_selection_actions
+            == {
+                action["name"]
+                for action in actions
+                if action.get("selection_mode")
+                == DETERMINISTIC_SELECTOR_MODE
+            }
+            and sum(
                 call.get("role") == "stable_identifier_selection"
                 for call in calls
-            )
+            ) == expected_stable_comparison_count
         ),
         "physical_vdf_calls_exact_no_unclassified_helpers": (
             physical_vdf_count == expected_physical_vdf_count
@@ -10928,11 +11007,16 @@ def intro_audit(
             "explicit_action_identity_actions": len(
                 expected_explicit_selection_actions
             ),
-            "expected_stable_identifier_selection_calls": 0,
+            "expected_stable_identifier_selection_calls": (
+                expected_stable_comparison_count
+            ),
             "expected_total_calls": expected_total_count,
             "observed_vdf_calls": observed_vdf_count,
             "observed_threshold_u256_calls": observed_threshold_count,
-            "observed_stable_identifier_selection_calls": 0,
+            "observed_stable_identifier_selection_calls": sum(
+                call.get("role") == "stable_identifier_selection"
+                for call in calls
+            ),
             "observed_total_calls": len(calls),
             "physical_vdf_calls": physical_vdf_count,
             "physical_u256_calls": physical_comparison_count,
@@ -11019,6 +11103,77 @@ def baseline(source_root: Path) -> dict[str, Any]:
             "rust": rust_version,
             "cargo": cargo_version,
         },
+    }
+
+
+def raw_equality_budget(
+    plugin: str,
+    actions: list[dict[str, Any]],
+    source_map: dict[str, str],
+) -> dict[str, Any]:
+    """Describe the reviewed Intro and Raw-copy ownership in the PEXE."""
+    return {
+        "whole_object_vdf_intros": [
+            action["name"]
+            for action in actions
+            if "action.intro_vdf(" in source_map[action["name"]]
+        ],
+        "whole_object_threshold_intros": [],
+        "explicit_action_identity_selections": [
+            f"RevealWarpCoordinate{destination['slug']}"
+            for destination in POSITION_WARP_DESTINATIONS
+        ] + [
+            f"RevealTimeCoordinate{destination['slug']}"
+            for destination in TIME_WARP_DESTINATIONS
+        ] + [
+            destination["reveal_action"]
+            for destination in POSITION_CHART_DESTINATIONS
+        ] + [
+            destination["reveal_action"]
+            for destination in EPOCH_CHART_DESTINATIONS
+        ],
+        "stable_identifier_selections": [
+            action["name"]
+            for action in actions
+            if action.get("selection_mode") == DETERMINISTIC_SELECTOR_MODE
+        ],
+        "stable_identifier_selection_intro_count": sum(
+            len(
+                rhai_method_statement_calls(
+                    action_function_source(plugin, action["name"]),
+                    "intro_lt_eq_u256",
+                )
+            )
+            for action in actions
+        ),
+        "whole_object_raw_export_checkpoints": {
+            "actions": [],
+            "u256_intros_per_action": 0,
+            "purpose": (
+                "No production action exports parent Raw identifiers into "
+                "child objects."
+            ),
+        },
+        "deterministic_output_key_type": (
+            "Sector, CelestialSignal, and sealed coordinate objects use "
+            "fixed Raw zero; portable outputs retain the SDK-provided "
+            "random key."
+        ),
+        "raw_copy_relationships": [
+            "Ship x/y/z/epoch -> Sector x/y/z/epoch",
+            "Input Ship semantic fields -> replacement Ship semantic fields",
+            (
+                "CelestialBody stable_identifier -> WarpCoordinate "
+                "source_body_identifier"
+            ),
+            "WarpCoordinate destination_x/y/z -> Ship x/y/z",
+            "TimeCoordinate destination_epoch -> Ship epoch",
+        ],
+        "parent_identifier_provenance_policy": (
+            "Most children omit Raw parent identifiers; WarpCoordinate is "
+            "the exception and binds its Anomaly source identifier through "
+            "a no-op stable_identifier update in extraction."
+        ),
     }
 
 
@@ -11241,61 +11396,7 @@ def generate_package(
     )
     write_json(
         generated / "raw-equality-budget.json",
-        {
-            "whole_object_vdf_intros": [
-                action["name"]
-                for action in actions
-                if "action.intro_vdf("
-                in source_map[action["name"]]
-            ],
-            "whole_object_threshold_intros": [
-                f"ScanCelestialBody_{item['code']:02d}_{item['slug']}" for item in bank
-            ],
-            "explicit_action_identity_selections": [
-                f"RevealWarpCoordinate{destination['slug']}"
-                for destination in POSITION_WARP_DESTINATIONS
-            ] + [
-                f"RevealTimeCoordinate{destination['slug']}"
-                for destination in TIME_WARP_DESTINATIONS
-            ] + [
-                destination["reveal_action"]
-                for destination in POSITION_CHART_DESTINATIONS
-            ] + [
-                destination["reveal_action"]
-                for destination in EPOCH_CHART_DESTINATIONS
-            ] + [
-                f"SurveySector_{profile['code']:02d}_{profile['slug']}"
-                for profile in SURVEY_PROFILES
-            ] + [
-                item["action"] for item in CIVILIZATION_TYPES
-            ],
-            "stable_identifier_selection_intro_count": 0,
-            "whole_object_raw_export_checkpoints": {
-                "actions": [],
-                "u256_intros_per_action": 0,
-                "purpose": (
-                    "No production action exports parent Raw identifiers into "
-                    "child objects."
-                ),
-            },
-            "deterministic_output_key_type": (
-                "Sector, CelestialSignal, and sealed coordinate objects use "
-                "fixed Raw zero; portable outputs retain the SDK-provided "
-                "random key."
-            ),
-            "raw_copy_relationships": [
-                "Ship x/y/z/epoch -> Sector x/y/z/epoch",
-                "Input Ship semantic fields -> replacement Ship semantic fields",
-                "CelestialBody stable_identifier -> WarpCoordinate source_body_identifier",
-                "WarpCoordinate destination_x/y/z -> Ship x/y/z",
-                "TimeCoordinate destination_epoch -> Ship epoch",
-            ],
-            "parent_identifier_provenance_policy": (
-                "Most children omit Raw parent identifiers; WarpCoordinate "
-                "is the exception and binds its Anomaly source identifier "
-                "through a no-op stable_identifier update in extraction."
-            ),
-        },
+        raw_equality_budget(plugin, actions, source_map),
     )
     write_json(
         generated / "predicate-budget.json",
@@ -12364,12 +12465,12 @@ REFACTOR_BASELINE = {
     "plugin_bytes": 764_380,
     "plugin_nonblank_lines": 28_710,
     "action_count": 1_650,
-    "logical_intro_calls": 1_375,
+    "logical_intro_calls": 1_659,
     "physical_vdf_calls": 970,
-    "physical_st_sum": 1_791,
-    "physical_st_gt": 142,
+    "physical_st_sum": 1_792,
+    "physical_st_gt": 141,
     "physical_unsafe": 532,
-    "physical_intro_lt_eq_u256": 1,
+    "physical_intro_lt_eq_u256": 307,
     "var_assign_calls": 17,
     "rotate_key_calls": 78,
     "random_calls": 100,
@@ -12389,9 +12490,9 @@ REFACTOR_PHASE3_BULK_PHYSICAL_DELTAS = {
     "intro_lt_eq_u256": 0,
 }
 REFACTOR_PHASE4_ECONOMY_PHYSICAL = {
-    "st_sum": 652, "st_gt": 98, "unsafe": 312, "random": 78,
+    "st_sum": 653, "st_gt": 97, "unsafe": 312, "random": 78,
     "var_assign": 17, "rotate_key": 56, "intro_vdf": 303,
-    "intro_lt_eq_u256": 1,
+    "intro_lt_eq_u256": 307,
 }
 REFACTOR_PHASE4_ECONOMY_PHYSICAL_DELTAS = {
     "st_sum": -1_139, "st_gt": -44, "unsafe": -220, "random": -22,
@@ -12412,9 +12513,9 @@ REFACTOR_PHASE5_ECONOMY_PHYSICAL_DELTAS = {
     "intro_vdf": -881,
 }
 REFACTOR_PHASE6_CANARY_ECONOMY_PHYSICAL = {
-    "st_sum": 586, "st_gt": 64, "unsafe": 278, "random": 60,
+    "st_sum": 587, "st_gt": 63, "unsafe": 278, "random": 60,
     "var_assign": 17, "rotate_key": 38, "intro_vdf": 71,
-    "intro_lt_eq_u256": 1,
+    "intro_lt_eq_u256": 307,
 }
 REFACTOR_PHASE6_CANARY_ECONOMY_PHYSICAL_DELTAS = {
     "st_sum": -1_205, "st_gt": -78, "unsafe": -254, "random": -40,
@@ -12422,27 +12523,27 @@ REFACTOR_PHASE6_CANARY_ECONOMY_PHYSICAL_DELTAS = {
     "intro_lt_eq_u256": 0,
 }
 REFACTOR_CURRENT_PHASE3_LOGICAL = {
-    "st_sum": 35_041, "st_gt": 1_466, "unsafe": 15_525,
+    "st_sum": 35_042, "st_gt": 1_465, "unsafe": 15_525,
     "random": 2_857, "var_assign": 1_419, "rotate_key": 2_864,
-    "intro_vdf": 659, "intro_lt_eq_u256": 23,
+    "intro_vdf": 659, "intro_lt_eq_u256": 307,
 }
 REFACTOR_CURRENT_ACCEPTED_LOGICAL = {
-    **REFACTOR_CURRENT_PHASE3_LOGICAL, "st_sum": 34_714,
+    **REFACTOR_CURRENT_PHASE3_LOGICAL, "st_sum": 34_715,
 }
 REFACTOR_CURRENT_PHASE3_PHYSICAL = {
-    "st_sum": 1_731, "st_gt": 118, "unsafe": 508, "random": 88,
+    "st_sum": 1_732, "st_gt": 117, "unsafe": 508, "random": 88,
     "var_assign": 17, "rotate_key": 66, "intro_vdf": 277,
-    "intro_lt_eq_u256": 1,
+    "intro_lt_eq_u256": 307,
 }
 REFACTOR_CURRENT_ACCEPTED_PHYSICAL = {
-    "st_sum": 1_281, "st_gt": 74, "unsafe": 288, "random": 66,
+    "st_sum": 1_282, "st_gt": 73, "unsafe": 288, "random": 66,
     "var_assign": 17, "rotate_key": 44, "intro_vdf": 277,
-    "intro_lt_eq_u256": 1,
+    "intro_lt_eq_u256": 307,
 }
 REFACTOR_CURRENT_PHASE4_PHYSICAL = {
-    "st_sum": 574, "st_gt": 74, "unsafe": 288, "random": 66,
+    "st_sum": 575, "st_gt": 73, "unsafe": 288, "random": 66,
     "var_assign": 17, "rotate_key": 44, "intro_vdf": 268,
-    "intro_lt_eq_u256": 1,
+    "intro_lt_eq_u256": 307,
 }
 REFACTOR_CURRENT_PHASE4_PHYSICAL_DELTAS = {
     "st_sum": -1_157, "st_gt": -44, "unsafe": -220, "random": -22,
@@ -12464,37 +12565,39 @@ REFACTOR_CURRENT_PHASE5_PHYSICAL_DELTAS = {
 }
 
 REFACTOR_LOGICAL_BASELINE = {
-    "st_sum": 35_101,
-    "st_gt": 1_490,
+    "st_sum": 35_102,
+    "st_gt": 1_489,
     "unsafe": 15_549,
     "random": 2_869,
     "var_assign": 1_419,
     "rotate_key": 2_888,
     "intro_vdf": 1_352,
-    "intro_lt_eq_u256": 23,
+    "intro_lt_eq_u256": 307,
 }
 
 REFACTOR_FINAL_TARGETS = {
-    "plugin_bytes": 600_000,
-    "plugin_nonblank_lines": 15_000,
+    # Stable-ID hierarchy proofs intentionally add action-local source.  The
+    # PEXE remains far below the SDK hard limit while retaining refactor gains.
+    "plugin_bytes": 650_000,
+    "plugin_nonblank_lines": 16_000,
 }
 
 REFACTOR_PHASE6_LAYOUT_TARGETS = {
     "economy": {
-        "plugin_bytes": 599_317,
-        "plugin_nonblank_lines": 12_758,
-        "sha256": "2e9f6416d12963273fa7bde5474bbfaad4d81e42010f3862654bd1ad2e423849",
-        "baseline_bytes": 620_127,
-        "baseline_nonblank_lines": 19_595,
+        "plugin_bytes": 646_218,
+        "plugin_nonblank_lines": 15_125,
+        "sha256": "d96fc8c22480f88375b49752cee2de86b7723c413719be6b00fa6d3b38b65236",
+        "baseline_bytes": 666_056,
+        "baseline_nonblank_lines": 20_207,
         "actions": 1_650,
         "helpers": 75,
     },
     "current": {
-        "plugin_bytes": 591_418,
-        "plugin_nonblank_lines": 12_630,
-        "sha256": "3955e24fb567ecfe9a942f61c761e2dffb8a6f7d6b049b6bf2393ecf2432f1d1",
-        "baseline_bytes": 611_776,
-        "baseline_nonblank_lines": 19_467,
+        "plugin_bytes": 638_319,
+        "plugin_nonblank_lines": 14_997,
+        "sha256": "f1d52ed276721a704b638bfe68ae854c33c5129c0d3c08a490acf804e7573ae2",
+        "baseline_bytes": 657_705,
+        "baseline_nonblank_lines": 20_079,
         "actions": 1_638,
         "helpers": 55,
     },
@@ -12787,8 +12890,8 @@ def refactor_census(plugin: str, actions: list[dict[str, Any]]) -> dict[str, Any
         checks.update({
             "current_action_count_exact": len(actions) == 1_638,
             "current_logical_vdf_exact": logical_counts["intro_vdf"] == 659,
-            "current_intro_lt_eq_exact": logical_counts["intro_lt_eq_u256"] == 23,
-            "current_logical_intro_calls_exact": logical_intro_calls == 682,
+            "current_intro_lt_eq_exact": logical_counts["intro_lt_eq_u256"] == 307,
+            "current_logical_intro_calls_exact": logical_intro_calls == 966,
             "current_phase1_logical_ledger_exact": (
                 current_phase1_ledger
                 == {
@@ -12989,7 +13092,7 @@ def deterministic_zero_key_audit(
             scan_args = wrapper_calls[0] if len(wrapper_calls) == 1 else []
             if (
                 semantic_zero_key_updates(scan_helper) == [("body", "zero")]
-                and len(scan_args) == 14
+                and len(scan_args) == 13
             ):
                 actual.append(
                     declarations.get(
@@ -13517,7 +13620,10 @@ def civilization_tech_audit(
                 "prove_fixed_versions(action, ship);",
                 f"action.st_sum(signal.body_bank_version, 0, {VERSIONS['body_bank_version']});",
                 "action.st_sum(signal.category_code, 0, category_code);",
-                "action.st_sum(signal.candidate_code, 0, candidate_code);",
+                (
+                    "action.st_sum(signal.candidate_code, 0, "
+                    f"{UNRESOLVED_CANDIDATE_CODE});"
+                ),
                 "action.st_gt(signal.slot_serial, -1);",
             )
         ),
@@ -13547,11 +13653,8 @@ def civilization_tech_audit(
                 "action.st_sum(ship.epoch, 0, sector_epoch);",
             )
         ),
-        "threshold_exact": (
-            "let target = action.top_limb_u256(target_top_limb);"
-            in scan_core
-            and "action.intro_lt_eq_u256(signal, target);" in scan_core
-            and scan_core.count("action.intro_lt_eq_u256(") == 1
+        "selection_comparison_absent": not rhai_method_statement_calls(
+            scan_core, "intro_lt_eq_u256"
         ),
         "body_fields_exact": (
             object_set_fields(scan_core, "body")
@@ -13589,7 +13692,6 @@ def civilization_tech_audit(
             "ship",
             str(category["code"]),
             str(candidate["code"]),
-            str(candidate["target_top_limb"]),
             str(candidate["body_type"]),
             str(candidate["life_stat"]),
             str(candidate["matter"]),
@@ -13598,6 +13700,11 @@ def civilization_tech_audit(
             str(candidate["energy"]),
             str(candidate["satellites"]),
         ]
+        selector_source = selector_constraints_source(
+            "signal",
+            body_selector_bands(bank)[candidate["code"]],
+            prefix="body_selector",
+        )
         checks = {
             "roles_exact": (
                 name in by_name
@@ -13615,6 +13722,17 @@ def civilization_tech_audit(
             "candidate_constants_exact": (
                 call_arguments == expected_call_arguments
                 and call_arguments[4:] == expected_call_arguments[4:]
+            ),
+            "deterministic_selector_metadata_exact": (
+                by_name[name].get("selection_mode")
+                == DETERMINISTIC_SELECTOR_MODE
+                and by_name[name].get("selector_subject")
+                == "signal.stable_identifier"
+                and by_name[name].get("selector_band")
+                == body_selector_bands(bank)[candidate["code"]]
+            ),
+            "deterministic_selector_source_exact": (
+                not selector_source or rhai_contains(source, selector_source)
             ),
             "core_invariants_pass": all(scan_core_checks.values()),
             "no_vdf_or_subaction": (
@@ -13674,11 +13792,15 @@ def civilization_tech_audit(
                     "action.st_sum(ship.epoch, 0, origin_epoch);",
                 )
             ),
-            "explicit_selection_metadata_exact": (
+            "deterministic_selector_metadata_exact": (
                 action_metadata.get("selection_mode")
-                == EXPLICIT_SELECTION_MODE
+                == DETERMINISTIC_SELECTOR_MODE
                 and action_metadata.get("civilization_type")
                 == civilization_type["code"]
+                and action_metadata.get("selector_subject")
+                == "life_signal.stable_identifier"
+                and action_metadata.get("selector_band")
+                == civilization_selector_bands()[civilization_type["code"]]
                 and action_metadata.get(
                     "minimum_civilization_scan_serial"
                 )
@@ -13694,14 +13816,13 @@ def civilization_tech_audit(
                 and "unsafe { source_life_signal_identifier" not in source
                 and "st_sum(source_life_signal_identifier" not in source
             ),
-            "stable_identifier_range_selection_absent": all(
-                token not in source
-                for token in (
-                    "civilization_selector",
-                    "type_lower",
-                    "type_upper",
-                    "intro_lt_eq_u256",
-                )
+            "deterministic_selector_source_exact": rhai_contains(
+                source,
+                selector_constraints_source(
+                    "life_signal",
+                    civilization_selector_bands()[civilization_type["code"]],
+                    prefix="civilization_selector",
+                ),
             ),
             "milestone_gate_exact": (
                 source_without_whitespace.count(
@@ -14077,7 +14198,7 @@ def civilization_tech_audit(
             detail["status"] == "pass"
             for detail in refinement_details.values()
         ),
-        "civilization_type_explicit_selection_exact": [
+        "civilization_type_deterministic_selection_exact": [
             (
                 civilization_type["code"],
                 civilization_type["action"],
@@ -14090,19 +14211,19 @@ def civilization_tech_audit(
             (
                 1,
                 "MaterializeCivilizationTypeI",
-                EXPLICIT_SELECTION_MODE,
+                DETERMINISTIC_SELECTOR_MODE,
                 64,
             ),
             (
                 2,
                 "MaterializeCivilizationTypeII",
-                EXPLICIT_SELECTION_MODE,
+                DETERMINISTIC_SELECTOR_MODE,
                 1_024,
             ),
             (
                 3,
                 "MaterializeCivilizationTypeIII",
-                EXPLICIT_SELECTION_MODE,
+                DETERMINISTIC_SELECTOR_MODE,
                 16_384,
             ),
         ],
@@ -14396,7 +14517,8 @@ def phase3_helper_canary_audit(
             "detect_signal_core",
         ) == [[
             "action", "next_ship", "signal", "ship", "sector",
-            str(celestial_category(candidate)["code"]), str(candidate["code"]),
+            str(celestial_category(candidate)["code"]),
+            str(UNRESOLVED_CANDIDATE_CODE),
             f'"{celestial_category(candidate)["remaining_field"]}"',
             f'"{celestial_category(candidate)["serial_field"]}"',
         ]]
@@ -14445,7 +14567,7 @@ def phase3_helper_canary_audit(
             and detect_wrapper.count("detect_signal_core(") == 1
             and rhai_call_arguments(detect_wrapper, "detect_signal_core")
             == [["action", "next_ship", "signal", "ship", "sector",
-                 str(category["code"]), str(detect_candidate["code"]),
+                 str(category["code"]), str(UNRESOLVED_CANDIDATE_CODE),
                  f'"{category["remaining_field"]}"',
                  f'"{category["serial_field"]}"']]
         ),
@@ -15653,7 +15775,7 @@ def phase6_token_layout_audit(
     *,
     include_baseline: bool = True,
 ) -> dict[str, Any]:
-    """Bind the exact token-only and 921-wrapper Phase 6 layout pass."""
+    """Bind the exact token-only and 570 selector-free wrapper layout pass."""
     global PHASE6_TOKEN_LAYOUT_ENABLED
 
     target = REFACTOR_PHASE6_LAYOUT_TARGETS[ACTIVE_VDF_PROFILE]
@@ -15758,7 +15880,7 @@ def phase6_token_layout_audit(
     plugin_nonblank_lines = sum(bool(line.strip()) for line in plugin_lines)
     checks = {
         "inventory_exact": (
-            len(simple_routes) == len(simple_names) == 921
+            len(simple_routes) == len(simple_names) == 570
             and simple_names.issubset(action_names)
             and len(action_names) == target["actions"]
             and len(helper_names) == target["helpers"]
@@ -16109,6 +16231,12 @@ def lifecycle_raw_binding_audit(
                 == f"SurveySector_{item['code']:02d}_{item['slug']}"
             )
             action_metadata = by_name.get(name, {})
+            selector_band = survey_selector_bands()[profile["code"]]
+            selector_source = selector_constraints_source(
+                "sector",
+                selector_band,
+                prefix="survey_selector",
+            )
             checks.update(
                 {
                     "replacement_ship_core_route_exact": (
@@ -16124,21 +16252,28 @@ def lifecycle_raw_binding_audit(
                         )
                         == 1
                     ),
-                    "explicit_selection_metadata_exact": (
+                    "deterministic_selection_metadata_exact": (
                         action_metadata.get("selection_mode")
-                        == EXPLICIT_SELECTION_MODE
+                        == DETERMINISTIC_SELECTOR_MODE
                         and action_metadata.get("survey_profile")
                         == profile["code"]
+                        and action_metadata.get("selector_subject")
+                        == "sector.stable_identifier"
+                        and action_metadata.get("selector_band")
+                        == selector_band
                         and action_metadata.get("minimum_claim_serial")
                         == profile["minimum_claim_serial"]
                     ),
-                    "stable_identifier_selection_absent": all(
-                        token not in actual_source
-                        for token in (
-                            "sector.stable_identifier",
-                            "sector_selector",
-                            "top_limb_u256",
-                            "intro_lt_eq_u256",
+                    "stable_identifier_selection_exact": (
+                        rhai_contains(actual_source, selector_source)
+                        and len(
+                            rhai_method_statement_calls(
+                                actual_source, "intro_lt_eq_u256"
+                            )
+                        )
+                        == sum(
+                            bound is not None
+                            for bound in selector_band.values()
                         )
                     ),
                     "milestone_gate_exact": (
@@ -16285,7 +16420,7 @@ def lifecycle_raw_binding_adversarial_self_check(
         f"{first_profile['slug']}"
     )
     mutations = {
-        "survey_stable_id_selector_reintroduced": replace_action_function(
+        "survey_selector_duplicated": replace_action_function(
             plugin,
             survey_name,
             lambda source: replace_regex_exact(
@@ -16381,10 +16516,10 @@ def lifecycle_raw_binding_adversarial_self_check(
         for name, mutant in mutations.items()
     }
     targeted_failures = {
-        "survey_stable_id_selector_reintroduced": (
-            not audits["survey_stable_id_selector_reintroduced"]["actions"]
+        "survey_selector_duplicated": (
+            not audits["survey_selector_duplicated"]["actions"]
             [survey_name]["checks"]
-            ["stable_identifier_selection_absent"]
+            ["stable_identifier_selection_exact"]
         ),
         "survey_profile_literal_forged": (
             not audits["survey_profile_literal_forged"]["actions"]
