@@ -1,105 +1,105 @@
 [plugin]
-name = "microverse-celestial-prototype"
+name = "microverse"
 version = "0.1.0"
 module_hash = "92b83e13252fff2cd258d6de0b36b922e7e064185b6bc698fdd923496e48e02f"
 
 [[classes]]
-name = "MicroverseShip"
+name = "microverse__ship"
 emoji = "🚀"
 description = "Microverse Small, Medium, or Large Ship; the tier is encoded in its movement and extraction fields."
 
 [[classes]]
-name = "MicroverseSector"
+name = "microverse__sector"
 emoji = "🧭"
 description = "A claimed region of the Microverse."
 
 [[classes]]
-name = "MicroverseCelestialSignal"
+name = "microverse__celestial_signal"
 emoji = "📡"
 description = "A detected celestial signal ready to be scanned."
 
 [[classes]]
-name = "MicroverseCelestialBody"
+name = "microverse__celestial_body"
 emoji = "🪐"
 description = "A scanned celestial body with resource pools."
 
 [[classes]]
-name = "MicroverseCompositeResource"
+name = "microverse__composite_resource"
 emoji = "🧱"
 description = "A Microverse resource that can yield component resources."
 
 [[classes]]
-name = "MicroverseResource"
+name = "microverse__resource"
 emoji = "📦"
 description = "A transferable quantity of a Microverse resource."
 
 [[classes]]
-name = "MicroverseSatellite"
+name = "microverse__satellite"
 emoji = "🛰️"
 description = "A satellite discovered around a celestial body."
 
 [[classes]]
-name = "MicroverseLifeSignal"
+name = "microverse__life_signal"
 emoji = "🧬"
 description = "A detected intelligent-life signal."
 
 [[classes]]
-name = "MicroverseCivilization"
+name = "microverse__civilization"
 emoji = "🏛️"
 description = "A Type I, Type II, or Type III Microverse civilization."
 
 [[classes]]
-name = "MicroverseTechnologySkill"
+name = "microverse__technology_skill"
 emoji = "🧠"
 description = "A reusable technology capability learned from a civilization."
 
 [[classes]]
-name = "MicroverseShipyardPermit"
+name = "microverse__shipyard_permit"
 emoji = "🏗️"
 description = "A location-bound permit for constructing a Microverse Ship."
 
 [[classes]]
-name = "MicroverseWarpCoordinate"
+name = "microverse__warp_coordinate"
 emoji = "WC"
 description = "A sealed, deterministic, limited-use position destination."
 
 [[classes]]
-name = "MicroverseTimeCoordinate"
+name = "microverse__time_coordinate"
 emoji = "TC"
 description = "A sealed, deterministic, limited-use absolute epoch destination."
 
 [[classes]]
-name = "MicroverseWarpChart"
+name = "microverse__warp_chart"
 emoji = "WC2"
 description = "A sealed deterministic v2 position destination."
 
 [[classes]]
-name = "MicroverseEpochChart"
+name = "microverse__epoch_chart"
 emoji = "EC2"
 description = "A sealed deterministic v2 epoch destination."
 
 [[classes]]
-name = "MicroversePositionAnchor"
+name = "microverse__position_anchor"
 emoji = "PA"
 description = "A one-use snapshot of a Ship's x/y/z."
 
 [[classes]]
-name = "MicroverseTimeAnchor"
+name = "microverse__time_anchor"
 emoji = "TA"
 description = "A one-use snapshot of a Ship's epoch."
 
 [[classes]]
-name = "MicroverseWormholeLink"
+name = "microverse__wormhole_link"
 emoji = "WL"
 description = "A three-use bidirectional connection between two positions."
 
 [[classes]]
-name = "MicroverseTemporalLink"
+name = "microverse__temporal_link"
 emoji = "TL"
 description = "A three-use bidirectional connection between two epochs."
 
 [[classes]]
-name = "MicroverseRendezvousCoordinate"
+name = "microverse__rendezvous_coordinate"
 emoji = "RC"
 description = "A three-use destination combining captured x/y/z and epoch."
 
