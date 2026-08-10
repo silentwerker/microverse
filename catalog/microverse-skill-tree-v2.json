@@ -1,0 +1,2794 @@
+{
+  "schema_version": 2,
+  "catalog_id": "microverse-skill-tree-v2",
+  "catalog_version": "2.0.0",
+  "status": "approved-design-catalog",
+  "description": "Append-only Microverse skill tree preserving the 18 production root skills and adding three fixed specializations plus one mastery beneath every root.",
+  "counts": {
+    "roots": 18,
+    "specializations": 54,
+    "masteries": 18,
+    "total_skills": 90,
+    "minimum_root_logical_routes": 8,
+    "component_gates_reserved_for_balance": 41,
+    "component_gates_thematic": 4,
+    "component_gates_flexible": 0
+  },
+  "code_ranges": {
+    "roots": { "minimum": 1, "maximum": 18 },
+    "specializations": { "minimum": 19, "maximum": 72 },
+    "masteries": { "minimum": 73, "maximum": 90 }
+  },
+  "derived_skill_development_vdf": {
+    "specialization_by_civilization_type": {
+      "1": { "vdf_tier": "solid", "vdf_iterations": 8 },
+      "2": { "vdf_tier": "advanced", "vdf_iterations": 12 },
+      "3": { "vdf_tier": "artifact", "vdf_iterations": 32 }
+    },
+    "mastery_by_civilization_type": {
+      "1": { "vdf_tier": "advanced", "vdf_iterations": 12 },
+      "2": { "vdf_tier": "artifact", "vdf_iterations": 32 },
+      "3": { "vdf_tier": "artifact", "vdf_iterations": 32 }
+    },
+    "root_development": "Preserve production behavior exactly; no VDF is added to the existing 18 Civilization-issued root skills."
+  },
+  "schema": {
+    "root": {
+      "required_fields": [
+        "code", "name", "slug", "tier", "parent_code",
+        "civilization_type", "develop_action", "reusable",
+        "existing_gate_audit", "balance_target", "route_policy",
+        "specializations", "mastery"
+      ]
+    },
+    "derived_skill": {
+      "required_fields": [
+        "code", "name", "slug", "tier", "parent_code",
+        "civilization_type", "develop_action", "reusable",
+        "description", "development_recipe", "gated_capabilities"
+      ]
+    },
+    "development_recipe": {
+      "fixed_shape": true,
+      "required_fields": [
+        "action", "output_skill_code", "parent_skill_input",
+        "prerequisite_skill_inputs", "items"
+      ],
+      "item_union": {
+        "resource": [
+          "kind", "resource_name", "resource_code", "amount",
+          "amount_unit", "catalyst", "consumed"
+        ],
+        "component": [
+          "kind", "component_name", "component_code", "amount",
+          "amount_unit", "catalyst", "consumed"
+        ]
+      }
+    },
+    "gated_capability": {
+      "required_fields": [
+        "route_key", "action_family", "required_skill_code",
+        "output_resource_code", "action", "object_family", "description"
+      ],
+      "route_key_policy": "Stable lower-kebab keys are generator inputs. Every emitted fixed wrapper must constrain Ship.active_skill_type to required_skill_code and clear it in the replacement Ship."
+    },
+    "capability_artifact": {
+      "required_fields": [
+        "skill_code", "route_key", "action_family", "action",
+        "primary_output_class", "fallback_resource", "fixed_inputs",
+        "vdf_iterations"
+      ],
+      "fallback_resource_fields": ["code", "name", "amount"],
+      "input_fields": ["class", "resource_code", "amount"]
+    }
+  },
+  "policies": {
+    "compatibility": {
+      "root_codes_append_only": true,
+      "renumber_existing_roots": false,
+      "remove_existing_develop_actions": false,
+      "existing_exact_skill_gates_unchanged": true,
+      "reason": "TechnologySkill meaning is its exact numeric skill_type; changing a gate would strand issued reusable skill objects and alter Type I/II/III progression."
+    },
+    "execution": {
+      "fixed_named_action_wrappers": true,
+      "fixed_arity_recipes": true,
+      "runtime_branching": false,
+      "runtime_loops": false,
+      "dynamic_action_dispatch": false,
+      "exact_active_skill_type_gate": true,
+      "skill_consumption": "Reusable skill proof rotates its key; evidence resources and components are consumed by the fixed development action.",
+      "recipe_amount_semantics": "Component and artifact amount 1 consumes one complete amount-1 output object. Resource evidence uses an exact whole-stack amount emitted by an existing extraction or refinement action. Partial stack consumption is never implicit."
+    },
+    "route_accounting": {
+      "logical_route_formula": "extraction_routes + refine_outputs + component_recipes",
+      "excluded_from_minimum": [
+        "ship-tier variants of one extraction route",
+        "Large Ship permit endorsements",
+        "legacy warp/time coordinate extraction"
+      ],
+      "minimum_per_root": 8,
+      "component_gate_allocation": {
+        "1": 1,
+        "2": 4,
+        "3": 1,
+        "4": 1,
+        "6": 4,
+        "9": 8,
+        "10": 4,
+        "11": 6,
+        "13": 1,
+        "15": 4,
+        "17": 4,
+        "18": 7
+      },
+      "unallocated_component_gates": 0
+    },
+    "new_body_routes": {
+      "assignment": "Assign each fixed extraction or refinement route to the narrowest semantically correct root or derived skill; rarity alone never selects the skill.",
+      "tier_policy": [
+        "Type I covers conventional materials, chemistry, genetics, electronics, and physical infrastructure.",
+        "Type II covers advanced matter, stellar energy, computation, precision fabrication, navigation, and engineered biospheres.",
+        "Type III covers exotic matter, spacetime, galactic information systems, stellar manipulation, planetary biosphere genesis, and civilization-scale systems."
+      ],
+      "no_balance_padding": "Do not assign a route to an unrelated skill merely to increase its count; use component recipes and derived capabilities for balance."
+    },
+    "component_routes": {
+      "one_active_skill_gate_per_component_action": true,
+      "multi_skill_atomic_gate": false,
+      "data_catalysts": "Terminal data resources remain meaningful recipe catalysts/evidence rather than dead-end commodities.",
+      "derived_skill_role": "Specializations and masteries gate advanced component variants, analysis, anchors, charts, links, infrastructure, and other named outputs; they do not replace their parent root's existing gates."
+      ,
+      "derived_route_guard": "The 72 derived capability routes are additive. Do not move a production root gate or one of the 41 root-balance component gates to a derived skill."
+    },
+    "warp_roles": {
+      "legacy_policy": "Preserve the production v1 ExtractAnomalyWarpCoordinate and ExtractAnomalyTimeCoordinate gates on Spacetime Engineering code 14.",
+      "interstellar_navigation_code_11": [
+        "new position charts",
+        "deep-space astrometry",
+        "position anchors",
+        "relativistic route solutions",
+        "frontier position-coordinate acquisition"
+      ],
+      "spacetime_engineering_code_14": [
+        "time coordinates",
+        "wormhole links",
+        "temporal links",
+        "metric stabilization",
+        "gravitational lens anchors"
+      ],
+      "deterministic_reveal": "Destination reveal remains a fixed stable-identifier band comparison; the skill gates acquisition or construction, not deterministic reveal rerolling."
+    }
+  },
+  "new_body_route_overrides": [
+    { "route_key": "refine.nickel-iron-matrix.kamacite", "base_root_skill_code": 1, "derived_skill_code": 19, "action_family": "refine_new_resource" },
+    { "route_key": "refine.platinum-group-vein.palladium", "base_root_skill_code": 1, "derived_skill_code": 20, "action_family": "refine_new_resource" },
+    { "route_key": "refine.metallic-hydrogen-layer.protonic-conductor", "base_root_skill_code": 2, "derived_skill_code": 22, "action_family": "refine_new_resource" },
+    { "route_key": "refine.magnetized-crustal-lattice.magnetostrictive-iron", "base_root_skill_code": 7, "derived_skill_code": 23, "action_family": "refine_new_resource" },
+    { "route_key": "extract.volcanic-planet.seismic-tomography-data", "base_root_skill_code": 9, "derived_skill_code": 24, "action_family": "extract_new_resource" },
+    { "route_key": "refine.fumarole-condensate.sulfur-sublimate", "base_root_skill_code": 3, "derived_skill_code": 25, "action_family": "refine_new_resource" },
+    { "route_key": "refine.carbonaceous-regolith.insoluble-organic-matter", "base_root_skill_code": 10, "derived_skill_code": 26, "action_family": "refine_new_resource" },
+    { "route_key": "refine.cryovolcanic-plume.ammonia-jet", "base_root_skill_code": 3, "derived_skill_code": 27, "action_family": "refine_new_resource" },
+    { "route_key": "extract.white-dwarf.nova-ash-deposit", "base_root_skill_code": 4, "derived_skill_code": 28, "action_family": "extract_new_resource" },
+    { "route_key": "refine.nova-ash-deposit.aluminum-26-deposit", "base_root_skill_code": 4, "derived_skill_code": 29, "action_family": "refine_new_resource" },
+    { "route_key": "refine.starquake-ejecta.heavy-nucleus-fragment", "base_root_skill_code": 4, "derived_skill_code": 30, "action_family": "refine_new_resource" },
+    { "route_key": "refine.complex-organic-mantle.tholin-granule", "base_root_skill_code": 17, "derived_skill_code": 33, "action_family": "refine_new_resource" },
+    { "route_key": "extract.volcanic-planet.ultramafic-magma", "base_root_skill_code": 6, "derived_skill_code": 34, "action_family": "extract_new_resource" },
+    { "route_key": "extract.asteroid-belt.silicate-rubble", "base_root_skill_code": 6, "derived_skill_code": 35, "action_family": "extract_new_resource" },
+    { "route_key": "extract.asteroid-belt.impact-glass-breccia", "base_root_skill_code": 7, "derived_skill_code": 37, "action_family": "extract_new_resource" },
+    { "route_key": "refine.magnetized-crustal-lattice.quantized-crystal-domain", "base_root_skill_code": 14, "derived_skill_code": 38, "action_family": "refine_new_resource" },
+    { "route_key": "refine.electron-degenerate-matter.coulomb-crystal", "base_root_skill_code": 7, "derived_skill_code": 39, "action_family": "refine_new_resource" },
+    { "route_key": "extract.nebula.ionized-hydrogen-cloud", "base_root_skill_code": 8, "derived_skill_code": 40, "action_family": "extract_new_resource" },
+    { "route_key": "extract.nebula.emission-line-map", "base_root_skill_code": 9, "derived_skill_code": 41, "action_family": "extract_new_resource" },
+    { "route_key": "extract.magnetar.twisted-magnetosphere-plasma", "base_root_skill_code": 8, "derived_skill_code": 42, "action_family": "extract_new_resource" },
+    { "route_key": "extract.brown-dwarf.infrared-weather-map", "base_root_skill_code": 9, "derived_skill_code": 43, "action_family": "extract_new_resource" },
+    { "route_key": "extract.white-dwarf.asteroseismic-mode-data", "base_root_skill_code": 9, "derived_skill_code": 44, "action_family": "extract_new_resource" },
+    { "route_key": "extract.magnetar.giant-flare-light-curve", "base_root_skill_code": 9, "derived_skill_code": 45, "action_family": "extract_new_resource" },
+    { "route_key": "extract.nebula.polycyclic-aromatic-mixture", "base_root_skill_code": 10, "derived_skill_code": 46, "action_family": "extract_new_resource" },
+    { "route_key": "refine.impact-glass-breccia.shocked-quartz", "base_root_skill_code": 7, "derived_skill_code": 47, "action_family": "refine_new_resource" },
+    { "route_key": "refine.polycyclic-aromatic-mixture.coronene", "base_root_skill_code": 10, "derived_skill_code": 48, "action_family": "refine_new_resource" },
+    { "route_key": "extract.white-dwarf.electron-degenerate-matter", "base_root_skill_code": 13, "derived_skill_code": 55, "action_family": "extract_new_resource" },
+    { "route_key": "extract.magnetar.qed-vacuum-deposit", "base_root_skill_code": 14, "derived_skill_code": 56, "action_family": "extract_new_resource" },
+    { "route_key": "refine.starquake-ejecta.relativistic-pair-fireball", "base_root_skill_code": 16, "derived_skill_code": 57, "action_family": "refine_new_resource" },
+    { "route_key": "extract.magnetar.magnetic-topology-map", "base_root_skill_code": 15, "derived_skill_code": 61, "action_family": "extract_new_resource" },
+    { "route_key": "extract.nebula.protostar-census-data", "base_root_skill_code": 11, "derived_skill_code": 63, "action_family": "extract_new_resource" },
+    { "route_key": "extract.magnetar.starquake-ejecta", "base_root_skill_code": 16, "derived_skill_code": 64, "action_family": "extract_new_resource" },
+    { "route_key": "extract.nebula.stellar-nursery-dust", "base_root_skill_code": 16, "derived_skill_code": 65, "action_family": "extract_new_resource" },
+    { "route_key": "extract.white-dwarf.degenerate-helium-envelope", "base_root_skill_code": 16, "derived_skill_code": 66, "action_family": "extract_new_resource" },
+    { "route_key": "extract.comet-cluster.primitive-ice-matrix", "base_root_skill_code": 3, "derived_skill_code": 68, "action_family": "extract_new_resource" },
+    { "route_key": "extract.wormhole-mouth.causal-connectivity-map", "base_root_skill_code": 18, "derived_skill_code": 70, "action_family": "extract_new_resource" },
+    { "route_key": "extract.wormhole-mouth.transit-phase-data", "base_root_skill_code": 11, "derived_skill_code": 72, "action_family": "extract_new_resource" }
+  ],
+  "root_gate_balance_summary": [
+    { "code": 1, "current": 32, "reserved_component_gates": 1, "minimum_after_reserved": 33 },
+    { "code": 2, "current": 4, "reserved_component_gates": 4, "minimum_after_reserved": 8 },
+    { "code": 3, "current": 59, "reserved_component_gates": 1, "minimum_after_reserved": 60 },
+    { "code": 4, "current": 14, "reserved_component_gates": 1, "minimum_after_reserved": 15 },
+    { "code": 5, "current": 10, "reserved_component_gates": 0, "minimum_after_reserved": 10 },
+    { "code": 6, "current": 4, "reserved_component_gates": 4, "minimum_after_reserved": 8 },
+    { "code": 7, "current": 15, "reserved_component_gates": 0, "minimum_after_reserved": 15 },
+    { "code": 8, "current": 22, "reserved_component_gates": 0, "minimum_after_reserved": 22 },
+    { "code": 9, "current": 0, "reserved_component_gates": 8, "minimum_after_reserved": 8 },
+    { "code": 10, "current": 4, "reserved_component_gates": 4, "minimum_after_reserved": 8 },
+    { "code": 11, "current": 2, "reserved_component_gates": 6, "minimum_after_reserved": 8 },
+    { "code": 12, "current": 15, "reserved_component_gates": 0, "minimum_after_reserved": 15 },
+    { "code": 13, "current": 26, "reserved_component_gates": 1, "minimum_after_reserved": 27 },
+    { "code": 14, "current": 11, "reserved_component_gates": 0, "minimum_after_reserved": 11 },
+    { "code": 15, "current": 4, "reserved_component_gates": 4, "minimum_after_reserved": 8 },
+    { "code": 16, "current": 31, "reserved_component_gates": 0, "minimum_after_reserved": 31 },
+    { "code": 17, "current": 4, "reserved_component_gates": 4, "minimum_after_reserved": 8 },
+    { "code": 18, "current": 1, "reserved_component_gates": 7, "minimum_after_reserved": 8 }
+  ],
+  "roots": [
+    {
+      "code": 1,
+      "name": "Industrial Fabrication",
+      "slug": "industrial-fabrication",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 1,
+      "develop_action": "DevelopTypeIIndustrialFabricationSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIndustrialFabricationSkill",
+        "output_skill_code": 1,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 1 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 2,
+        "refinement_route_count": 30,
+        "logical_resource_route_count": 32,
+        "concrete_action_count": 36,
+        "extraction_action_references": [
+          "ExtractMegastructureCeramicSalvage",
+          "ExtractMegastructureMechanicalSalvage"
+        ],
+        "refinement_parent_references": [
+          "Metal-Rich Ore", "Ferrous Ore", "Base-Metal Ore",
+          "Light-Metal Ore", "Precious-Metal Ore", "Structural Salvage",
+          "Dense-Metal Ore", "Rare-Earth Ore", "Seafloor Sulfide Ore",
+          "Mechanical Salvage"
+        ],
+        "other_gate_action_references": ["AuthorizeLargeShipIndustrial"]
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 1,
+        "component_reference_codes": [390],
+        "minimum_after_reserved_components": 33
+      },
+      "route_policy": "Bulk metals, structural materials, conventional mechanical systems, tools, pressure systems, and scalable assembly.",
+      "specializations": [
+        {
+          "code": 19,
+          "name": "Structural Metallurgy",
+          "slug": "structural-metallurgy",
+          "tier": "specialization",
+          "parent_code": 1,
+          "civilization_type": 1,
+          "develop_action": "DevelopStructuralMetallurgySkill",
+          "reusable": 1,
+          "description": "Designs high-strength structural alloys and reinforced load-bearing assemblies.",
+          "development_recipe": {
+            "action": "DevelopStructuralMetallurgySkill",
+            "output_skill_code": 19,
+            "parent_skill_input": { "skill_code": 1, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Structural Alloy", "component_code": 390, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Steel", "resource_code": 211, "amount": 6, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.reinforced-hull-frame", "action_family": "craft_component", "required_skill_code": 19, "output_resource_code": 629, "action": "ForgeReinforcedHullFrame", "object_family": "resource_artifact", "description": "Produces a Reinforced Hull Frame for advanced ship and habitat recipes." }
+          ]
+        },
+        {
+          "code": 20,
+          "name": "Precision Tooling",
+          "slug": "precision-tooling",
+          "tier": "specialization",
+          "parent_code": 1,
+          "civilization_type": 1,
+          "develop_action": "DevelopPrecisionToolingSkill",
+          "reusable": 1,
+          "description": "Creates durable, calibrated toolheads for precision fabrication chains.",
+          "development_recipe": {
+            "action": "DevelopPrecisionToolingSkill",
+            "output_skill_code": 20,
+            "parent_skill_input": { "skill_code": 1, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Abrasive Compound", "component_code": 395, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Tool Steel", "resource_code": 385, "amount": 1, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.precision-toolhead", "action_family": "craft_component", "required_skill_code": 20, "output_resource_code": 630, "action": "FabricatePrecisionToolhead", "object_family": "resource_artifact", "description": "Produces a Precision Toolhead used by higher-order fabrication recipes." }
+          ]
+        },
+        {
+          "code": 21,
+          "name": "Pressure Systems",
+          "slug": "pressure-systems",
+          "tier": "specialization",
+          "parent_code": 1,
+          "civilization_type": 1,
+          "develop_action": "DevelopPressureSystemsSkill",
+          "reusable": 1,
+          "description": "Builds sealed pressure structures for habitats, processing plants, and vehicles.",
+          "development_recipe": {
+            "action": "DevelopPressureSystemsSkill",
+            "output_skill_code": 21,
+            "parent_skill_input": { "skill_code": 1, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Pressure Vessel", "component_code": 393, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Geothermal Energy", "resource_code": 233, "amount": 10, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.habitat-pressure-shell", "action_family": "craft_component", "required_skill_code": 21, "output_resource_code": 631, "action": "AssembleHabitatPressureShell", "object_family": "resource_artifact", "description": "Produces a Habitat Pressure Shell for sealed construction." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 73,
+        "name": "Integrated Industrial Systems",
+        "slug": "integrated-industrial-systems",
+        "tier": "mastery",
+        "parent_code": 1,
+        "civilization_type": 1,
+        "develop_action": "DevelopIntegratedIndustrialSystemsMastery",
+        "reusable": 1,
+        "description": "Integrates metallurgy, precision tooling, and pressure systems into complete industrial plants.",
+        "development_recipe": {
+          "action": "DevelopIntegratedIndustrialSystemsMastery",
+          "output_skill_code": 73,
+          "parent_skill_input": { "skill_code": 1, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Reinforced Hull Frame", "component_code": 629, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Precision Toolhead", "component_code": 630, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Habitat Pressure Shell", "component_code": 631, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.orbital-foundry-core", "action_family": "craft_component", "required_skill_code": 73, "output_resource_code": 683, "action": "AssembleOrbitalFoundryCore", "object_family": "resource_artifact", "description": "Produces an Orbital Foundry Core for the highest industrial construction tier." }
+        ]
+      }
+    },
+    {
+      "code": 2,
+      "name": "Electronics",
+      "slug": "electronics",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 1,
+      "develop_action": "DevelopTypeIElectronicsSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIElectronicsSkill",
+        "output_skill_code": 2,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 1 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 1,
+        "refinement_route_count": 3,
+        "logical_resource_route_count": 4,
+        "concrete_action_count": 6,
+        "extraction_action_references": ["ExtractMegastructureElectronicSalvage"],
+        "refinement_parent_references": ["Electronic Salvage"],
+        "other_gate_action_references": ["AuthorizeLargeShipElectronics"]
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 4,
+        "component_reference_codes": [392, 396, 400, 401],
+        "minimum_after_reserved_components": 8
+      },
+      "route_policy": "Conventional circuits, power control, electromagnetic assemblies, instrumentation, and sensor systems.",
+      "specializations": [
+        {
+          "code": 22,
+          "name": "Circuit Architecture",
+          "slug": "circuit-architecture",
+          "tier": "specialization",
+          "parent_code": 2,
+          "civilization_type": 1,
+          "develop_action": "DevelopCircuitArchitectureSkill",
+          "reusable": 1,
+          "description": "Designs reliable logic, power, and control circuitry.",
+          "development_recipe": {
+            "action": "DevelopCircuitArchitectureSkill",
+            "output_skill_code": 22,
+            "parent_skill_input": { "skill_code": 2, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Circuit Substrate", "component_code": 392, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Copper", "resource_code": 161, "amount": 7, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.logic-control-board", "action_family": "craft_component", "required_skill_code": 22, "output_resource_code": 632, "action": "FabricateLogicControlBoard", "object_family": "resource_artifact", "description": "Produces a Logic Control Board for automated equipment." }
+          ]
+        },
+        {
+          "code": 23,
+          "name": "Electromagnetic Systems",
+          "slug": "electromagnetic-systems",
+          "tier": "specialization",
+          "parent_code": 2,
+          "civilization_type": 1,
+          "develop_action": "DevelopElectromagneticSystemsSkill",
+          "reusable": 1,
+          "description": "Controls magnetic fields for motors, containment, and power transfer.",
+          "development_recipe": {
+            "action": "DevelopElectromagneticSystemsSkill",
+            "output_skill_code": 23,
+            "parent_skill_input": { "skill_code": 2, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Magnetic Core", "component_code": 396, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Ferrite Dust", "resource_code": 264, "amount": 35, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.field-control-assembly", "action_family": "craft_component", "required_skill_code": 23, "output_resource_code": 633, "action": "FabricateFieldControlAssembly", "object_family": "resource_artifact", "description": "Produces a Field Control Assembly for magnetic and plasma systems." }
+          ]
+        },
+        {
+          "code": 24,
+          "name": "Sensor Instrumentation",
+          "slug": "sensor-instrumentation",
+          "tier": "specialization",
+          "parent_code": 2,
+          "civilization_type": 1,
+          "develop_action": "DevelopSensorInstrumentationSkill",
+          "reusable": 1,
+          "description": "Builds calibrated instruments that turn physical observations into usable survey data.",
+          "development_recipe": {
+            "action": "DevelopSensorInstrumentationSkill",
+            "output_skill_code": 24,
+            "parent_skill_input": { "skill_code": 2, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Circuit Substrate", "component_code": 392, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Stellar Spectrum Data", "resource_code": 228, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.survey-sensor-array", "action_family": "craft_component", "required_skill_code": 24, "output_resource_code": 634, "action": "AssembleSurveySensorArray", "object_family": "resource_artifact", "description": "Produces a Survey Sensor Array for navigation and scientific analysis." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 74,
+        "name": "Integrated Electronics",
+        "slug": "integrated-electronics",
+        "tier": "mastery",
+        "parent_code": 2,
+        "civilization_type": 1,
+        "develop_action": "DevelopIntegratedElectronicsMastery",
+        "reusable": 1,
+        "description": "Integrates computation, field control, and sensing into a unified avionics architecture.",
+        "development_recipe": {
+          "action": "DevelopIntegratedElectronicsMastery",
+          "output_skill_code": 74,
+          "parent_skill_input": { "skill_code": 2, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Logic Control Board", "component_code": 632, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Field Control Assembly", "component_code": 633, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Survey Sensor Array", "component_code": 634, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.integrated-avionics-core", "action_family": "craft_component", "required_skill_code": 74, "output_resource_code": 684, "action": "AssembleIntegratedAvionicsCore", "object_family": "resource_artifact", "description": "Produces an Integrated Avionics Core for autonomous ships and navigation systems." }
+        ]
+      }
+    },
+    {
+      "code": 3,
+      "name": "Chemical Engineering",
+      "slug": "chemical-engineering",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 1,
+      "develop_action": "DevelopTypeIChemicalEngineeringSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIChemicalEngineeringSkill",
+        "output_skill_code": 3,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 1 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 3,
+        "refinement_route_count": 56,
+        "logical_resource_route_count": 59,
+        "concrete_action_count": 62,
+        "extraction_action_references": [
+          "ExtractGasGiantDeepAtmosphereGas",
+          "ExtractGasGiantSulfurCloud",
+          "ExtractIceGiantCryogenicVolatile"
+        ],
+        "refinement_parent_references": [
+          "Silicate Mineral", "Industrial Mineral", "Seawater Minerals",
+          "Atmospheric Gas", "Noble Gas", "Volatile Ice",
+          "Carbonaceous Deposit", "Fertilizer Mineral", "Ceramic Salvage",
+          "Organic Ore", "Deep-Atmosphere Gas", "Hydrocarbon Cloud",
+          "Cryogenic Volatile", "Molecular-Cloud Gas", "Interstellar Dust",
+          "Sedimentary Rock", "Dissolved Trace Minerals", "Sulfur Cloud",
+          "Alkali Mineral Ore"
+        ],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 1,
+        "component_reference_codes": [394],
+        "minimum_after_reserved_components": 60
+      },
+      "route_policy": "Chemical separation, polymers, propellants, volatiles, industrial reagents, and non-nuclear molecular processing.",
+      "specializations": [
+        {
+          "code": 25,
+          "name": "Separation Chemistry",
+          "slug": "separation-chemistry",
+          "tier": "specialization",
+          "parent_code": 3,
+          "civilization_type": 1,
+          "develop_action": "DevelopSeparationChemistrySkill",
+          "reusable": 1,
+          "description": "Separates complex feedstocks with tuned catalysts and selective process media.",
+          "development_recipe": {
+            "action": "DevelopSeparationChemistrySkill",
+            "output_skill_code": 25,
+            "parent_skill_input": { "skill_code": 3, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "Molecular Spectrum Data", "resource_code": 257, "amount": 10, "amount_unit": "resource_units", "catalyst": true, "consumed": true },
+              { "kind": "resource", "resource_name": "Platinum", "resource_code": 201, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.selective-separation-column", "action_family": "craft_component", "required_skill_code": 25, "output_resource_code": 635, "action": "BuildSelectiveSeparationColumn", "object_family": "resource_artifact", "description": "Produces a Separation Column for advanced resource purification." }
+          ]
+        },
+        {
+          "code": 26,
+          "name": "Polymer Chemistry",
+          "slug": "polymer-chemistry",
+          "tier": "specialization",
+          "parent_code": 3,
+          "civilization_type": 1,
+          "develop_action": "DevelopPolymerChemistrySkill",
+          "reusable": 1,
+          "description": "Controls polymer composition, curing, and structural performance.",
+          "development_recipe": {
+            "action": "DevelopPolymerChemistrySkill",
+            "output_skill_code": 26,
+            "parent_skill_input": { "skill_code": 3, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Sealant Resin", "component_code": 397, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Thermoset Resin", "resource_code": 319, "amount": 1, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.polymer-matrix", "action_family": "craft_component", "required_skill_code": 26, "output_resource_code": 636, "action": "SynthesizePolymerMatrix", "object_family": "resource_artifact", "description": "Produces a Polymer Matrix for smart membranes and composite structures." }
+          ]
+        },
+        {
+          "code": 27,
+          "name": "Propellant Chemistry",
+          "slug": "propellant-chemistry",
+          "tier": "specialization",
+          "parent_code": 3,
+          "civilization_type": 1,
+          "develop_action": "DevelopPropellantChemistrySkill",
+          "reusable": 1,
+          "description": "Blends stable, high-energy fuels for propulsion and remote power systems.",
+          "development_recipe": {
+            "action": "DevelopPropellantChemistrySkill",
+            "output_skill_code": 27,
+            "parent_skill_input": { "skill_code": 3, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Fuel Slurry", "component_code": 394, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Deuterium", "resource_code": 155, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.high-energy-propellant", "action_family": "craft_component", "required_skill_code": 27, "output_resource_code": 637, "action": "BlendHighEnergyPropellant", "object_family": "resource_artifact", "description": "Produces High-Energy Propellant for advanced transit and industrial systems." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 75,
+        "name": "Chemical Plant Architecture",
+        "slug": "chemical-plant-architecture",
+        "tier": "mastery",
+        "parent_code": 3,
+        "civilization_type": 1,
+        "develop_action": "DevelopChemicalPlantArchitectureMastery",
+        "reusable": 1,
+        "description": "Integrates separation, polymer, and propellant systems into closed industrial chemistry plants.",
+        "development_recipe": {
+          "action": "DevelopChemicalPlantArchitectureMastery",
+          "output_skill_code": 75,
+          "parent_skill_input": { "skill_code": 3, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Separation Column", "component_code": 635, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Polymer Matrix", "component_code": 636, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "High-Energy Propellant", "component_code": 637, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.chemical-plant-core", "action_family": "craft_component", "required_skill_code": 75, "output_resource_code": 685, "action": "AssembleChemicalPlantCore", "object_family": "resource_artifact", "description": "Produces a Chemical Plant Core for high-throughput transformation recipes." }
+        ]
+      }
+    },
+    {
+      "code": 4,
+      "name": "Nuclear Engineering",
+      "slug": "nuclear-engineering",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 1,
+      "develop_action": "DevelopTypeINuclearEngineeringSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeINuclearEngineeringSkill",
+        "output_skill_code": 4,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 1 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 2,
+        "refinement_route_count": 12,
+        "logical_resource_route_count": 14,
+        "concrete_action_count": 16,
+        "extraction_action_references": [
+          "ExtractMainSequenceStarSolarWindCondensate",
+          "ExtractStellarRemnantRadioisotopeDeposit"
+        ],
+        "refinement_parent_references": [
+          "Fusion Gas", "Nuclear Ore", "Radioisotope Deposit",
+          "Solar-Wind Condensate"
+        ],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 1,
+        "component_reference_codes": [398],
+        "minimum_after_reserved_components": 15
+      },
+      "route_policy": "Fission and fusion fuel cycles, isotopes, neutron interactions, radiation protection, and compact reactor systems.",
+      "specializations": [
+        {
+          "code": 28,
+          "name": "Fission Reactor Engineering",
+          "slug": "fission-reactor-engineering",
+          "tier": "specialization",
+          "parent_code": 4,
+          "civilization_type": 1,
+          "develop_action": "DevelopFissionReactorEngineeringSkill",
+          "reusable": 1,
+          "description": "Controls fissile fuel, heat extraction, and durable reactor structures.",
+          "development_recipe": {
+            "action": "DevelopFissionReactorEngineeringSkill",
+            "output_skill_code": 28,
+            "parent_skill_input": { "skill_code": 4, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "Uranium", "resource_code": 202, "amount": 45, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "component", "component_name": "Ceramic Plating", "component_code": 391, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.fission-reactor-core", "action_family": "craft_component", "required_skill_code": 28, "output_resource_code": 638, "action": "AssembleFissionReactorCore", "object_family": "resource_artifact", "description": "Produces a Fission Reactor Core for durable local power systems." }
+          ]
+        },
+        {
+          "code": 29,
+          "name": "Isotope Engineering",
+          "slug": "isotope-engineering",
+          "tier": "specialization",
+          "parent_code": 4,
+          "civilization_type": 1,
+          "develop_action": "DevelopIsotopeEngineeringSkill",
+          "reusable": 1,
+          "description": "Selects and packages radioisotopes for long-lived power and instrumentation.",
+          "development_recipe": {
+            "action": "DevelopIsotopeEngineeringSkill",
+            "output_skill_code": 29,
+            "parent_skill_input": { "skill_code": 4, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "Cobalt-60", "resource_code": 333, "amount": 30, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Decay Spectrum Data", "resource_code": 353, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.isotope-power-cell", "action_family": "craft_component", "required_skill_code": 29, "output_resource_code": 639, "action": "FabricateIsotopePowerCell", "object_family": "resource_artifact", "description": "Produces an Isotope Power Cell for remote infrastructure." }
+          ]
+        },
+        {
+          "code": 30,
+          "name": "Radiation Protection",
+          "slug": "radiation-protection",
+          "tier": "specialization",
+          "parent_code": 4,
+          "civilization_type": 1,
+          "develop_action": "DevelopRadiationProtectionSkill",
+          "reusable": 1,
+          "description": "Engineers layered shielding against particle, neutron, and photon radiation.",
+          "development_recipe": {
+            "action": "DevelopRadiationProtectionSkill",
+            "output_skill_code": 30,
+            "parent_skill_input": { "skill_code": 4, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "Lead", "resource_code": 219, "amount": 45, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Boron", "resource_code": 368, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Water", "resource_code": 126, "amount": 10, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.radiation-vault-module", "action_family": "craft_component", "required_skill_code": 30, "output_resource_code": 640, "action": "AssembleRadiationVaultModule", "object_family": "resource_artifact", "description": "Produces a Radiation Vault Module for ships and reactors." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 76,
+        "name": "Nuclear Power Architecture",
+        "slug": "nuclear-power-architecture",
+        "tier": "mastery",
+        "parent_code": 4,
+        "civilization_type": 1,
+        "develop_action": "DevelopNuclearPowerArchitectureMastery",
+        "reusable": 1,
+        "description": "Integrates reactors, isotope power, and shielding into complete nuclear systems.",
+        "development_recipe": {
+          "action": "DevelopNuclearPowerArchitectureMastery",
+          "output_skill_code": 76,
+          "parent_skill_input": { "skill_code": 4, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Fission Reactor Core", "component_code": 638, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Isotope Power Cell", "component_code": 639, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Radiation Vault Module", "component_code": 640, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.nuclear-power-node", "action_family": "craft_component", "required_skill_code": 76, "output_resource_code": 686, "action": "AssembleNuclearPowerNode", "object_family": "resource_artifact", "description": "Produces a Nuclear Power Node for advanced ships and settlements." }
+        ]
+      }
+    },
+    {
+      "code": 5,
+      "name": "Genetic Engineering",
+      "slug": "genetic-engineering",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 1,
+      "develop_action": "DevelopTypeIGeneticEngineeringSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIGeneticEngineeringSkill",
+        "output_skill_code": 5,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 1 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 1,
+        "refinement_route_count": 9,
+        "logical_resource_route_count": 10,
+        "concrete_action_count": 12,
+        "extraction_action_references": ["ExtractGasClusterPrebioticMoleculeMixture"],
+        "refinement_parent_references": [
+          "Genetic Material", "Biochemical Mixture",
+          "Prebiotic Molecule Mixture"
+        ],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 0,
+        "component_reference_codes": [],
+        "minimum_after_reserved_components": 10
+      },
+      "route_policy": "Genomes, engineered organisms, adaptive biochemistry, and heritable biological design; contained ecosystem operation remains code 12.",
+      "specializations": [
+        {
+          "code": 31,
+          "name": "Genome Editing",
+          "slug": "genome-editing",
+          "tier": "specialization",
+          "parent_code": 5,
+          "civilization_type": 1,
+          "develop_action": "DevelopGenomeEditingSkill",
+          "reusable": 1,
+          "description": "Creates precise, auditable genome alterations and stable genetic records.",
+          "development_recipe": {
+            "action": "DevelopGenomeEditingSkill",
+            "output_skill_code": 31,
+            "parent_skill_input": { "skill_code": 5, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "DNA", "resource_code": 178, "amount": 5, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Plasmid", "resource_code": 180, "amount": 2, "amount_unit": "object", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "analyze.edited-genome-archive", "action_family": "analyze_resource", "required_skill_code": 31, "output_resource_code": 641, "action": "CompileEditedGenomeArchive", "object_family": "resource_artifact", "description": "Produces an Edited Genome Archive used in advanced biological recipes." }
+          ]
+        },
+        {
+          "code": 32,
+          "name": "Microbial Design",
+          "slug": "microbial-design",
+          "tier": "specialization",
+          "parent_code": 5,
+          "civilization_type": 1,
+          "develop_action": "DevelopMicrobialDesignSkill",
+          "reusable": 1,
+          "description": "Designs microbes for controlled metabolism, industry, and environmental conditioning.",
+          "development_recipe": {
+            "action": "DevelopMicrobialDesignSkill",
+            "output_skill_code": 32,
+            "parent_skill_input": { "skill_code": 5, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "Bacterial Culture", "resource_code": 184, "amount": 5, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Enzyme", "resource_code": 182, "amount": 3, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.engineered-microbe-culture", "action_family": "craft_component", "required_skill_code": 32, "output_resource_code": 642, "action": "CultureEngineeredMicrobe", "object_family": "resource_artifact", "description": "Produces an Engineered Microbe Culture for biosphere and world-seeding chains." }
+          ]
+        },
+        {
+          "code": 33,
+          "name": "Adaptive Organism Design",
+          "slug": "adaptive-organism-design",
+          "tier": "specialization",
+          "parent_code": 5,
+          "civilization_type": 1,
+          "develop_action": "DevelopAdaptiveOrganismDesignSkill",
+          "reusable": 1,
+          "description": "Designs organisms able to remain stable across hostile or changing environments.",
+          "development_recipe": {
+            "action": "DevelopAdaptiveOrganismDesignSkill",
+            "output_skill_code": 33,
+            "parent_skill_input": { "skill_code": 5, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "Glycine", "resource_code": 387, "amount": 5, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "RNA", "resource_code": 179, "amount": 3, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "analyze.adaptive-germline", "action_family": "analyze_resource", "required_skill_code": 33, "output_resource_code": 643, "action": "DesignAdaptiveGermline", "object_family": "resource_artifact", "description": "Produces an Adaptive Germline for resilient engineered organisms." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 77,
+        "name": "Synthetic Genomics",
+        "slug": "synthetic-genomics",
+        "tier": "mastery",
+        "parent_code": 5,
+        "civilization_type": 1,
+        "develop_action": "DevelopSyntheticGenomicsMastery",
+        "reusable": 1,
+        "description": "Integrates genome editing, microbial design, and adaptive organism engineering.",
+        "development_recipe": {
+          "action": "DevelopSyntheticGenomicsMastery",
+          "output_skill_code": 77,
+          "parent_skill_input": { "skill_code": 5, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Edited Genome Archive", "component_code": 641, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Engineered Microbe Culture", "component_code": 642, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Adaptive Germline", "component_code": 643, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.genomic-foundry-core", "action_family": "craft_component", "required_skill_code": 77, "output_resource_code": 687, "action": "AssembleGenomicFoundryCore", "object_family": "resource_artifact", "description": "Produces a Genomic Foundry Core for advanced biological manufacturing." }
+        ]
+      }
+    },
+    {
+      "code": 6,
+      "name": "Planetary Infrastructure",
+      "slug": "planetary-infrastructure",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 1,
+      "develop_action": "DevelopTypeIPlanetaryInfrastructureSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIPlanetaryInfrastructureSkill",
+        "output_skill_code": 6,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 1 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 1,
+        "refinement_route_count": 3,
+        "logical_resource_route_count": 4,
+        "concrete_action_count": 6,
+        "extraction_action_references": ["ExtractMegastructureStructuralSalvage"],
+        "refinement_parent_references": ["Igneous Rock"],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 4,
+        "component_reference_codes": [391, 393, 399, 414],
+        "minimum_after_reserved_components": 8
+      },
+      "route_policy": "Physical foundations, habitats, utilities, geology, and planetary logistics; institutions and culture remain code 18.",
+      "specializations": [
+        {
+          "code": 34,
+          "name": "Civil Construction",
+          "slug": "civil-construction",
+          "tier": "specialization",
+          "parent_code": 6,
+          "civilization_type": 1,
+          "develop_action": "DevelopCivilConstructionSkill",
+          "reusable": 1,
+          "description": "Builds durable foundations and habitat structures from conventional materials.",
+          "development_recipe": {
+            "action": "DevelopCivilConstructionSkill",
+            "output_skill_code": 34,
+            "parent_skill_input": { "skill_code": 6, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Structural Alloy", "component_code": 390, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "component", "component_name": "Ceramic Plating", "component_code": 391, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.habitat-foundation", "action_family": "craft_component", "required_skill_code": 34, "output_resource_code": 644, "action": "AssembleHabitatFoundation", "object_family": "resource_artifact", "description": "Produces a Habitat Foundation for surface construction." }
+          ]
+        },
+        {
+          "code": 35,
+          "name": "Geotechnical Engineering",
+          "slug": "geotechnical-engineering",
+          "tier": "specialization",
+          "parent_code": 6,
+          "civilization_type": 1,
+          "develop_action": "DevelopGeotechnicalEngineeringSkill",
+          "reusable": 1,
+          "description": "Analyzes and stabilizes planetary terrain and subsurface structures.",
+          "development_recipe": {
+            "action": "DevelopGeotechnicalEngineeringSkill",
+            "output_skill_code": 35,
+            "parent_skill_input": { "skill_code": 6, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "Basalt", "resource_code": 279, "amount": 6, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Geothermal Energy", "resource_code": 233, "amount": 10, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "analyze.geotechnical-survey", "action_family": "analyze_resource", "required_skill_code": 35, "output_resource_code": 645, "action": "ProduceGeotechnicalSurvey", "object_family": "resource_artifact", "description": "Produces a Geotechnical Survey required by advanced planetary works." }
+          ]
+        },
+        {
+          "code": 36,
+          "name": "Utility Networks",
+          "slug": "utility-networks",
+          "tier": "specialization",
+          "parent_code": 6,
+          "civilization_type": 1,
+          "develop_action": "DevelopUtilityNetworksSkill",
+          "reusable": 1,
+          "description": "Builds distributed pressure, power, thermal, and material utility networks.",
+          "development_recipe": {
+            "action": "DevelopUtilityNetworksSkill",
+            "output_skill_code": 36,
+            "parent_skill_input": { "skill_code": 6, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Pressure Vessel", "component_code": 393, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "component", "component_name": "Circuit Substrate", "component_code": 392, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.utility-grid-node", "action_family": "craft_component", "required_skill_code": 36, "output_resource_code": 646, "action": "AssembleUtilityGridNode", "object_family": "resource_artifact", "description": "Produces a Utility Grid Node for settlements and large facilities." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 78,
+        "name": "Planetary Works",
+        "slug": "planetary-works",
+        "tier": "mastery",
+        "parent_code": 6,
+        "civilization_type": 1,
+        "develop_action": "DevelopPlanetaryWorksMastery",
+        "reusable": 1,
+        "description": "Integrates civil construction, geotechnics, and utilities at planetary scale.",
+        "development_recipe": {
+          "action": "DevelopPlanetaryWorksMastery",
+          "output_skill_code": 78,
+          "parent_skill_input": { "skill_code": 6, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Habitat Foundation", "component_code": 644, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Geotechnical Survey", "component_code": 645, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Utility Grid Node", "component_code": 646, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.planetary-works-core", "action_family": "craft_component", "required_skill_code": 78, "output_resource_code": 688, "action": "AssemblePlanetaryWorksCore", "object_family": "resource_artifact", "description": "Produces a Planetary Works Core for advanced settlement construction." }
+        ]
+      }
+    },
+    {
+      "code": 7,
+      "name": "Metamaterial Engineering",
+      "slug": "metamaterial-engineering",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 2,
+      "develop_action": "DevelopTypeIIMetamaterialEngineeringSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIMetamaterialEngineeringSkill",
+        "output_skill_code": 7,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 2 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 5,
+        "refinement_route_count": 10,
+        "logical_resource_route_count": 15,
+        "concrete_action_count": 20,
+        "extraction_action_references": [
+          "ExtractRedDwarfMagneticStellarCondensate",
+          "ExtractRedDwarfStellarRefractoryDust",
+          "ExtractIceGiantIceMantleMaterial",
+          "ExtractIceGiantHighPressurePhaseData",
+          "ExtractIceGiantCryosphereSpectrumData"
+        ],
+        "refinement_parent_references": [
+          "Magnetic Stellar Condensate", "Cryogenic Volatile",
+          "Ice-Mantle Material", "Stellar Refractory Dust"
+        ],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 0,
+        "component_reference_codes": [],
+        "minimum_after_reserved_components": 15
+      },
+      "route_policy": "Optical, superconducting, magnetic, pressure-induced, and field-responsive media; conventional circuitry remains code 2.",
+      "specializations": [
+        {
+          "code": 37,
+          "name": "Photonic Materials",
+          "slug": "photonic-materials",
+          "tier": "specialization",
+          "parent_code": 7,
+          "civilization_type": 2,
+          "develop_action": "DevelopPhotonicMaterialsSkill",
+          "reusable": 1,
+          "description": "Creates engineered optical media with controlled transmission, polarization, and phase response.",
+          "development_recipe": {
+            "action": "DevelopPhotonicMaterialsSkill",
+            "output_skill_code": 37,
+            "parent_skill_input": { "skill_code": 7, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Photonic Array", "component_code": 400, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Polarization Data", "resource_code": 349, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.adaptive-optic", "action_family": "craft_component", "required_skill_code": 37, "output_resource_code": 647, "action": "FabricateAdaptiveOptic", "object_family": "resource_artifact", "description": "Produces an Adaptive Optic for precision sensing and beam control." }
+          ]
+        },
+        {
+          "code": 38,
+          "name": "Superconducting Media",
+          "slug": "superconducting-media",
+          "tier": "specialization",
+          "parent_code": 7,
+          "civilization_type": 2,
+          "develop_action": "DevelopSuperconductingMediaSkill",
+          "reusable": 1,
+          "description": "Shapes stable superconducting phases into extreme-field devices.",
+          "development_recipe": {
+            "action": "DevelopSuperconductingMediaSkill",
+            "output_skill_code": 38,
+            "parent_skill_input": { "skill_code": 7, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Superconductor", "component_code": 401, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Magnetic Observation", "resource_code": 251, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.superconducting-field-coil", "action_family": "craft_component", "required_skill_code": 38, "output_resource_code": 648, "action": "WindSuperconductingFieldCoil", "object_family": "resource_artifact", "description": "Produces a Superconducting Field Coil for plasma and spacetime systems." }
+          ]
+        },
+        {
+          "code": 39,
+          "name": "Extreme-Phase Composites",
+          "slug": "extreme-phase-composites",
+          "tier": "specialization",
+          "parent_code": 7,
+          "civilization_type": 2,
+          "develop_action": "DevelopExtremePhaseCompositesSkill",
+          "reusable": 1,
+          "description": "Stabilizes pressure- and temperature-dependent phases into structural composite media.",
+          "development_recipe": {
+            "action": "DevelopExtremePhaseCompositesSkill",
+            "output_skill_code": 39,
+            "parent_skill_input": { "skill_code": 7, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "High-Pressure Ice", "resource_code": 300, "amount": 30, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "High-Pressure Phase Data", "resource_code": 243, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.phase-composite-panel", "action_family": "craft_component", "required_skill_code": 39, "output_resource_code": 649, "action": "SynthesizePhaseCompositePanel", "object_family": "resource_artifact", "description": "Produces a Phase Composite Panel for extreme environments." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 79,
+        "name": "Programmable Matter",
+        "slug": "programmable-matter",
+        "tier": "mastery",
+        "parent_code": 7,
+        "civilization_type": 2,
+        "develop_action": "DevelopProgrammableMatterMastery",
+        "reusable": 1,
+        "description": "Integrates photonic, superconducting, and extreme-phase behavior into dynamically controlled matter.",
+        "development_recipe": {
+          "action": "DevelopProgrammableMatterMastery",
+          "output_skill_code": 79,
+          "parent_skill_input": { "skill_code": 7, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Adaptive Optic", "component_code": 647, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Superconducting Field Coil", "component_code": 648, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Phase Composite Panel", "component_code": 649, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.programmable-matter-matrix", "action_family": "craft_component", "required_skill_code": 79, "output_resource_code": 689, "action": "SynthesizeProgrammableMatterMatrix", "object_family": "resource_artifact", "description": "Produces a Programmable Matter Matrix for adaptive machines and structures." }
+        ]
+      }
+    },
+    {
+      "code": 8,
+      "name": "Stellar Energy Systems",
+      "slug": "stellar-energy-systems",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 2,
+      "develop_action": "DevelopTypeIIStellarEnergySystemsSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIStellarEnergySystemsSkill",
+        "output_skill_code": 8,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 2 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 13,
+        "refinement_route_count": 9,
+        "logical_resource_route_count": 22,
+        "concrete_action_count": 33,
+        "extraction_action_references": [
+          "ExtractRedDwarfFusionGas", "ExtractRedDwarfRadiantEnergy",
+          "ExtractRedDwarfRedDwarfPlasma", "ExtractRedDwarfFlareSpectrumData",
+          "ExtractMainSequenceStarFusionGas", "ExtractMainSequenceStarRadiantEnergy",
+          "ExtractMainSequenceStarPhotosphericPlasma",
+          "ExtractMainSequenceStarPhotosphericMineral",
+          "ExtractMainSequenceStarStellarSpectrumData",
+          "ExtractGiantStarFusionGas", "ExtractGiantStarRadiantEnergy",
+          "ExtractNeutronStarHighEnergyRadiation",
+          "ExtractBlackHoleHighEnergyRadiation"
+        ],
+        "refinement_parent_references": [
+          "Red-Dwarf Plasma", "Photospheric Plasma", "Photospheric Mineral"
+        ],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 0,
+        "component_reference_codes": [],
+        "minimum_after_reserved_components": 22
+      },
+      "route_policy": "Stellar plasma, fusion, radiant collection, high-energy flux, and power conversion; stellar structure manipulation remains code 16.",
+      "specializations": [
+        {
+          "code": 40,
+          "name": "Fusion Power",
+          "slug": "fusion-power",
+          "tier": "specialization",
+          "parent_code": 8,
+          "civilization_type": 2,
+          "develop_action": "DevelopFusionPowerSkill",
+          "reusable": 1,
+          "description": "Builds controlled fusion power systems from stellar fuel-cycle knowledge.",
+          "development_recipe": {
+            "action": "DevelopFusionPowerSkill",
+            "output_skill_code": 40,
+            "parent_skill_input": { "skill_code": 8, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Fusion Cell", "component_code": 398, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Stellar Spectrum Data", "resource_code": 228, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.fusion-reactor", "action_family": "craft_component", "required_skill_code": 40, "output_resource_code": 650, "action": "AssembleFusionReactor", "object_family": "resource_artifact", "description": "Produces a Fusion Reactor for ships and high-output facilities." }
+          ]
+        },
+        {
+          "code": 41,
+          "name": "Radiant Harvesting",
+          "slug": "radiant-harvesting",
+          "tier": "specialization",
+          "parent_code": 8,
+          "civilization_type": 2,
+          "develop_action": "DevelopRadiantHarvestingSkill",
+          "reusable": 1,
+          "description": "Captures and conditions stellar radiation across broad spectra.",
+          "development_recipe": {
+            "action": "DevelopRadiantHarvestingSkill",
+            "output_skill_code": 41,
+            "parent_skill_input": { "skill_code": 8, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Photonic Array", "component_code": 400, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Flare Spectrum Data", "resource_code": 225, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.radiant-collector", "action_family": "craft_component", "required_skill_code": 41, "output_resource_code": 651, "action": "AssembleRadiantCollector", "object_family": "resource_artifact", "description": "Produces a Radiant Collector for stellar energy systems." }
+          ]
+        },
+        {
+          "code": 42,
+          "name": "Plasma Confinement",
+          "slug": "plasma-confinement",
+          "tier": "specialization",
+          "parent_code": 8,
+          "civilization_type": 2,
+          "develop_action": "DevelopPlasmaConfinementSkill",
+          "reusable": 1,
+          "description": "Maintains stable high-energy plasma volumes with magnetic and material systems.",
+          "development_recipe": {
+            "action": "DevelopPlasmaConfinementSkill",
+            "output_skill_code": 42,
+            "parent_skill_input": { "skill_code": 8, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Superconductor", "component_code": 401, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Ferrite Dust", "resource_code": 264, "amount": 35, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.plasma-containment-ring", "action_family": "craft_component", "required_skill_code": 42, "output_resource_code": 652, "action": "AssemblePlasmaContainmentRing", "object_family": "resource_artifact", "description": "Produces a Plasma Containment Ring for fusion and exotic-plasma systems." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 80,
+        "name": "Stellar Power Architecture",
+        "slug": "stellar-power-architecture",
+        "tier": "mastery",
+        "parent_code": 8,
+        "civilization_type": 2,
+        "develop_action": "DevelopStellarPowerArchitectureMastery",
+        "reusable": 1,
+        "description": "Integrates fusion, radiant collection, and plasma containment into complete stellar power networks.",
+        "development_recipe": {
+          "action": "DevelopStellarPowerArchitectureMastery",
+          "output_skill_code": 80,
+          "parent_skill_input": { "skill_code": 8, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Fusion Reactor", "component_code": 650, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Radiant Collector", "component_code": 651, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Plasma Containment Ring", "component_code": 652, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.stellar-power-node", "action_family": "craft_component", "required_skill_code": 80, "output_resource_code": 690, "action": "AssembleStellarPowerNode", "object_family": "resource_artifact", "description": "Produces a Stellar Power Node for high-output distributed infrastructure." }
+        ]
+      }
+    },
+    {
+      "code": 9,
+      "name": "Synthetic Intelligence",
+      "slug": "synthetic-intelligence",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 2,
+      "develop_action": "DevelopTypeIISyntheticIntelligenceSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIISyntheticIntelligenceSkill",
+        "output_skill_code": 9,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 2 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 0,
+        "refinement_route_count": 0,
+        "logical_resource_route_count": 0,
+        "concrete_action_count": 0,
+        "extraction_action_references": [],
+        "refinement_parent_references": [],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 8,
+        "component_reference_codes": [415, 416, 417, 421, 422, 430, 431, 434],
+        "minimum_after_reserved_components": 8
+      },
+      "route_policy": "Local scientific inference, autonomous control, machine coordination, and computation; galactic-scale archives and cognition remain code 15.",
+      "specializations": [
+        {
+          "code": 43,
+          "name": "Scientific Inference",
+          "slug": "scientific-inference",
+          "tier": "specialization",
+          "parent_code": 9,
+          "civilization_type": 2,
+          "develop_action": "DevelopScientificInferenceSkill",
+          "reusable": 1,
+          "description": "Transforms observation resources into explicit scientific analysis artifacts.",
+          "development_recipe": {
+            "action": "DevelopScientificInferenceSkill",
+            "output_skill_code": 43,
+            "parent_skill_input": { "skill_code": 9, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Circuit Substrate", "component_code": 392, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Field Data", "resource_code": 147, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "analyze.field-data", "action_family": "analyze_resource", "required_skill_code": 43, "output_resource_code": 653, "action": "InterpretFieldData", "object_family": "resource_artifact", "description": "Produces a Scientific Analysis Core from raw field observations." }
+          ]
+        },
+        {
+          "code": 44,
+          "name": "Autonomous Control",
+          "slug": "autonomous-control",
+          "tier": "specialization",
+          "parent_code": 9,
+          "civilization_type": 2,
+          "develop_action": "DevelopAutonomousControlSkill",
+          "reusable": 1,
+          "description": "Builds robust autonomous navigation, production, and repair controllers.",
+          "development_recipe": {
+            "action": "DevelopAutonomousControlSkill",
+            "output_skill_code": 44,
+            "parent_skill_input": { "skill_code": 9, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Integrated Avionics Core", "component_code": 684, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Storm Field Data", "resource_code": 240, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.autonomous-guidance-core", "action_family": "craft_component", "required_skill_code": 44, "output_resource_code": 654, "action": "AssembleAutonomousGuidanceCore", "object_family": "resource_artifact", "description": "Produces an Autonomous Guidance Core for ships and remote machines." }
+          ]
+        },
+        {
+          "code": 45,
+          "name": "Fleet Coordination",
+          "slug": "fleet-coordination",
+          "tier": "specialization",
+          "parent_code": 9,
+          "civilization_type": 2,
+          "develop_action": "DevelopFleetCoordinationSkill",
+          "reusable": 1,
+          "description": "Coordinates multiple autonomous systems over delayed and noisy links.",
+          "development_recipe": {
+            "action": "DevelopFleetCoordinationSkill",
+            "output_skill_code": 45,
+            "parent_skill_input": { "skill_code": 9, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Photonic Array", "component_code": 400, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Pulsar Emission Data", "resource_code": 246, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.fleet-coordination-node", "action_family": "craft_component", "required_skill_code": 45, "output_resource_code": 655, "action": "AssembleFleetCoordinationNode", "object_family": "resource_artifact", "description": "Produces a Fleet Coordination Node for multi-ship automation." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 81,
+        "name": "Cognitive Infrastructure",
+        "slug": "cognitive-infrastructure",
+        "tier": "mastery",
+        "parent_code": 9,
+        "civilization_type": 2,
+        "develop_action": "DevelopCognitiveInfrastructureMastery",
+        "reusable": 1,
+        "description": "Integrates scientific inference, autonomy, and fleet coordination into durable cognitive infrastructure.",
+        "development_recipe": {
+          "action": "DevelopCognitiveInfrastructureMastery",
+          "output_skill_code": 81,
+          "parent_skill_input": { "skill_code": 9, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Scientific Analysis Core", "component_code": 653, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Autonomous Guidance Core", "component_code": 654, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Fleet Coordination Node", "component_code": 655, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.cognitive-infrastructure-core", "action_family": "craft_component", "required_skill_code": 81, "output_resource_code": 691, "action": "AssembleCognitiveInfrastructureCore", "object_family": "resource_artifact", "description": "Produces a Cognitive Infrastructure Core for advanced autonomous systems." }
+        ]
+      }
+    },
+    {
+      "code": 10,
+      "name": "Molecular Fabrication",
+      "slug": "molecular-fabrication",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 2,
+      "develop_action": "DevelopTypeIIMolecularFabricationSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIMolecularFabricationSkill",
+        "output_skill_code": 10,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 2 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 1,
+        "refinement_route_count": 3,
+        "logical_resource_route_count": 4,
+        "concrete_action_count": 7,
+        "extraction_action_references": ["ExtractMegastructurePolymerSalvage"],
+        "refinement_parent_references": ["Polymer Salvage"],
+        "other_gate_action_references": ["AuthorizeLargeShipMolecular"]
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 4,
+        "component_reference_codes": [395, 397, 403, 404],
+        "minimum_after_reserved_components": 8
+      },
+      "route_policy": "Precision polymer, membrane, lattice, and molecular-scale fabrication; bulk production remains code 1.",
+      "specializations": [
+        {
+          "code": 46,
+          "name": "Polymer Nanofabrication",
+          "slug": "polymer-nanofabrication",
+          "tier": "specialization",
+          "parent_code": 10,
+          "civilization_type": 2,
+          "develop_action": "DevelopPolymerNanofabricationSkill",
+          "reusable": 1,
+          "description": "Builds active and selective polymer structures at membrane scale.",
+          "development_recipe": {
+            "action": "DevelopPolymerNanofabricationSkill",
+            "output_skill_code": 46,
+            "parent_skill_input": { "skill_code": 10, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Life-Support Membrane", "component_code": 402, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Thermoplastic", "resource_code": 318, "amount": 8, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.smart-membrane", "action_family": "craft_component", "required_skill_code": 46, "output_resource_code": 656, "action": "FabricateSmartMembrane", "object_family": "resource_artifact", "description": "Produces a Smart Membrane for adaptive life-support and process systems." }
+          ]
+        },
+        {
+          "code": 47,
+          "name": "Crystal-Lattice Fabrication",
+          "slug": "crystal-lattice-fabrication",
+          "tier": "specialization",
+          "parent_code": 10,
+          "civilization_type": 2,
+          "develop_action": "DevelopCrystalLatticeFabricationSkill",
+          "reusable": 1,
+          "description": "Tunes crystal lattices for optical, electronic, and phase-control applications.",
+          "development_recipe": {
+            "action": "DevelopCrystalLatticeFabricationSkill",
+            "output_skill_code": 47,
+            "parent_skill_input": { "skill_code": 10, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Laser Assembly", "component_code": 406, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "High-Pressure Phase Data", "resource_code": 243, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.tuned-crystal-lattice", "action_family": "craft_component", "required_skill_code": 47, "output_resource_code": 657, "action": "FabricateTunedCrystalLattice", "object_family": "resource_artifact", "description": "Produces a Tuned Crystal Lattice for precision field systems." }
+          ]
+        },
+        {
+          "code": 48,
+          "name": "Molecular Assembly",
+          "slug": "molecular-assembly",
+          "tier": "specialization",
+          "parent_code": 10,
+          "civilization_type": 2,
+          "develop_action": "DevelopMolecularAssemblySkill",
+          "reusable": 1,
+          "description": "Assembles functional systems from controlled molecular building blocks.",
+          "development_recipe": {
+            "action": "DevelopMolecularAssemblySkill",
+            "output_skill_code": 48,
+            "parent_skill_input": { "skill_code": 10, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Catalytic Bed", "component_code": 404, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Molecular Spectrum Data", "resource_code": 257, "amount": 10, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.molecular-assembler", "action_family": "craft_component", "required_skill_code": 48, "output_resource_code": 658, "action": "AssembleMolecularAssembler", "object_family": "resource_artifact", "description": "Produces a Molecular Assembler for precision manufacturing chains." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 82,
+        "name": "Atomically Precise Manufacturing",
+        "slug": "atomically-precise-manufacturing",
+        "tier": "mastery",
+        "parent_code": 10,
+        "civilization_type": 2,
+        "develop_action": "DevelopAtomicallyPreciseManufacturingMastery",
+        "reusable": 1,
+        "description": "Integrates membranes, tuned lattices, and molecular assemblers into atomically precise production.",
+        "development_recipe": {
+          "action": "DevelopAtomicallyPreciseManufacturingMastery",
+          "output_skill_code": 82,
+          "parent_skill_input": { "skill_code": 10, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Smart Membrane", "component_code": 656, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Tuned Crystal Lattice", "component_code": 657, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Molecular Assembler", "component_code": 658, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.nanoforge-core", "action_family": "craft_component", "required_skill_code": 82, "output_resource_code": 692, "action": "AssembleNanoforgeCore", "object_family": "resource_artifact", "description": "Produces a Nanoforge Core for the highest precision manufacturing tier." }
+        ]
+      }
+    },
+    {
+      "code": 11,
+      "name": "Interstellar Navigation",
+      "slug": "interstellar-navigation",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 2,
+      "develop_action": "DevelopTypeIIInterstellarNavigationSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIInterstellarNavigationSkill",
+        "output_skill_code": 11,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 2 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 2,
+        "refinement_route_count": 0,
+        "logical_resource_route_count": 2,
+        "concrete_action_count": 5,
+        "extraction_action_references": [
+          "ExtractGasGiantStormFieldData",
+          "ExtractGasClusterMolecularSpectrumData"
+        ],
+        "refinement_parent_references": [],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 6,
+        "component_reference_codes": [406, 411, 412, 413, 419, 425],
+        "minimum_after_reserved_components": 8
+      },
+      "route_policy": "Ordinary position charts, astrometry, position anchors, route solutions, and position transit. Epoch and wormhole topology remain code 14.",
+      "specializations": [
+        {
+          "code": 49,
+          "name": "Stellar Astrometry",
+          "slug": "stellar-astrometry",
+          "tier": "specialization",
+          "parent_code": 11,
+          "civilization_type": 2,
+          "develop_action": "DevelopStellarAstrometrySkill",
+          "reusable": 1,
+          "description": "Creates precise position references from stellar observations without changing epoch.",
+          "development_recipe": {
+            "action": "DevelopStellarAstrometrySkill",
+            "output_skill_code": 49,
+            "parent_skill_input": { "skill_code": 11, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Sensor Package", "component_code": 415, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Stellar Spectrum Data", "resource_code": 228, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "research.astrometric-anchor-solution", "action_family": "analyze_resource", "required_skill_code": 49, "output_resource_code": 659, "action": "CompileAstrometricAnchorSolution", "object_family": "resource_artifact", "description": "Compiles an Astrometric Anchor Solution used to qualify advanced position-navigation work." }
+          ]
+        },
+        {
+          "code": 50,
+          "name": "Gravitational Cartography",
+          "slug": "gravitational-cartography",
+          "tier": "specialization",
+          "parent_code": 11,
+          "civilization_type": 2,
+          "develop_action": "DevelopGravitationalCartographySkill",
+          "reusable": 1,
+          "description": "Maps position-coordinate geometry using lensing and calibrated navigation optics.",
+          "development_recipe": {
+            "action": "DevelopGravitationalCartographySkill",
+            "output_skill_code": 50,
+            "parent_skill_input": { "skill_code": 11, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Gravitic Lens", "component_code": 411, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Lensing Data", "resource_code": 249, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "research.gravitational-chart-analysis", "action_family": "analyze_resource", "required_skill_code": 50, "output_resource_code": 660, "action": "CompileGravitationalChartAnalysis", "object_family": "resource_artifact", "description": "Compiles a Gravitational Chart Analysis used to interpret deterministic position charts." }
+          ]
+        },
+        {
+          "code": 51,
+          "name": "Relativistic Piloting",
+          "slug": "relativistic-piloting",
+          "tier": "specialization",
+          "parent_code": 11,
+          "civilization_type": 2,
+          "develop_action": "DevelopRelativisticPilotingSkill",
+          "reusable": 1,
+          "description": "Executes safe position transit while preserving the Ship's epoch.",
+          "development_recipe": {
+            "action": "DevelopRelativisticPilotingSkill",
+            "output_skill_code": 51,
+            "parent_skill_input": { "skill_code": 11, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Inertial Compensator", "component_code": 425, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Pulsar Timing Data", "resource_code": 346, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "research.relativistic-transit-plan", "action_family": "analyze_resource", "required_skill_code": 51, "output_resource_code": 661, "action": "CompileRelativisticTransitPlan", "object_family": "resource_artifact", "description": "Compiles a Relativistic Transit Plan used to qualify position-chart traversal." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 83,
+        "name": "Galactic Cartography",
+        "slug": "galactic-cartography",
+        "tier": "mastery",
+        "parent_code": 11,
+        "civilization_type": 2,
+        "develop_action": "DevelopGalacticCartographyMastery",
+        "reusable": 1,
+        "description": "Integrates anchors, coordinate interpretation, and verified transit records into reusable position atlases.",
+        "development_recipe": {
+          "action": "DevelopGalacticCartographyMastery",
+          "output_skill_code": 83,
+          "parent_skill_input": { "skill_code": 11, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Astrometric Anchor Solution", "component_code": 659, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Gravitational Chart Analysis", "component_code": 660, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Relativistic Transit Plan", "component_code": 661, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "position.compile-atlas", "action_family": "compile_position_atlas", "required_skill_code": 83, "output_resource_code": 693, "action": "CompileGalacticPositionAtlas", "object_family": "position_atlas", "description": "Produces a reusable Galactic Position Atlas from verified position artifacts." }
+        ]
+      }
+    },
+    {
+      "code": 12,
+      "name": "Biosphere Engineering",
+      "slug": "biosphere-engineering",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 2,
+      "develop_action": "DevelopTypeIIBiosphereEngineeringSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIBiosphereEngineeringSkill",
+        "output_skill_code": 12,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 2 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 0,
+        "refinement_route_count": 15,
+        "logical_resource_route_count": 15,
+        "concrete_action_count": 15,
+        "extraction_action_references": [],
+        "refinement_parent_references": [
+          "Biomass", "Microbial Culture", "Natural Material",
+          "Marine Biomass", "Plant Extract"
+        ],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 0,
+        "component_reference_codes": [],
+        "minimum_after_reserved_components": 15
+      },
+      "route_policy": "Contained habitats, microbial ecologies, recycling, and constructed life support; planetary transformation remains code 17.",
+      "specializations": [
+        {
+          "code": 52,
+          "name": "Closed-Loop Ecology",
+          "slug": "closed-loop-ecology",
+          "tier": "specialization",
+          "parent_code": 12,
+          "civilization_type": 2,
+          "develop_action": "DevelopClosedLoopEcologySkill",
+          "reusable": 1,
+          "description": "Balances atmosphere, nutrients, and organisms inside sealed habitats.",
+          "development_recipe": {
+            "action": "DevelopClosedLoopEcologySkill",
+            "output_skill_code": 52,
+            "parent_skill_input": { "skill_code": 12, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Life-Support Membrane", "component_code": 402, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Cellulose", "resource_code": 175, "amount": 5, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.closed-cycle-biome", "action_family": "craft_component", "required_skill_code": 52, "output_resource_code": 662, "action": "AssembleClosedCycleBiome", "object_family": "resource_artifact", "description": "Produces a Closed-Cycle Biome for sealed habitats." }
+          ]
+        },
+        {
+          "code": 53,
+          "name": "Microbial Ecology",
+          "slug": "microbial-ecology",
+          "tier": "specialization",
+          "parent_code": 12,
+          "civilization_type": 2,
+          "develop_action": "DevelopMicrobialEcologySkill",
+          "reusable": 1,
+          "description": "Maintains stable microbial communities inside engineered ecosystems.",
+          "development_recipe": {
+            "action": "DevelopMicrobialEcologySkill",
+            "output_skill_code": 53,
+            "parent_skill_input": { "skill_code": 12, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Bioreactor Culture", "component_code": 405, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Bacterial Culture", "resource_code": 184, "amount": 5, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.managed-microbiome", "action_family": "craft_component", "required_skill_code": 53, "output_resource_code": 663, "action": "CultureManagedMicrobiome", "object_family": "resource_artifact", "description": "Produces a Managed Microbiome for constructed habitats." }
+          ]
+        },
+        {
+          "code": 54,
+          "name": "Aquatic Habitat Engineering",
+          "slug": "aquatic-habitat-engineering",
+          "tier": "specialization",
+          "parent_code": 12,
+          "civilization_type": 2,
+          "develop_action": "DevelopAquaticHabitatEngineeringSkill",
+          "reusable": 1,
+          "description": "Builds stable contained aquatic environments and nutrient cycles.",
+          "development_recipe": {
+            "action": "DevelopAquaticHabitatEngineeringSkill",
+            "output_skill_code": 54,
+            "parent_skill_input": { "skill_code": 12, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "Water", "resource_code": 126, "amount": 10, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Marine Protein", "resource_code": 286, "amount": 3, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.aquatic-habitat-module", "action_family": "craft_component", "required_skill_code": 54, "output_resource_code": 664, "action": "AssembleAquaticHabitatModule", "object_family": "resource_artifact", "description": "Produces an Aquatic Habitat Module for ships and stations." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 84,
+        "name": "Biosphere Architecture",
+        "slug": "biosphere-architecture",
+        "tier": "mastery",
+        "parent_code": 12,
+        "civilization_type": 2,
+        "develop_action": "DevelopBiosphereArchitectureMastery",
+        "reusable": 1,
+        "description": "Integrates closed cycles, microbial ecology, and aquatic habitats into complete constructed biospheres.",
+        "development_recipe": {
+          "action": "DevelopBiosphereArchitectureMastery",
+          "output_skill_code": 84,
+          "parent_skill_input": { "skill_code": 12, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Closed-Cycle Biome", "component_code": 662, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Managed Microbiome", "component_code": 663, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Aquatic Habitat Module", "component_code": 664, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.biosphere-core", "action_family": "craft_component", "required_skill_code": 84, "output_resource_code": 694, "action": "AssembleBiosphereCore", "object_family": "resource_artifact", "description": "Produces a Biosphere Core for complex constructed habitats." }
+        ]
+      }
+    },
+    {
+      "code": 13,
+      "name": "Exotic Matter Engineering",
+      "slug": "exotic-matter-engineering",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 3,
+      "develop_action": "DevelopTypeIIIExoticMatterEngineeringSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIIExoticMatterEngineeringSkill",
+        "output_skill_code": 13,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 3 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 7,
+        "refinement_route_count": 19,
+        "logical_resource_route_count": 26,
+        "concrete_action_count": 26,
+        "extraction_action_references": [
+          "ExtractNeutronStarRProcessEjecta",
+          "ExtractNeutronStarDegenerateCrustMaterial",
+          "ExtractNeutronStarMagnetosphericParticleFlux",
+          "ExtractBlackHoleAccretionDiskMatter",
+          "ExtractBlackHoleRelativisticPlasma",
+          "ExtractBlackHoleAccretionAerosol",
+          "ExtractAnomalyPhaseShiftedMatter"
+        ],
+        "refinement_parent_references": [
+          "R-Process Ejecta", "Degenerate-Crust Material",
+          "Accretion-Disk Matter", "Relativistic Plasma",
+          "Phase-Shifted Matter", "Magnetospheric Particle Flux",
+          "Accretion Aerosol"
+        ],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 1,
+        "component_reference_codes": [410],
+        "minimum_after_reserved_components": 27
+      },
+      "route_policy": "Degenerate matter, vacuum-state materials, relativistic plasma, and exotic containment; spacetime geometry remains code 14.",
+      "specializations": [
+        {
+          "code": 55,
+          "name": "Degenerate Matter Science",
+          "slug": "degenerate-matter-science",
+          "tier": "specialization",
+          "parent_code": 13,
+          "civilization_type": 3,
+          "develop_action": "DevelopDegenerateMatterScienceSkill",
+          "reusable": 1,
+          "description": "Contains and uses matter supported by quantum degeneracy pressure.",
+          "development_recipe": {
+            "action": "DevelopDegenerateMatterScienceSkill",
+            "output_skill_code": 55,
+            "parent_skill_input": { "skill_code": 13, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Degenerate Lattice", "component_code": 409, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Pulsar Emission Data", "resource_code": 246, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.degenerate-containment-cell", "action_family": "craft_component", "required_skill_code": 55, "output_resource_code": 665, "action": "AssembleDegenerateContainmentCell", "object_family": "resource_artifact", "description": "Produces a Degenerate Containment Cell for extreme-density matter." }
+          ]
+        },
+        {
+          "code": 56,
+          "name": "Vacuum-State Materials",
+          "slug": "vacuum-state-materials",
+          "tier": "specialization",
+          "parent_code": 13,
+          "civilization_type": 3,
+          "develop_action": "DevelopVacuumStateMaterialsSkill",
+          "reusable": 1,
+          "description": "Synthesizes stable material structures whose behavior depends on controlled vacuum states.",
+          "development_recipe": {
+            "action": "DevelopVacuumStateMaterialsSkill",
+            "output_skill_code": 56,
+            "parent_skill_input": { "skill_code": 13, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Phase Stabiliser", "component_code": 412, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Vacuum Fluctuation Data", "resource_code": 350, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.vacuum-state-lattice", "action_family": "craft_component", "required_skill_code": 56, "output_resource_code": 666, "action": "SynthesizeVacuumStateLattice", "object_family": "resource_artifact", "description": "Produces a Vacuum-State Lattice for exotic devices." }
+          ]
+        },
+        {
+          "code": 57,
+          "name": "Relativistic Plasma Engineering",
+          "slug": "relativistic-plasma-engineering",
+          "tier": "specialization",
+          "parent_code": 13,
+          "civilization_type": 3,
+          "develop_action": "DevelopRelativisticPlasmaEngineeringSkill",
+          "reusable": 1,
+          "description": "Confines and routes plasmas whose particle populations are relativistic.",
+          "development_recipe": {
+            "action": "DevelopRelativisticPlasmaEngineeringSkill",
+            "output_skill_code": 57,
+            "parent_skill_input": { "skill_code": 13, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Event-Horizon Coil", "component_code": 410, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Accretion Data", "resource_code": 145, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.relativistic-plasma-bottle", "action_family": "craft_component", "required_skill_code": 57, "output_resource_code": 667, "action": "AssembleRelativisticPlasmaBottle", "object_family": "resource_artifact", "description": "Produces a Relativistic Plasma Bottle for exotic power and materials systems." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 85,
+        "name": "Exotic Materials Architecture",
+        "slug": "exotic-materials-architecture",
+        "tier": "mastery",
+        "parent_code": 13,
+        "civilization_type": 3,
+        "develop_action": "DevelopExoticMaterialsArchitectureMastery",
+        "reusable": 1,
+        "description": "Integrates degenerate, vacuum-state, and relativistic-plasma systems into stable exotic matter architectures.",
+        "development_recipe": {
+          "action": "DevelopExoticMaterialsArchitectureMastery",
+          "output_skill_code": 85,
+          "parent_skill_input": { "skill_code": 13, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Degenerate Containment Cell", "component_code": 665, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Vacuum-State Lattice", "component_code": 666, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Relativistic Plasma Bottle", "component_code": 667, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.exotic-matter-matrix", "action_family": "craft_component", "required_skill_code": 85, "output_resource_code": 695, "action": "AssembleExoticMatterMatrix", "object_family": "resource_artifact", "description": "Produces an Exotic Matter Matrix for advanced spacetime and stellar systems." }
+        ]
+      }
+    },
+    {
+      "code": 14,
+      "name": "Spacetime Engineering",
+      "slug": "spacetime-engineering",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 3,
+      "develop_action": "DevelopTypeIIISpacetimeEngineeringSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIISpacetimeEngineeringSkill",
+        "output_skill_code": 14,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 3 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 9,
+        "refinement_route_count": 2,
+        "logical_resource_route_count": 11,
+        "concrete_action_count": 13,
+        "extraction_action_references": [
+          "ExtractBlackHoleLensingData", "ExtractBlackHoleHawkingRadiationData",
+          "ExtractAnomalyTemporalData", "ExtractAnomalyGravitationalData",
+          "ExtractAnomalyFieldData", "ExtractAnomalyMagneticObservation",
+          "ExtractAnomalyRadiationObservation",
+          "ExtractAnomalyPolarizationData",
+          "ExtractAnomalyVacuumFluctuationData"
+        ],
+        "refinement_parent_references": ["Phase-Shifted Matter"],
+        "other_gate_action_references": [
+          "ExtractAnomalyWarpCoordinate", "ExtractAnomalyTimeCoordinate"
+        ]
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 0,
+        "component_reference_codes": [],
+        "minimum_after_reserved_components": 11
+      },
+      "route_policy": "Epoch coordinates, temporal links, wormholes, causal stabilization, and metric geometry. Ordinary position navigation remains code 11.",
+      "specializations": [
+        {
+          "code": 58,
+          "name": "Temporal Topology",
+          "slug": "temporal-topology",
+          "tier": "specialization",
+          "parent_code": 14,
+          "civilization_type": 3,
+          "develop_action": "DevelopTemporalTopologySkill",
+          "reusable": 1,
+          "description": "Resolves and traverses deterministic epoch-coordinate topology while preserving position.",
+          "development_recipe": {
+            "action": "DevelopTemporalTopologySkill",
+            "output_skill_code": 58,
+            "parent_skill_input": { "skill_code": 14, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Phase Stabiliser", "component_code": 412, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Temporal Data", "resource_code": 146, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "research.temporal-topology-analysis", "action_family": "analyze_resource", "required_skill_code": 58, "output_resource_code": 668, "action": "CompileTemporalTopologyAnalysis", "object_family": "resource_artifact", "description": "Compiles a Temporal Topology Analysis used to interpret deterministic epoch charts." }
+          ]
+        },
+        {
+          "code": 59,
+          "name": "Wormhole Geometry",
+          "slug": "wormhole-geometry",
+          "tier": "specialization",
+          "parent_code": 14,
+          "civilization_type": 3,
+          "develop_action": "DevelopWormholeGeometrySkill",
+          "reusable": 1,
+          "description": "Constructs a fixed traversable relationship between two proven position anchors.",
+          "development_recipe": {
+            "action": "DevelopWormholeGeometrySkill",
+            "output_skill_code": 59,
+            "parent_skill_input": { "skill_code": 14, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Causal Mapper", "component_code": 426, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "component", "component_name": "Wormhole Aperture Ring", "component_code": 432, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "research.wormhole-geometry-model", "action_family": "analyze_resource", "required_skill_code": 59, "output_resource_code": 669, "action": "CompileWormholeGeometryModel", "object_family": "resource_artifact", "description": "Compiles a Wormhole Geometry Model used to qualify fixed link construction." }
+          ]
+        },
+        {
+          "code": 60,
+          "name": "Causal Stabilization",
+          "slug": "causal-stabilization",
+          "tier": "specialization",
+          "parent_code": 14,
+          "civilization_type": 3,
+          "develop_action": "DevelopCausalStabilizationSkill",
+          "reusable": 1,
+          "description": "Captures and stabilizes temporal reference states independently from spatial position.",
+          "development_recipe": {
+            "action": "DevelopCausalStabilizationSkill",
+            "output_skill_code": 60,
+            "parent_skill_input": { "skill_code": 14, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Temporal Regulator", "component_code": 428, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Hawking Radiation Data", "resource_code": 348, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "research.causal-stability-model", "action_family": "analyze_resource", "required_skill_code": 60, "output_resource_code": 670, "action": "CompileCausalStabilityModel", "object_family": "resource_artifact", "description": "Compiles a Causal Stability Model used to qualify time-anchor and temporal-link work." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 86,
+        "name": "Causal Architecture",
+        "slug": "causal-architecture",
+        "tier": "mastery",
+        "parent_code": 14,
+        "civilization_type": 3,
+        "develop_action": "DevelopCausalArchitectureMastery",
+        "reusable": 1,
+        "description": "Integrates deterministic time coordinates, wormhole links, and stable time anchors into causal transit systems.",
+        "development_recipe": {
+          "action": "DevelopCausalArchitectureMastery",
+          "output_skill_code": 86,
+          "parent_skill_input": { "skill_code": 14, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Temporal Topology Analysis", "component_code": 668, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Wormhole Geometry Model", "component_code": 669, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Causal Stability Model", "component_code": 670, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "temporal.assemble-causal-transit-node", "action_family": "assemble_causal_transit_node", "required_skill_code": 86, "output_resource_code": 696, "action": "AssembleCausalTransitNode", "object_family": "causal_transit_node", "description": "Produces a Causal Transit Node and authorizes combined RendezvousCoordinate construction/use." }
+        ]
+      }
+    },
+    {
+      "code": 15,
+      "name": "Galactic Intelligence Architecture",
+      "slug": "galactic-intelligence-architecture",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 3,
+      "develop_action": "DevelopTypeIIIGalacticIntelligenceArchitectureSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIIGalacticIntelligenceArchitectureSkill",
+        "output_skill_code": 15,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 3 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 1,
+        "refinement_route_count": 3,
+        "logical_resource_route_count": 4,
+        "concrete_action_count": 6,
+        "extraction_action_references": ["ExtractMegastructureOpticalSalvage"],
+        "refinement_parent_references": ["Optical Salvage"],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 4,
+        "component_reference_codes": [423, 426, 428, 432],
+        "minimum_after_reserved_components": 8
+      },
+      "route_policy": "Deep archives, interstellar communications, distributed galactic cognition, and knowledge networks; local autonomy remains code 9.",
+      "specializations": [
+        {
+          "code": 61,
+          "name": "Deep Archive Systems",
+          "slug": "deep-archive-systems",
+          "tier": "specialization",
+          "parent_code": 15,
+          "civilization_type": 3,
+          "develop_action": "DevelopDeepArchiveSystemsSkill",
+          "reusable": 1,
+          "description": "Reconstructs and preserves durable technical and cultural archives.",
+          "development_recipe": {
+            "action": "DevelopDeepArchiveSystemsSkill",
+            "output_skill_code": 61,
+            "parent_skill_input": { "skill_code": 15, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Data Storage Matrix", "component_code": 417, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Archive Data", "resource_code": 151, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "analyze.deep-archive-vault", "action_family": "analyze_resource", "required_skill_code": 61, "output_resource_code": 671, "action": "EncodeDeepArchiveVault", "object_family": "resource_artifact", "description": "Produces a Deep Archive Vault from recovered civilization data." }
+          ]
+        },
+        {
+          "code": 62,
+          "name": "Interstellar Communications",
+          "slug": "interstellar-communications",
+          "tier": "specialization",
+          "parent_code": 15,
+          "civilization_type": 3,
+          "develop_action": "DevelopInterstellarCommunicationsSkill",
+          "reusable": 1,
+          "description": "Builds coherent, delay-tolerant communication infrastructure across stellar distances.",
+          "development_recipe": {
+            "action": "DevelopInterstellarCommunicationsSkill",
+            "output_skill_code": 62,
+            "parent_skill_input": { "skill_code": 15, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Long-Range Transceiver", "component_code": 423, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Pulsar Emission Data", "resource_code": 246, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.galactic-signal-relay", "action_family": "craft_component", "required_skill_code": 62, "output_resource_code": 672, "action": "AssembleGalacticSignalRelay", "object_family": "resource_artifact", "description": "Produces a Galactic Signal Relay for interstellar networks." }
+          ]
+        },
+        {
+          "code": 63,
+          "name": "Distributed Cognition",
+          "slug": "distributed-cognition",
+          "tier": "specialization",
+          "parent_code": 15,
+          "civilization_type": 3,
+          "develop_action": "DevelopDistributedCognitionSkill",
+          "reusable": 1,
+          "description": "Coordinates cognition and inference across independently operating interstellar nodes.",
+          "development_recipe": {
+            "action": "DevelopDistributedCognitionSkill",
+            "output_skill_code": 63,
+            "parent_skill_input": { "skill_code": 15, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Galactic Cognition Node", "component_code": 431, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Phase-Locked Crystal", "resource_code": 316, "amount": 20, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.galactic-cognition-node", "action_family": "craft_component", "required_skill_code": 63, "output_resource_code": 673, "action": "AssembleGalacticCognitionNode", "object_family": "resource_artifact", "description": "Produces an advanced Galactic Cognition Node for distributed inference." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 87,
+        "name": "Galactic Cognitive Mesh",
+        "slug": "galactic-cognitive-mesh",
+        "tier": "mastery",
+        "parent_code": 15,
+        "civilization_type": 3,
+        "develop_action": "DevelopGalacticCognitiveMeshMastery",
+        "reusable": 1,
+        "description": "Integrates deep archives, signal relays, and distributed cognition into a galactic knowledge infrastructure.",
+        "development_recipe": {
+          "action": "DevelopGalacticCognitiveMeshMastery",
+          "output_skill_code": 87,
+          "parent_skill_input": { "skill_code": 15, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Deep Archive Vault", "component_code": 671, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Galactic Signal Relay", "component_code": 672, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Advanced Galactic Cognition Node", "component_code": 673, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.galactic-cognitive-mesh-seed", "action_family": "craft_component", "required_skill_code": 87, "output_resource_code": 697, "action": "AssembleGalacticCognitiveMeshSeed", "object_family": "resource_artifact", "description": "Produces a Galactic Cognitive Mesh Seed for civilization-scale information networks." }
+        ]
+      }
+    },
+    {
+      "code": 16,
+      "name": "Stellar Engineering",
+      "slug": "stellar-engineering",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 3,
+      "develop_action": "DevelopTypeIIIStellarEngineeringSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIIStellarEngineeringSkill",
+        "output_skill_code": 16,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 3 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 19,
+        "refinement_route_count": 12,
+        "logical_resource_route_count": 31,
+        "concrete_action_count": 44,
+        "extraction_action_references": [
+          "ExtractRedDwarfMetalRichOre",
+          "ExtractMainSequenceStarMetalRichOre",
+          "ExtractGiantStarMetalRichOre",
+          "ExtractGiantStarHeliumCarbonEjecta",
+          "ExtractGiantStarHeavyElementCondensate",
+          "ExtractGiantStarNeutrinoData",
+          "ExtractGiantStarSProcessEjecta",
+          "ExtractNeutronStarMetalRichOre",
+          "ExtractNeutronStarGravitationalData",
+          "ExtractNeutronStarPulsarEmissionData",
+          "ExtractNeutronStarPulsarTimingData",
+          "ExtractBlackHoleGravitationalData",
+          "ExtractBlackHoleAccretionData",
+          "ExtractStellarRemnantMetalRichOre",
+          "ExtractStellarRemnantNuclearOre",
+          "ExtractStellarRemnantCarbonaceousDeposit",
+          "ExtractStellarRemnantSupernovaEjecta",
+          "ExtractStellarRemnantShockwaveSpectrumData",
+          "ExtractStellarRemnantDecaySpectrumData"
+        ],
+        "refinement_parent_references": [
+          "Helium-Carbon Ejecta", "Heavy-Element Condensate",
+          "Supernova Ejecta", "S-Process Ejecta"
+        ],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 0,
+        "component_reference_codes": [],
+        "minimum_after_reserved_components": 31
+      },
+      "route_policy": "Photospheric control, star lifting, compact-object interfaces, remnant engineering, and stellar-scale structures; energy harvesting remains code 8.",
+      "specializations": [
+        {
+          "code": 64,
+          "name": "Photospheric Control",
+          "slug": "photospheric-control",
+          "tier": "specialization",
+          "parent_code": 16,
+          "civilization_type": 3,
+          "develop_action": "DevelopPhotosphericControlSkill",
+          "reusable": 1,
+          "description": "Shapes stellar surface plasma and local field behavior.",
+          "development_recipe": {
+            "action": "DevelopPhotosphericControlSkill",
+            "output_skill_code": 64,
+            "parent_skill_input": { "skill_code": 16, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "resource", "resource_name": "Proton Plasma", "resource_code": 267, "amount": 30, "amount_unit": "resource_units", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Flare Spectrum Data", "resource_code": 225, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.photospheric-field-injector", "action_family": "craft_component", "required_skill_code": 64, "output_resource_code": 674, "action": "AssemblePhotosphericFieldInjector", "object_family": "resource_artifact", "description": "Produces a Photospheric Field Injector for controlled stellar interaction." }
+          ]
+        },
+        {
+          "code": 65,
+          "name": "Star Lifting",
+          "slug": "star-lifting",
+          "tier": "specialization",
+          "parent_code": 16,
+          "civilization_type": 3,
+          "develop_action": "DevelopStarLiftingSkill",
+          "reusable": 1,
+          "description": "Extracts and directs stellar matter through controlled magnetic collection.",
+          "development_recipe": {
+            "action": "DevelopStarLiftingSkill",
+            "output_skill_code": 65,
+            "parent_skill_input": { "skill_code": 16, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Superconductor", "component_code": 401, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Ferrite Dust", "resource_code": 264, "amount": 35, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.star-lifting-collector", "action_family": "craft_component", "required_skill_code": 65, "output_resource_code": 675, "action": "AssembleStarLiftingCollector", "object_family": "resource_artifact", "description": "Produces a Star-Lifting Collector for stellar matter acquisition." }
+          ]
+        },
+        {
+          "code": 66,
+          "name": "Remnant Engineering",
+          "slug": "remnant-engineering",
+          "tier": "specialization",
+          "parent_code": 16,
+          "civilization_type": 3,
+          "develop_action": "DevelopRemnantEngineeringSkill",
+          "reusable": 1,
+          "description": "Builds machinery able to operate near compact stellar remnants and explosive ejecta fields.",
+          "development_recipe": {
+            "action": "DevelopRemnantEngineeringSkill",
+            "output_skill_code": 66,
+            "parent_skill_input": { "skill_code": 16, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Degenerate Lattice", "component_code": 409, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Shockwave Spectrum Data", "resource_code": 260, "amount": 50, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.remnant-forge-core", "action_family": "craft_component", "required_skill_code": 66, "output_resource_code": 676, "action": "AssembleRemnantForgeCore", "object_family": "resource_artifact", "description": "Produces a Remnant Forge Core for compact-object materials processing." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 88,
+        "name": "Stellar Architecture",
+        "slug": "stellar-architecture",
+        "tier": "mastery",
+        "parent_code": 16,
+        "civilization_type": 3,
+        "develop_action": "DevelopStellarArchitectureMastery",
+        "reusable": 1,
+        "description": "Integrates photospheric control, star lifting, and remnant engineering into stellar-scale structures.",
+        "development_recipe": {
+          "action": "DevelopStellarArchitectureMastery",
+          "output_skill_code": 88,
+          "parent_skill_input": { "skill_code": 16, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Photospheric Field Injector", "component_code": 674, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Star-Lifting Collector", "component_code": 675, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Remnant Forge Core", "component_code": 676, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.stellar-megastructure-seed", "action_family": "craft_component", "required_skill_code": 88, "output_resource_code": 698, "action": "AssembleStellarMegastructureSeed", "object_family": "resource_artifact", "description": "Produces a Stellar Megastructure Seed for the highest stellar engineering tier." }
+        ]
+      }
+    },
+    {
+      "code": 17,
+      "name": "World Seeding",
+      "slug": "world-seeding",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 3,
+      "develop_action": "DevelopTypeIIIWorldSeedingSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIIWorldSeedingSkill",
+        "output_skill_code": 17,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 3 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 1,
+        "refinement_route_count": 3,
+        "logical_resource_route_count": 4,
+        "concrete_action_count": 6,
+        "extraction_action_references": ["ExtractGardenPlanetLivingSoil"],
+        "refinement_parent_references": ["Living Soil"],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 4,
+        "component_reference_codes": [402, 405, 418, 424],
+        "minimum_after_reserved_components": 8
+      },
+      "route_policy": "Planet-scale atmospheric, hydrospheric, and soil-ecology transformation; contained habitats remain code 12.",
+      "specializations": [
+        {
+          "code": 67,
+          "name": "Atmospheric Genesis",
+          "slug": "atmospheric-genesis",
+          "tier": "specialization",
+          "parent_code": 17,
+          "civilization_type": 3,
+          "develop_action": "DevelopAtmosphericGenesisSkill",
+          "reusable": 1,
+          "description": "Builds and stabilizes a biologically compatible planetary atmosphere.",
+          "development_recipe": {
+            "action": "DevelopAtmosphericGenesisSkill",
+            "output_skill_code": 67,
+            "parent_skill_input": { "skill_code": 17, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Engineered Microbe Culture", "component_code": 642, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Carbon Dioxide", "resource_code": 174, "amount": 2, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.atmosphere-seed", "action_family": "craft_component", "required_skill_code": 67, "output_resource_code": 677, "action": "AssembleAtmosphereSeed", "object_family": "resource_artifact", "description": "Produces an Atmosphere Seed for world-scale transformation." }
+          ]
+        },
+        {
+          "code": 68,
+          "name": "Hydrosphere Genesis",
+          "slug": "hydrosphere-genesis",
+          "tier": "specialization",
+          "parent_code": 17,
+          "civilization_type": 3,
+          "develop_action": "DevelopHydrosphereGenesisSkill",
+          "reusable": 1,
+          "description": "Establishes stable planetary water cycles and oceanic reservoirs.",
+          "development_recipe": {
+            "action": "DevelopHydrosphereGenesisSkill",
+            "output_skill_code": 68,
+            "parent_skill_input": { "skill_code": 17, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Cryogenic Line", "component_code": 403, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Water", "resource_code": 126, "amount": 10, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.hydrosphere-seed", "action_family": "craft_component", "required_skill_code": 68, "output_resource_code": 678, "action": "AssembleHydrosphereSeed", "object_family": "resource_artifact", "description": "Produces a Hydrosphere Seed for planetary water-cycle construction." }
+          ]
+        },
+        {
+          "code": 69,
+          "name": "Soil-Ecology Genesis",
+          "slug": "soil-ecology-genesis",
+          "tier": "specialization",
+          "parent_code": 17,
+          "civilization_type": 3,
+          "develop_action": "DevelopSoilEcologyGenesisSkill",
+          "reusable": 1,
+          "description": "Establishes self-sustaining planetary soil, fungal, and microbial ecologies.",
+          "development_recipe": {
+            "action": "DevelopSoilEcologyGenesisSkill",
+            "output_skill_code": 69,
+            "parent_skill_input": { "skill_code": 17, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Bioreactor Culture", "component_code": 405, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Soil Microbiome", "resource_code": 290, "amount": 1, "amount_unit": "resource_units", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "craft.soil-ecology-seed", "action_family": "craft_component", "required_skill_code": 69, "output_resource_code": 679, "action": "AssembleSoilEcologySeed", "object_family": "resource_artifact", "description": "Produces a Soil-Ecology Seed for planetary biosphere establishment." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 89,
+        "name": "Terraforming Architecture",
+        "slug": "terraforming-architecture",
+        "tier": "mastery",
+        "parent_code": 17,
+        "civilization_type": 3,
+        "develop_action": "DevelopTerraformingArchitectureMastery",
+        "reusable": 1,
+        "description": "Integrates atmospheric, hydrospheric, and soil-ecology genesis into complete planetary transformation.",
+        "development_recipe": {
+          "action": "DevelopTerraformingArchitectureMastery",
+          "output_skill_code": 89,
+          "parent_skill_input": { "skill_code": 17, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Atmosphere Seed", "component_code": 677, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Hydrosphere Seed", "component_code": 678, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Soil-Ecology Seed", "component_code": 679, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.world-seed-package", "action_family": "craft_component", "required_skill_code": 89, "output_resource_code": 699, "action": "AssembleWorldSeedPackage", "object_family": "resource_artifact", "description": "Produces a World Seed Package for complete terraforming campaigns." }
+        ]
+      }
+    },
+    {
+      "code": 18,
+      "name": "Civilization Engineering",
+      "slug": "civilization-engineering",
+      "tier": "root",
+      "parent_code": null,
+      "civilization_type": 3,
+      "develop_action": "DevelopTypeIIICivilizationEngineeringSkill",
+      "reusable": 1,
+      "development_recipe": {
+        "action": "DevelopTypeIIICivilizationEngineeringSkill",
+        "output_skill_code": 18,
+        "parent_skill_input": null,
+        "prerequisite_skill_inputs": [],
+        "items": [],
+        "civilization_source": { "civilization_type": 3 }
+      },
+      "existing_gate_audit": {
+        "extraction_route_count": 1,
+        "refinement_route_count": 0,
+        "logical_resource_route_count": 1,
+        "concrete_action_count": 1,
+        "extraction_action_references": ["ExtractMegastructureArchiveData"],
+        "refinement_parent_references": [],
+        "other_gate_action_references": []
+      },
+      "balance_target": {
+        "minimum_logical_routes": 8,
+        "reserved_component_gate_count": 7,
+        "component_reference_codes": [407, 408, 409, 420, 427, 429, 433],
+        "minimum_after_reserved_components": 8
+      },
+      "route_policy": "Cultural continuity, governance, civic logistics, and institutional infrastructure. It never creates a discovered MicroverseCivilization object.",
+      "specializations": [
+        {
+          "code": 70,
+          "name": "Cultural Continuity",
+          "slug": "cultural-continuity",
+          "tier": "specialization",
+          "parent_code": 18,
+          "civilization_type": 3,
+          "develop_action": "DevelopCulturalContinuitySkill",
+          "reusable": 1,
+          "description": "Preserves cultural, technical, and biological context across long separations.",
+          "development_recipe": {
+            "action": "DevelopCulturalContinuitySkill",
+            "output_skill_code": 70,
+            "parent_skill_input": { "skill_code": 18, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Data Storage Matrix", "component_code": 417, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Archive Data", "resource_code": 151, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "analyze.cultural-continuity-archive", "action_family": "analyze_resource", "required_skill_code": 70, "output_resource_code": 680, "action": "EncodeCulturalContinuityArchive", "object_family": "resource_artifact", "description": "Produces a Cultural Continuity Archive without minting a Civilization." }
+          ]
+        },
+        {
+          "code": 71,
+          "name": "Governance Systems",
+          "slug": "governance-systems",
+          "tier": "specialization",
+          "parent_code": 18,
+          "civilization_type": 3,
+          "develop_action": "DevelopGovernanceSystemsSkill",
+          "reusable": 1,
+          "description": "Creates durable institutional protocols for distributed settlements and fleets.",
+          "development_recipe": {
+            "action": "DevelopGovernanceSystemsSkill",
+            "output_skill_code": 71,
+            "parent_skill_input": { "skill_code": 18, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Cognitive Infrastructure Core", "component_code": 691, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "resource", "resource_name": "Archive Data", "resource_code": 151, "amount": 250, "amount_unit": "resource_units", "catalyst": true, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "analyze.civic-protocol-charter", "action_family": "analyze_resource", "required_skill_code": 71, "output_resource_code": 681, "action": "CompileCivicProtocolCharter", "object_family": "resource_artifact", "description": "Produces a Civic Protocol Charter for institutional infrastructure." }
+          ]
+        },
+        {
+          "code": 72,
+          "name": "Interstellar Logistics",
+          "slug": "interstellar-logistics",
+          "tier": "specialization",
+          "parent_code": 18,
+          "civilization_type": 3,
+          "develop_action": "DevelopInterstellarLogisticsSkill",
+          "reusable": 1,
+          "description": "Coordinates trade, communication, and institutional continuity across interstellar routes.",
+          "development_recipe": {
+            "action": "DevelopInterstellarLogisticsSkill",
+            "output_skill_code": 72,
+            "parent_skill_input": { "skill_code": 18, "mode": "prepared_ship_active_skill", "consumed": false },
+            "prerequisite_skill_inputs": [],
+            "items": [
+              { "kind": "component", "component_name": "Galactic Position Atlas", "component_code": 693, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+              { "kind": "component", "component_name": "Galactic Signal Relay", "component_code": 672, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+            ]
+          },
+          "gated_capabilities": [
+            { "route_key": "analyze.trade-network-charter", "action_family": "analyze_resource", "required_skill_code": 72, "output_resource_code": 682, "action": "CompileTradeNetworkCharter", "object_family": "resource_artifact", "description": "Produces a Trade Network Charter for coordinated interstellar logistics." }
+          ]
+        }
+      ],
+      "mastery": {
+        "code": 90,
+        "name": "Civilization Architecture",
+        "slug": "civilization-architecture",
+        "tier": "mastery",
+        "parent_code": 18,
+        "civilization_type": 3,
+        "develop_action": "DevelopCivilizationArchitectureMastery",
+        "reusable": 1,
+        "description": "Integrates cultural continuity, governance, and logistics into civilization-scale institutional infrastructure.",
+        "development_recipe": {
+          "action": "DevelopCivilizationArchitectureMastery",
+          "output_skill_code": 90,
+          "parent_skill_input": { "skill_code": 18, "mode": "prepared_ship_active_skill", "consumed": false },
+          "prerequisite_skill_inputs": [],
+          "items": [
+            { "kind": "component", "component_name": "Cultural Continuity Archive", "component_code": 680, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Civic Protocol Charter", "component_code": 681, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true },
+            { "kind": "component", "component_name": "Trade Network Charter", "component_code": 682, "amount": 1, "amount_unit": "object", "catalyst": false, "consumed": true }
+          ]
+        },
+        "gated_capabilities": [
+          { "route_key": "craft.civilization-continuity-core", "action_family": "craft_component", "required_skill_code": 90, "output_resource_code": 700, "action": "AssembleCivilizationContinuityCore", "object_family": "resource_artifact", "description": "Produces a Civilization Continuity Core; it never mints a discovered Civilization." }
+        ]
+      }
+    }
+  ],
+  "capability_artifacts": [
+    { "skill_code": 19, "route_key": "craft.reinforced-hull-frame", "action_family": "craft_component", "action": "ForgeReinforcedHullFrame", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 629, "name": "Reinforced Hull Frame", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 390, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 20, "route_key": "craft.precision-toolhead", "action_family": "craft_component", "action": "FabricatePrecisionToolhead", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 630, "name": "Precision Toolhead", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 395, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 21, "route_key": "craft.habitat-pressure-shell", "action_family": "craft_component", "action": "AssembleHabitatPressureShell", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 631, "name": "Habitat Pressure Shell", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 393, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 22, "route_key": "craft.logic-control-board", "action_family": "craft_component", "action": "FabricateLogicControlBoard", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 632, "name": "Logic Control Board", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 392, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 23, "route_key": "craft.field-control-assembly", "action_family": "craft_component", "action": "FabricateFieldControlAssembly", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 633, "name": "Field Control Assembly", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 396, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 24, "route_key": "craft.survey-sensor-array", "action_family": "craft_component", "action": "AssembleSurveySensorArray", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 634, "name": "Survey Sensor Array", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 415, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 25, "route_key": "craft.selective-separation-column", "action_family": "craft_component", "action": "BuildSelectiveSeparationColumn", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 635, "name": "Separation Column", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 404, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 26, "route_key": "craft.polymer-matrix", "action_family": "craft_component", "action": "SynthesizePolymerMatrix", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 636, "name": "Polymer Matrix", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 397, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 27, "route_key": "craft.high-energy-propellant", "action_family": "craft_component", "action": "BlendHighEnergyPropellant", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 637, "name": "High-Energy Propellant", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 394, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 28, "route_key": "craft.fission-reactor-core", "action_family": "craft_component", "action": "AssembleFissionReactorCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 638, "name": "Fission Reactor Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 399, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 29, "route_key": "craft.isotope-power-cell", "action_family": "craft_component", "action": "FabricateIsotopePowerCell", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 639, "name": "Isotope Power Cell", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 407, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 30, "route_key": "craft.radiation-vault-module", "action_family": "craft_component", "action": "AssembleRadiationVaultModule", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 640, "name": "Radiation Vault Module", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 399, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 31, "route_key": "analyze.edited-genome-archive", "action_family": "analyze_resource", "action": "CompileEditedGenomeArchive", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 641, "name": "Edited Genome Archive", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 417, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 32, "route_key": "craft.engineered-microbe-culture", "action_family": "craft_component", "action": "CultureEngineeredMicrobe", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 642, "name": "Engineered Microbe Culture", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 405, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 33, "route_key": "analyze.adaptive-germline", "action_family": "analyze_resource", "action": "DesignAdaptiveGermline", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 643, "name": "Adaptive Germline", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 430, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 34, "route_key": "craft.habitat-foundation", "action_family": "craft_component", "action": "AssembleHabitatFoundation", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 644, "name": "Habitat Foundation", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 390, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 391, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 35, "route_key": "analyze.geotechnical-survey", "action_family": "analyze_resource", "action": "ProduceGeotechnicalSurvey", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 645, "name": "Geotechnical Survey", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 415, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 414, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 36, "route_key": "craft.utility-grid-node", "action_family": "craft_component", "action": "AssembleUtilityGridNode", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 646, "name": "Utility Grid Node", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 420, "amount": 1 }], "vdf_iterations": 8 },
+    { "skill_code": 37, "route_key": "craft.adaptive-optic", "action_family": "craft_component", "action": "FabricateAdaptiveOptic", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 647, "name": "Adaptive Optic", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 400, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 38, "route_key": "craft.superconducting-field-coil", "action_family": "craft_component", "action": "WindSuperconductingFieldCoil", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 648, "name": "Superconducting Field Coil", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 401, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 39, "route_key": "craft.phase-composite-panel", "action_family": "craft_component", "action": "SynthesizePhaseCompositePanel", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 649, "name": "Phase Composite Panel", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 412, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 40, "route_key": "craft.fusion-reactor", "action_family": "craft_component", "action": "AssembleFusionReactor", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 650, "name": "Fusion Reactor", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 398, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 41, "route_key": "craft.radiant-collector", "action_family": "craft_component", "action": "AssembleRadiantCollector", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 651, "name": "Radiant Collector", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 400, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 42, "route_key": "craft.plasma-containment-ring", "action_family": "craft_component", "action": "AssemblePlasmaContainmentRing", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 652, "name": "Plasma Containment Ring", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 396, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 401, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 43, "route_key": "analyze.field-data", "action_family": "analyze_resource", "action": "InterpretFieldData", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 653, "name": "Scientific Analysis Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 421, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 44, "route_key": "craft.autonomous-guidance-core", "action_family": "craft_component", "action": "AssembleAutonomousGuidanceCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 654, "name": "Autonomous Guidance Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 422, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 45, "route_key": "craft.fleet-coordination-node", "action_family": "craft_component", "action": "AssembleFleetCoordinationNode", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 655, "name": "Fleet Coordination Node", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 423, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 46, "route_key": "craft.smart-membrane", "action_family": "craft_component", "action": "FabricateSmartMembrane", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 656, "name": "Smart Membrane", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 402, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 47, "route_key": "craft.tuned-crystal-lattice", "action_family": "craft_component", "action": "FabricateTunedCrystalLattice", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 657, "name": "Tuned Crystal Lattice", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 406, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 48, "route_key": "craft.molecular-assembler", "action_family": "craft_component", "action": "AssembleMolecularAssembler", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 658, "name": "Molecular Assembler", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 404, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 49, "route_key": "research.astrometric-anchor-solution", "action_family": "analyze_resource", "action": "CompileAstrometricAnchorSolution", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 659, "name": "Astrometric Anchor Solution", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 419, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 50, "route_key": "research.gravitational-chart-analysis", "action_family": "analyze_resource", "action": "CompileGravitationalChartAnalysis", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 660, "name": "Gravitational Chart Analysis", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 411, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 51, "route_key": "research.relativistic-transit-plan", "action_family": "analyze_resource", "action": "CompileRelativisticTransitPlan", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 661, "name": "Relativistic Transit Plan", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 425, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 52, "route_key": "craft.closed-cycle-biome", "action_family": "craft_component", "action": "AssembleClosedCycleBiome", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 662, "name": "Closed-Cycle Biome", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 402, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 53, "route_key": "craft.managed-microbiome", "action_family": "craft_component", "action": "CultureManagedMicrobiome", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 663, "name": "Managed Microbiome", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 405, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 54, "route_key": "craft.aquatic-habitat-module", "action_family": "craft_component", "action": "AssembleAquaticHabitatModule", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 664, "name": "Aquatic Habitat Module", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 393, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 402, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 55, "route_key": "craft.degenerate-containment-cell", "action_family": "craft_component", "action": "AssembleDegenerateContainmentCell", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 665, "name": "Degenerate Containment Cell", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 409, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 56, "route_key": "craft.vacuum-state-lattice", "action_family": "craft_component", "action": "SynthesizeVacuumStateLattice", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 666, "name": "Vacuum-State Lattice", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 412, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 57, "route_key": "craft.relativistic-plasma-bottle", "action_family": "craft_component", "action": "AssembleRelativisticPlasmaBottle", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 667, "name": "Relativistic Plasma Bottle", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 410, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 58, "route_key": "research.temporal-topology-analysis", "action_family": "analyze_resource", "action": "CompileTemporalTopologyAnalysis", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 668, "name": "Temporal Topology Analysis", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 428, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 59, "route_key": "research.wormhole-geometry-model", "action_family": "analyze_resource", "action": "CompileWormholeGeometryModel", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 669, "name": "Wormhole Geometry Model", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 432, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 60, "route_key": "research.causal-stability-model", "action_family": "analyze_resource", "action": "CompileCausalStabilityModel", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 670, "name": "Causal Stability Model", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 428, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 61, "route_key": "analyze.deep-archive-vault", "action_family": "analyze_resource", "action": "EncodeDeepArchiveVault", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 671, "name": "Deep Archive Vault", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 417, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 62, "route_key": "craft.galactic-signal-relay", "action_family": "craft_component", "action": "AssembleGalacticSignalRelay", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 672, "name": "Galactic Signal Relay", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 423, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 63, "route_key": "craft.galactic-cognition-node", "action_family": "craft_component", "action": "AssembleGalacticCognitionNode", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 673, "name": "Advanced Galactic Cognition Node", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 431, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 64, "route_key": "craft.photospheric-field-injector", "action_family": "craft_component", "action": "AssemblePhotosphericFieldInjector", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 674, "name": "Photospheric Field Injector", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 396, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 65, "route_key": "craft.star-lifting-collector", "action_family": "craft_component", "action": "AssembleStarLiftingCollector", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 675, "name": "Star-Lifting Collector", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 401, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 66, "route_key": "craft.remnant-forge-core", "action_family": "craft_component", "action": "AssembleRemnantForgeCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 676, "name": "Remnant Forge Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 429, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 67, "route_key": "craft.atmosphere-seed", "action_family": "craft_component", "action": "AssembleAtmosphereSeed", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 677, "name": "Atmosphere Seed", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 418, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 68, "route_key": "craft.hydrosphere-seed", "action_family": "craft_component", "action": "AssembleHydrosphereSeed", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 678, "name": "Hydrosphere Seed", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 403, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 69, "route_key": "craft.soil-ecology-seed", "action_family": "craft_component", "action": "AssembleSoilEcologySeed", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 679, "name": "Soil-Ecology Seed", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 405, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 70, "route_key": "analyze.cultural-continuity-archive", "action_family": "analyze_resource", "action": "EncodeCulturalContinuityArchive", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 680, "name": "Cultural Continuity Archive", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 433, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 71, "route_key": "analyze.civic-protocol-charter", "action_family": "analyze_resource", "action": "CompileCivicProtocolCharter", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 681, "name": "Civic Protocol Charter", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 420, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 72, "route_key": "analyze.trade-network-charter", "action_family": "analyze_resource", "action": "CompileTradeNetworkCharter", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 682, "name": "Trade Network Charter", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 423, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 419, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 73, "route_key": "craft.orbital-foundry-core", "action_family": "craft_component", "action": "AssembleOrbitalFoundryCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 683, "name": "Orbital Foundry Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 629, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 630, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 631, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 74, "route_key": "craft.integrated-avionics-core", "action_family": "craft_component", "action": "AssembleIntegratedAvionicsCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 684, "name": "Integrated Avionics Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 632, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 633, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 634, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 75, "route_key": "craft.chemical-plant-core", "action_family": "craft_component", "action": "AssembleChemicalPlantCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 685, "name": "Chemical Plant Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 635, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 636, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 637, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 76, "route_key": "craft.nuclear-power-node", "action_family": "craft_component", "action": "AssembleNuclearPowerNode", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 686, "name": "Nuclear Power Node", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 638, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 639, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 640, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 77, "route_key": "craft.genomic-foundry-core", "action_family": "craft_component", "action": "AssembleGenomicFoundryCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 687, "name": "Genomic Foundry Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 641, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 642, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 643, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 78, "route_key": "craft.planetary-works-core", "action_family": "craft_component", "action": "AssemblePlanetaryWorksCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 688, "name": "Planetary Works Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 644, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 645, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 646, "amount": 1 }], "vdf_iterations": 12 },
+    { "skill_code": 79, "route_key": "craft.programmable-matter-matrix", "action_family": "craft_component", "action": "SynthesizeProgrammableMatterMatrix", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 689, "name": "Programmable Matter Matrix", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 647, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 648, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 649, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 80, "route_key": "craft.stellar-power-node", "action_family": "craft_component", "action": "AssembleStellarPowerNode", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 690, "name": "Stellar Power Node", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 650, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 651, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 652, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 81, "route_key": "craft.cognitive-infrastructure-core", "action_family": "craft_component", "action": "AssembleCognitiveInfrastructureCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 691, "name": "Cognitive Infrastructure Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 653, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 654, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 655, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 82, "route_key": "craft.nanoforge-core", "action_family": "craft_component", "action": "AssembleNanoforgeCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 692, "name": "Nanoforge Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 656, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 657, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 658, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 83, "route_key": "position.compile-atlas", "action_family": "compile_position_atlas", "action": "CompileGalacticPositionAtlas", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 693, "name": "Galactic Position Atlas", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 659, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 660, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 661, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 84, "route_key": "craft.biosphere-core", "action_family": "craft_component", "action": "AssembleBiosphereCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 694, "name": "Biosphere Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 662, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 663, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 664, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 85, "route_key": "craft.exotic-matter-matrix", "action_family": "craft_component", "action": "AssembleExoticMatterMatrix", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 695, "name": "Exotic Matter Matrix", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 665, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 666, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 667, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 86, "route_key": "temporal.assemble-causal-transit-node", "action_family": "assemble_causal_transit_node", "action": "AssembleCausalTransitNode", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 696, "name": "Causal Transit Node", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 668, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 669, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 670, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 87, "route_key": "craft.galactic-cognitive-mesh-seed", "action_family": "craft_component", "action": "AssembleGalacticCognitiveMeshSeed", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 697, "name": "Galactic Cognitive Mesh Seed", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 671, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 672, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 673, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 88, "route_key": "craft.stellar-megastructure-seed", "action_family": "craft_component", "action": "AssembleStellarMegastructureSeed", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 698, "name": "Stellar Megastructure Seed", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 674, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 675, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 676, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 89, "route_key": "craft.world-seed-package", "action_family": "craft_component", "action": "AssembleWorldSeedPackage", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 699, "name": "World Seed Package", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 677, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 678, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 679, "amount": 1 }], "vdf_iterations": 32 },
+    { "skill_code": 90, "route_key": "craft.civilization-continuity-core", "action_family": "craft_component", "action": "AssembleCivilizationContinuityCore", "primary_output_class": "MicroverseResource", "fallback_resource": { "code": 700, "name": "Civilization Continuity Core", "amount": 1 }, "fixed_inputs": [{ "class": "MicroverseResource", "resource_code": 680, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 681, "amount": 1 }, { "class": "MicroverseResource", "resource_code": 682, "amount": 1 }], "vdf_iterations": 32 }
+  ]
+}

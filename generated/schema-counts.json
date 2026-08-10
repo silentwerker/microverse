@@ -1,0 +1,1270 @@
+{
+  "classes": {
+    "MicroverseCelestialBody": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "body_bank_version",
+          "type": "Int"
+        },
+        {
+          "name": "source_signal_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "sector_x",
+          "type": "Int"
+        },
+        {
+          "name": "sector_y",
+          "type": "Int"
+        },
+        {
+          "name": "sector_z",
+          "type": "Int"
+        },
+        {
+          "name": "sector_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "candidate_code",
+          "type": "Int"
+        },
+        {
+          "name": "body_type",
+          "type": "Int"
+        },
+        {
+          "name": "life_stat",
+          "type": "Int"
+        },
+        {
+          "name": "matter_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "crystal_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "gas_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "energy_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "satellites_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "next_satellite_serial",
+          "type": "Int"
+        },
+        {
+          "name": "civilization_discovered",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 21,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseCelestialSignal": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "body_bank_version",
+          "type": "Int"
+        },
+        {
+          "name": "sector_x",
+          "type": "Int"
+        },
+        {
+          "name": "sector_y",
+          "type": "Int"
+        },
+        {
+          "name": "sector_z",
+          "type": "Int"
+        },
+        {
+          "name": "sector_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "category_code",
+          "type": "Int"
+        },
+        {
+          "name": "candidate_code",
+          "type": "Int"
+        },
+        {
+          "name": "slot_serial",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 13,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseCivilization": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "civilization_version",
+          "type": "Int"
+        },
+        {
+          "name": "source_life_signal_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "sector_x",
+          "type": "Int"
+        },
+        {
+          "name": "sector_y",
+          "type": "Int"
+        },
+        {
+          "name": "sector_z",
+          "type": "Int"
+        },
+        {
+          "name": "origin_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "civilization_type",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 12,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseCompositeResource": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "resource_type",
+          "type": "Int"
+        },
+        {
+          "name": "sector_x",
+          "type": "Int"
+        },
+        {
+          "name": "sector_y",
+          "type": "Int"
+        },
+        {
+          "name": "sector_z",
+          "type": "Int"
+        },
+        {
+          "name": "origin_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "child_1_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "child_2_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "child_3_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 13,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseEpochChart": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "catalog_version",
+          "type": "Int"
+        },
+        {
+          "name": "source_body_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "source_pool_before",
+          "type": "Int"
+        },
+        {
+          "name": "revealed",
+          "type": "Int"
+        },
+        {
+          "name": "destination_code",
+          "type": "Int"
+        },
+        {
+          "name": "destination_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "uses_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 12,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseLifeSignal": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "civilization_version",
+          "type": "Int"
+        },
+        {
+          "name": "source_body_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "sector_x",
+          "type": "Int"
+        },
+        {
+          "name": "sector_y",
+          "type": "Int"
+        },
+        {
+          "name": "sector_z",
+          "type": "Int"
+        },
+        {
+          "name": "origin_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 11,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroversePositionAnchor": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "anchor_version",
+          "type": "Int"
+        },
+        {
+          "name": "source_ship_id",
+          "type": "Raw"
+        },
+        {
+          "name": "x",
+          "type": "Int"
+        },
+        {
+          "name": "y",
+          "type": "Int"
+        },
+        {
+          "name": "z",
+          "type": "Int"
+        },
+        {
+          "name": "uses_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 11,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseRendezvousCoordinate": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "coordinate_version",
+          "type": "Int"
+        },
+        {
+          "name": "position_anchor_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "time_anchor_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "destination_x",
+          "type": "Int"
+        },
+        {
+          "name": "destination_y",
+          "type": "Int"
+        },
+        {
+          "name": "destination_z",
+          "type": "Int"
+        },
+        {
+          "name": "destination_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "uses_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 13,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseResource": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "resource_type",
+          "type": "Int"
+        },
+        {
+          "name": "amount",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 7,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseSatellite": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "parent_body_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "sector_x",
+          "type": "Int"
+        },
+        {
+          "name": "sector_y",
+          "type": "Int"
+        },
+        {
+          "name": "sector_z",
+          "type": "Int"
+        },
+        {
+          "name": "sector_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "satellite_serial",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 11,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseSector": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "body_bank_version",
+          "type": "Int"
+        },
+        {
+          "name": "x",
+          "type": "Int"
+        },
+        {
+          "name": "y",
+          "type": "Int"
+        },
+        {
+          "name": "z",
+          "type": "Int"
+        },
+        {
+          "name": "epoch",
+          "type": "Int"
+        },
+        {
+          "name": "sector_type",
+          "type": "Int"
+        },
+        {
+          "name": "survey_profile",
+          "type": "Int"
+        },
+        {
+          "name": "planet_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "star_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "gas_giant_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "ice_giant_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "neutron_star_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "black_hole_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "anomaly_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "megastructure_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "gas_cluster_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "stellar_remnant_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "minor_body_field_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "next_planet_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_star_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_gas_giant_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_ice_giant_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_neutron_star_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_black_hole_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_anomaly_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_megastructure_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_gas_cluster_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_stellar_remnant_serial",
+          "type": "Int"
+        },
+        {
+          "name": "next_minor_body_field_serial",
+          "type": "Int"
+        },
+        {
+          "name": "revision",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 35,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseShip": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "extraction_amount",
+          "type": "Int"
+        },
+        {
+          "name": "rare_extraction_amount",
+          "type": "Int"
+        },
+        {
+          "name": "x",
+          "type": "Int"
+        },
+        {
+          "name": "y",
+          "type": "Int"
+        },
+        {
+          "name": "z",
+          "type": "Int"
+        },
+        {
+          "name": "epoch",
+          "type": "Int"
+        },
+        {
+          "name": "active_skill_type",
+          "type": "Int"
+        },
+        {
+          "name": "action_serial",
+          "type": "Int"
+        },
+        {
+          "name": "claim_serial",
+          "type": "Int"
+        },
+        {
+          "name": "discovery_serial",
+          "type": "Int"
+        },
+        {
+          "name": "satellite_serial",
+          "type": "Int"
+        },
+        {
+          "name": "civilization_scan_serial",
+          "type": "Int"
+        },
+        {
+          "name": "ship_id",
+          "type": "Raw"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 18,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseShipyardPermit": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "permit_type",
+          "type": "Int"
+        },
+        {
+          "name": "x",
+          "type": "Int"
+        },
+        {
+          "name": "y",
+          "type": "Int"
+        },
+        {
+          "name": "z",
+          "type": "Int"
+        },
+        {
+          "name": "epoch",
+          "type": "Int"
+        },
+        {
+          "name": "industrial_authorized",
+          "type": "Int"
+        },
+        {
+          "name": "electronics_authorized",
+          "type": "Int"
+        },
+        {
+          "name": "molecular_authorized",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 13,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseTechnologySkill": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "civilization_version",
+          "type": "Int"
+        },
+        {
+          "name": "skill_type",
+          "type": "Int"
+        },
+        {
+          "name": "reusable",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 8,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseTemporalLink": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "link_version",
+          "type": "Int"
+        },
+        {
+          "name": "endpoint_a_anchor_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "endpoint_b_anchor_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "endpoint_a_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "endpoint_b_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "uses_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 11,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseTimeAnchor": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "anchor_version",
+          "type": "Int"
+        },
+        {
+          "name": "source_ship_id",
+          "type": "Raw"
+        },
+        {
+          "name": "epoch",
+          "type": "Int"
+        },
+        {
+          "name": "uses_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 9,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseTimeCoordinate": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "source_body_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "source_pool_before",
+          "type": "Int"
+        },
+        {
+          "name": "revealed",
+          "type": "Int"
+        },
+        {
+          "name": "destination_code",
+          "type": "Int"
+        },
+        {
+          "name": "destination_epoch",
+          "type": "Int"
+        },
+        {
+          "name": "uses_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 11,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseWarpChart": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "catalog_version",
+          "type": "Int"
+        },
+        {
+          "name": "source_body_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "source_pool_before",
+          "type": "Int"
+        },
+        {
+          "name": "revealed",
+          "type": "Int"
+        },
+        {
+          "name": "destination_code",
+          "type": "Int"
+        },
+        {
+          "name": "destination_x",
+          "type": "Int"
+        },
+        {
+          "name": "destination_y",
+          "type": "Int"
+        },
+        {
+          "name": "destination_z",
+          "type": "Int"
+        },
+        {
+          "name": "uses_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 14,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseWarpCoordinate": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "source_body_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "source_pool_before",
+          "type": "Int"
+        },
+        {
+          "name": "revealed",
+          "type": "Int"
+        },
+        {
+          "name": "destination_code",
+          "type": "Int"
+        },
+        {
+          "name": "destination_x",
+          "type": "Int"
+        },
+        {
+          "name": "destination_y",
+          "type": "Int"
+        },
+        {
+          "name": "destination_z",
+          "type": "Int"
+        },
+        {
+          "name": "uses_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 13,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    },
+    "MicroverseWormholeLink": {
+      "fields": [
+        {
+          "name": "schema_version",
+          "type": "Int"
+        },
+        {
+          "name": "mechanics_version",
+          "type": "Int"
+        },
+        {
+          "name": "universe_version",
+          "type": "Int"
+        },
+        {
+          "name": "link_version",
+          "type": "Int"
+        },
+        {
+          "name": "endpoint_a_anchor_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "endpoint_b_anchor_identifier",
+          "type": "Raw"
+        },
+        {
+          "name": "endpoint_a_x",
+          "type": "Int"
+        },
+        {
+          "name": "endpoint_a_y",
+          "type": "Int"
+        },
+        {
+          "name": "endpoint_a_z",
+          "type": "Int"
+        },
+        {
+          "name": "endpoint_b_x",
+          "type": "Int"
+        },
+        {
+          "name": "endpoint_b_y",
+          "type": "Int"
+        },
+        {
+          "name": "endpoint_b_z",
+          "type": "Int"
+        },
+        {
+          "name": "uses_remaining",
+          "type": "Int"
+        },
+        {
+          "name": "key",
+          "type": "Raw"
+        },
+        {
+          "name": "stable_identifier",
+          "type": "Raw"
+        }
+      ],
+      "listed_key_count": 15,
+      "sdk_managed_live_fields": [
+        "type",
+        "work"
+      ]
+    }
+  },
+  "largest_listed_key_count": 35,
+  "project_record_arity_cap": 256
+}
