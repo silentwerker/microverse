@@ -783,7 +783,6 @@ signal,
 ship,
 category_code,
 candidate_code,
-target_top_limb,
 body_type,
 life_stat,
 matter_remaining,
@@ -796,8 +795,7 @@ prove_fixed_versions(action,signal);
 prove_fixed_versions(action,ship);
 action.st_sum(signal.body_bank_version,0,2);
 action.st_sum(signal.category_code,0,category_code);
-action.st_sum(signal.candidate_code,0,candidate_code);
-let target=action.top_limb_u256(target_top_limb);
+action.st_sum(signal.candidate_code,0,-1);
 action.st_gt(signal.slot_serial,-1);
 var source_signal_identifier=action.random();
 var_assign(source_signal_identifier,signal.stable_identifier);
@@ -816,7 +814,6 @@ action.st_sum(ship.z,0,sector_z);
 action.st_sum(ship.epoch,0,sector_epoch);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-action.intro_lt_eq_u256(signal,target);
 body.set([
 ["schema_version",2],
 ["mechanics_version",2],
@@ -1645,6 +1642,8 @@ fn SurveySector_01_Sparse(action){
 var next_ship=action.output("MicroverseShip");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
+let survey_selector_upper=action.top_limb_u256(-7413177527517650715);
+action.intro_lt_eq_u256(sector,survey_selector_upper);
 survey_replacement_ship_core(action,next_ship,ship,sector);
 action.st_gt(ship.claim_serial,3);
 prove_empty_survey_sector_core(action,sector);
@@ -1663,6 +1662,10 @@ fn SurveySector_02_Standard(action){
 var next_ship=action.output("MicroverseShip");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
+let survey_selector_lower=action.top_limb_u256(-7413177527517650714);
+action.intro_lt_eq_u256(survey_selector_lower,sector);
+let survey_selector_upper=action.top_limb_u256(-1896394254421700264);
+action.intro_lt_eq_u256(sector,survey_selector_upper);
 survey_replacement_ship_core(action,next_ship,ship,sector);
 action.st_gt(ship.claim_serial,7);
 prove_empty_survey_sector_core(action,sector);
@@ -1685,6 +1688,10 @@ fn SurveySector_03_Rich(action){
 var next_ship=action.output("MicroverseShip");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
+let survey_selector_lower=action.top_limb_u256(-1896394254421700263);
+action.intro_lt_eq_u256(survey_selector_lower,sector);
+let survey_selector_upper=action.top_limb_u256(-517198436147712651);
+action.intro_lt_eq_u256(sector,survey_selector_upper);
 survey_replacement_ship_core(action,next_ship,ship,sector);
 action.st_gt(ship.claim_serial,31);
 prove_empty_survey_sector_core(action,sector);
@@ -1709,6 +1716,10 @@ fn SurveySector_04_Ancient(action){
 var next_ship=action.output("MicroverseShip");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
+let survey_selector_lower=action.top_limb_u256(-517198436147712650);
+action.intro_lt_eq_u256(survey_selector_lower,sector);
+let survey_selector_upper=action.top_limb_u256(-172399481579215748);
+action.intro_lt_eq_u256(sector,survey_selector_upper);
 survey_replacement_ship_core(action,next_ship,ship,sector);
 action.st_gt(ship.claim_serial,127);
 prove_empty_survey_sector_core(action,sector);
@@ -1733,6 +1744,8 @@ fn SurveySector_05_Anomalous(action){
 var next_ship=action.output("MicroverseShip");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
+let survey_selector_lower=action.top_limb_u256(-172399481579215747);
+action.intro_lt_eq_u256(survey_selector_lower,sector);
 survey_replacement_ship_core(action,next_ship,ship,sector);
 action.st_gt(ship.claim_serial,255);
 prove_empty_survey_sector_core(action,sector);
@@ -1760,299 +1773,347 @@ var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,2,0,"star_remaining","next_star_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,2,-1,"star_remaining","next_star_serial");
 }
 fn DetectCelestialSignal_01_MainSequenceStar(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,2,1,"star_remaining","next_star_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,2,-1,"star_remaining","next_star_serial");
 }
 fn DetectCelestialSignal_02_GiantStar(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,2,2,"star_remaining","next_star_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,2,-1,"star_remaining","next_star_serial");
 }
 fn DetectCelestialSignal_03_RockyPlanet(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,1,3,"planet_remaining","next_planet_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,1,-1,"planet_remaining","next_planet_serial");
 }
 fn DetectCelestialSignal_04_OceanPlanet(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,1,4,"planet_remaining","next_planet_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,1,-1,"planet_remaining","next_planet_serial");
 }
 fn DetectCelestialSignal_05_GardenPlanet(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,1,5,"planet_remaining","next_planet_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,1,-1,"planet_remaining","next_planet_serial");
 }
 fn DetectCelestialSignal_06_GasGiant(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,3,6,"gas_giant_remaining","next_gas_giant_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,3,-1,"gas_giant_remaining","next_gas_giant_serial");
 }
 fn DetectCelestialSignal_07_IceGiant(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,4,7,"ice_giant_remaining","next_ice_giant_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,4,-1,"ice_giant_remaining","next_ice_giant_serial");
 }
 fn DetectCelestialSignal_08_BarrenPlanet(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,1,8,"planet_remaining","next_planet_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,1,-1,"planet_remaining","next_planet_serial");
 }
 fn DetectCelestialSignal_09_NeutronStar(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,5,9,"neutron_star_remaining","next_neutron_star_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,5,-1,"neutron_star_remaining","next_neutron_star_serial");
 }
 fn DetectCelestialSignal_10_BlackHole(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,6,10,"black_hole_remaining","next_black_hole_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,6,-1,"black_hole_remaining","next_black_hole_serial");
 }
 fn DetectCelestialSignal_11_Anomaly(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,7,11,"anomaly_remaining","next_anomaly_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,7,-1,"anomaly_remaining","next_anomaly_serial");
 }
 fn DetectCelestialSignal_12_Megastructure(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,8,12,"megastructure_remaining","next_megastructure_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,8,-1,"megastructure_remaining","next_megastructure_serial");
 }
 fn DetectCelestialSignal_13_GasCluster(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,9,13,"gas_cluster_remaining","next_gas_cluster_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,9,-1,"gas_cluster_remaining","next_gas_cluster_serial");
 }
 fn DetectCelestialSignal_14_StellarRemnant(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,10,14,"stellar_remnant_remaining","next_stellar_remnant_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,10,-1,"stellar_remnant_remaining","next_stellar_remnant_serial");
 }
 fn DetectCelestialSignal_15_AsteroidBelt(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,11,15,"minor_body_field_remaining","next_minor_body_field_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,11,-1,"minor_body_field_remaining","next_minor_body_field_serial");
 }
 fn DetectCelestialSignal_16_VolcanicPlanet(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,1,16,"planet_remaining","next_planet_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,1,-1,"planet_remaining","next_planet_serial");
 }
 fn DetectCelestialSignal_17_Nebula(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,9,17,"gas_cluster_remaining","next_gas_cluster_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,9,-1,"gas_cluster_remaining","next_gas_cluster_serial");
 }
 fn DetectCelestialSignal_18_CometCluster(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,11,18,"minor_body_field_remaining","next_minor_body_field_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,11,-1,"minor_body_field_remaining","next_minor_body_field_serial");
 }
 fn DetectCelestialSignal_19_BrownDwarf(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,2,19,"star_remaining","next_star_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,2,-1,"star_remaining","next_star_serial");
 }
 fn DetectCelestialSignal_20_WhiteDwarf(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,10,20,"stellar_remnant_remaining","next_stellar_remnant_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,10,-1,"stellar_remnant_remaining","next_stellar_remnant_serial");
 }
 fn DetectCelestialSignal_21_Magnetar(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,5,21,"neutron_star_remaining","next_neutron_star_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,5,-1,"neutron_star_remaining","next_neutron_star_serial");
 }
 fn DetectCelestialSignal_22_WormholeMouth(action){
 var next_ship=action.output("MicroverseShip");
 var signal=action.output("MicroverseCelestialSignal");
 var ship=action.input("MicroverseShip");
 var sector=action.mutate("MicroverseSector");
-detect_signal_core(action,next_ship,signal,ship,sector,7,22,"anomaly_remaining","next_anomaly_serial");
+detect_signal_core(action,next_ship,signal,ship,sector,7,-1,"anomaly_remaining","next_anomaly_serial");
 }
 fn ScanCelestialBody_00_RedDwarf(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,2,0,2305843009213693952,2,0,4000,0,4000,22000,0);
+let body_selector_upper=action.top_limb_u256(-4222748646691076960);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,2,0,2,0,4000,0,4000,22000,0);
 }
 fn ScanCelestialBody_01_MainSequenceStar(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,2,1,576460752303423488,2,0,3000,0,4000,27000,0);
+let body_selector_lower=action.top_limb_u256(-4222748646691076959);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+let body_selector_upper=action.top_limb_u256(-666749789936458296);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,2,1,2,0,3000,0,4000,27000,0);
 }
 fn ScanCelestialBody_02_GiantStar(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,2,2,72057594037927936,2,0,3000,0,4000,33000,0);
+let body_selector_lower=action.top_limb_u256(-666749789936458295);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+let body_selector_upper=action.top_limb_u256(-222249932842130963);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,2,2,2,0,3000,0,4000,33000,0);
 }
 fn ScanCelestialBody_03_RockyPlanet(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,1,3,2305843009213693952,1,0,19000,5000,3000,3000,1);
+let body_selector_upper=action.top_limb_u256(7976970408395495921);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,1,3,1,0,19000,5000,3000,3000,1);
 }
 fn ScanCelestialBody_04_OceanPlanet(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,1,4,576460752303423488,1,2,14000,3000,14000,3000,2);
+let body_selector_lower=action.top_limb_u256(7976970408395495922);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+let body_selector_upper=action.top_limb_u256(-8475531063215181714);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,1,4,1,2,14000,3000,14000,3000,2);
 }
 fn ScanCelestialBody_05_GardenPlanet(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,1,5,144115188075855872,1,4,17000,9000,6000,6000,1);
+let body_selector_lower=action.top_limb_u256(-8475531063215181713);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+let body_selector_upper=action.top_limb_u256(-7976970412690463219);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,1,5,1,4,17000,9000,6000,6000,1);
 }
 fn ScanCelestialBody_06_GasGiant(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,3,6,1152921504606846976,3,0,2000,0,24000,6000,4);
+scan_body_core(action,body,signal,ship,3,6,3,0,2000,0,24000,6000,4);
 }
 fn ScanCelestialBody_07_IceGiant(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,4,7,576460752303423488,4,0,4000,9000,17000,4000,3);
+scan_body_core(action,body,signal,ship,4,7,4,0,4000,9000,17000,4000,3);
 }
 fn ScanCelestialBody_08_BarrenPlanet(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,1,8,1152921504606846976,1,0,23000,9000,0,0,0);
+let body_selector_lower=action.top_limb_u256(-7976970412690463218);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+let body_selector_upper=action.top_limb_u256(-3988485208492715258);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,1,8,1,0,23000,9000,0,0,0);
 }
 fn ScanCelestialBody_09_NeutronStar(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,5,9,9007199254740992,5,0,2000,1000,0,43000,0);
+let body_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,5,9,5,0,2000,1000,0,43000,0);
 }
 fn ScanCelestialBody_10_BlackHole(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,6,10,2251799813685248,6,0,0,0,0,50000,0);
+scan_body_core(action,body,signal,ship,6,10,6,0,0,0,0,50000,0);
 }
 fn ScanCelestialBody_11_Anomaly(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,7,11,562949953421312,7,0,18000,9000,9000,18000,0);
+let body_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,7,11,7,0,18000,9000,9000,18000,0);
 }
 fn ScanCelestialBody_12_Megastructure(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,8,12,2305843009213693952,8,0,10000,10000,0,10000,0);
+scan_body_core(action,body,signal,ship,8,12,8,0,10000,10000,0,10000,0);
 }
 fn ScanCelestialBody_13_GasCluster(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,9,13,2305843009213693952,9,0,5000,0,20000,5000,0);
+let body_selector_upper=action.top_limb_u256(-3689348818177884161);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,9,13,9,0,5000,0,20000,5000,0);
 }
 fn ScanCelestialBody_14_StellarRemnant(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,10,14,2305843009213693952,10,0,10000,0,0,20000,0);
+let body_selector_upper=action.top_limb_u256(-142998020336940818);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,10,14,10,0,10000,0,0,20000,0);
 }
 fn ScanCelestialBody_15_AsteroidBelt(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,11,15,2305843009213693952,11,0,18000,8000,0,4000,0);
+let body_selector_upper=action.top_limb_u256(-2049638234229921110);
+action.intro_lt_eq_u256(signal,body_selector_upper);
+scan_body_core(action,body,signal,ship,11,15,11,0,18000,8000,0,4000,0);
 }
 fn ScanCelestialBody_16_VolcanicPlanet(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,1,16,1152921504606846976,1,0,16000,0,4000,12000,1);
+let body_selector_lower=action.top_limb_u256(-3988485208492715257);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+scan_body_core(action,body,signal,ship,1,16,1,0,16000,0,4000,12000,1);
 }
 fn ScanCelestialBody_17_Nebula(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,9,17,576460752303423488,9,0,2000,0,26000,6000,0);
+let body_selector_lower=action.top_limb_u256(-3689348818177884160);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+scan_body_core(action,body,signal,ship,9,17,9,0,2000,0,26000,6000,0);
 }
 fn ScanCelestialBody_18_CometCluster(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,11,18,288230376151711744,11,0,4000,14000,16000,2000,0);
+let body_selector_lower=action.top_limb_u256(-2049638234229921109);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+scan_body_core(action,body,signal,ship,11,18,11,0,4000,14000,16000,2000,0);
 }
 fn ScanCelestialBody_19_BrownDwarf(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,2,19,36028797018963968,2,0,6000,0,24000,12000,0);
+let body_selector_lower=action.top_limb_u256(-222249932842130962);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+scan_body_core(action,body,signal,ship,2,19,2,0,6000,0,24000,12000,0);
 }
 fn ScanCelestialBody_20_WhiteDwarf(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,10,20,18014398509481984,10,0,20000,16000,0,8000,0);
+let body_selector_lower=action.top_limb_u256(-142998020336940817);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+scan_body_core(action,body,signal,ship,10,20,10,0,20000,16000,0,8000,0);
 }
 fn ScanCelestialBody_21_Magnetar(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,5,21,4503599627370496,5,0,4000,12000,0,32000,0);
+let body_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+scan_body_core(action,body,signal,ship,5,21,5,0,4000,12000,0,32000,0);
 }
 fn ScanCelestialBody_22_WormholeMouth(action){
 var body=action.output("MicroverseCelestialBody");
 var signal=action.input("MicroverseCelestialSignal");
 var ship=action.mutate("MicroverseShip");
-scan_body_core(action,body,signal,ship,7,22,1125899906842624,7,0,6000,6000,0,40000,0);
+let body_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(body_selector_lower,signal);
+scan_body_core(action,body,signal,ship,7,22,7,0,6000,6000,0,40000,0);
 }
 fn ExtractAnomalyWarpCoordinate(action){
 var next_ship=action.output("MicroverseShip");
@@ -6189,6 +6250,8 @@ fn MaterializeCivilizationTypeI(action){
 var civilization=action.output("MicroverseCivilization");
 var life_signal=action.input("MicroverseLifeSignal");
 var ship=action.mutate("MicroverseShip");
+let civilization_selector_upper=action.top_limb_u256(-1148698352939831522);
+action.intro_lt_eq_u256(life_signal,civilization_selector_upper);
 prove_fixed_versions(action,life_signal);
 prove_fixed_versions(action,ship);
 action.st_sum(life_signal.civilization_version,0,2);
@@ -6242,6 +6305,10 @@ fn MaterializeCivilizationTypeII(action){
 var civilization=action.output("MicroverseCivilization");
 var life_signal=action.input("MicroverseLifeSignal");
 var ship=action.mutate("MicroverseShip");
+let civilization_selector_lower=action.top_limb_u256(-1148698352939831521);
+action.intro_lt_eq_u256(civilization_selector_lower,life_signal);
+let civilization_selector_upper=action.top_limb_u256(-67570495391724016);
+action.intro_lt_eq_u256(life_signal,civilization_selector_upper);
 prove_fixed_versions(action,life_signal);
 prove_fixed_versions(action,ship);
 action.st_sum(life_signal.civilization_version,0,2);
@@ -6295,6 +6362,8 @@ fn MaterializeCivilizationTypeIII(action){
 var civilization=action.output("MicroverseCivilization");
 var life_signal=action.input("MicroverseLifeSignal");
 var ship=action.mutate("MicroverseShip");
+let civilization_selector_lower=action.top_limb_u256(-67570495391724015);
+action.intro_lt_eq_u256(civilization_selector_lower,life_signal);
 prove_fixed_versions(action,life_signal);
 prove_fixed_versions(action,ship);
 action.st_sum(life_signal.civilization_version,0,2);
@@ -6349,2107 +6418,4340 @@ var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,8,"gas_remaining",119,50,5,30,15,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,8,"gas_remaining",
+119,50,5,30,15,5
+);
+}
 fn ExtractRedDwarfFusionGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,8,"gas_remaining",119,250,25,150,75,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,8,"gas_remaining",
+119,250,25,150,75,25
+);
+}
 fn ExtractRedDwarfMetalRichOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,16,"matter_remaining",120,50,5,45,4,1);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,16,"matter_remaining",
+120,50,5,45,4,1
+);
+}
 fn ExtractRedDwarfMetalRichOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,16,"matter_remaining",120,250,25,225,20,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,16,"matter_remaining",
+120,250,25,225,20,5
+);
+}
 fn ExtractRedDwarfRadiantEnergy(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,0,8,"energy_remaining",121,50,5);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+0,8,"energy_remaining",
+121,50,5
+);
+}
 fn ExtractRedDwarfRadiantEnergyLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,0,8,"energy_remaining",121,250,25);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+0,8,"energy_remaining",
+121,250,25
+);
+}
 fn ExtractRedDwarfRedDwarfPlasma(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,8,"energy_remaining",223,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,8,"energy_remaining",
+223,50,5,30,15,5
+);
+}
 fn ExtractRedDwarfRedDwarfPlasmaLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,8,"energy_remaining",223,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,8,"energy_remaining",
+223,250,25,150,75,25
+);
+}
 fn ExtractRedDwarfMagneticStellarCondensate(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,7,"matter_remaining",224,50,5,35,10,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,7,"matter_remaining",
+224,50,5,35,10,5
+);
+}
 fn ExtractRedDwarfMagneticStellarCondensateLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,7,"matter_remaining",224,250,25,175,50,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,7,"matter_remaining",
+224,250,25,175,50,25
+);
+}
 fn ExtractRedDwarfFlareSpectrumData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,0,8,"energy_remaining",225,50,5);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+0,8,"energy_remaining",
+225,50,5
+);
+}
 fn ExtractRedDwarfFlareSpectrumDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,0,8,"energy_remaining",225,250,25);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+0,8,"energy_remaining",
+225,250,25
+);
+}
 fn ExtractRedDwarfStellarRefractoryDust(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,7,"matter_remaining",336,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,7,"matter_remaining",
+336,50,5,35,10,5
+);
+}
 fn ExtractRedDwarfStellarRefractoryDustLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,0,7,"matter_remaining",336,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+0,7,"matter_remaining",
+336,250,25,175,50,25
+);
+}
 fn ExtractMainSequenceStarFusionGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,8,"gas_remaining",119,50,5,30,15,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,8,"gas_remaining",
+119,50,5,30,15,5
+);
+}
 fn ExtractMainSequenceStarFusionGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,8,"gas_remaining",119,250,25,150,75,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,8,"gas_remaining",
+119,250,25,150,75,25
+);
+}
 fn ExtractMainSequenceStarMetalRichOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,16,"matter_remaining",120,50,5,45,4,1);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,16,"matter_remaining",
+120,50,5,45,4,1
+);
+}
 fn ExtractMainSequenceStarMetalRichOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,16,"matter_remaining",120,250,25,225,20,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,16,"matter_remaining",
+120,250,25,225,20,5
+);
+}
 fn ExtractMainSequenceStarRadiantEnergy(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,1,8,"energy_remaining",121,50,5);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+1,8,"energy_remaining",
+121,50,5
+);
+}
 fn ExtractMainSequenceStarRadiantEnergyLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,1,8,"energy_remaining",121,250,25);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+1,8,"energy_remaining",
+121,250,25
+);
+}
 fn ExtractMainSequenceStarPhotosphericPlasma(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,8,"energy_remaining",226,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,8,"energy_remaining",
+226,50,5,30,15,5
+);
+}
 fn ExtractMainSequenceStarPhotosphericPlasmaLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,8,"energy_remaining",226,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,8,"energy_remaining",
+226,250,25,150,75,25
+);
+}
 fn ExtractMainSequenceStarPhotosphericMineral(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,8,"matter_remaining",227,50,5,35,10,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,8,"matter_remaining",
+227,50,5,35,10,5
+);
+}
 fn ExtractMainSequenceStarPhotosphericMineralLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,8,"matter_remaining",227,250,25,175,50,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,8,"matter_remaining",
+227,250,25,175,50,25
+);
+}
 fn ExtractMainSequenceStarStellarSpectrumData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,1,8,"energy_remaining",228,50,5);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+1,8,"energy_remaining",
+228,50,5
+);
+}
 fn ExtractMainSequenceStarStellarSpectrumDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,1,8,"energy_remaining",228,250,25);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+1,8,"energy_remaining",
+228,250,25
+);
+}
 fn ExtractMainSequenceStarSolarWindCondensate(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,4,"matter_remaining",337,50,5,30,15,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,4,"matter_remaining",
+337,50,5,30,15,5
+);
+}
 fn ExtractMainSequenceStarSolarWindCondensateLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,1,4,"matter_remaining",337,250,25,150,75,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+1,4,"matter_remaining",
+337,250,25,150,75,25
+);
+}
 fn ExtractGiantStarFusionGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,8,"gas_remaining",119,50,5,30,15,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,8,"gas_remaining",
+119,50,5,30,15,5
+);
+}
 fn ExtractGiantStarFusionGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,8,"gas_remaining",119,250,25,150,75,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,8,"gas_remaining",
+119,250,25,150,75,25
+);
+}
 fn ExtractGiantStarMetalRichOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,16,"matter_remaining",120,50,5,45,4,1);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,16,"matter_remaining",
+120,50,5,45,4,1
+);
+}
 fn ExtractGiantStarMetalRichOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,16,"matter_remaining",120,250,25,225,20,5);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,16,"matter_remaining",
+120,250,25,225,20,5
+);
+}
 fn ExtractGiantStarRadiantEnergy(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,2,8,"energy_remaining",121,50,5);}
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+2,8,"energy_remaining",
+121,50,5
+);
+}
 fn ExtractGiantStarRadiantEnergyLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,2,8,"energy_remaining",121,250,25);}
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+2,8,"energy_remaining",
+121,250,25
+);
+}
 fn ExtractGiantStarHeliumCarbonEjecta(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,16,"gas_remaining",229,50,5,25,15,10);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,16,"gas_remaining",
+229,50,5,25,15,10
+);
+}
 fn ExtractGiantStarHeliumCarbonEjectaLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,16,"gas_remaining",229,250,25,125,75,50);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,16,"gas_remaining",
+229,250,25,125,75,50
+);
+}
 fn ExtractGiantStarHeavyElementCondensate(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,16,"matter_remaining",230,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,16,"matter_remaining",
+230,50,5,30,15,5
+);
+}
 fn ExtractGiantStarHeavyElementCondensateLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,16,"matter_remaining",230,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,16,"matter_remaining",
+230,250,25,150,75,25
+);
+}
 fn ExtractGiantStarNeutrinoData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,2,16,"energy_remaining",231,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+2,16,"energy_remaining",
+231,50,5
+);
+}
 fn ExtractGiantStarNeutrinoDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,2,16,"energy_remaining",231,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+2,16,"energy_remaining",
+231,250,25
+);
+}
 fn ExtractGiantStarSProcessEjecta(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,16,"matter_remaining",338,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,16,"matter_remaining",
+338,50,5,30,15,5
+);
+}
 fn ExtractGiantStarSProcessEjectaLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,2,16,"matter_remaining",338,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+2,16,"matter_remaining",
+338,250,25,150,75,25
+);
+}
 fn ExtractRockyPlanetFerrousOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",122,10,1,7,2,1);}
+let resource_selector_upper=action.top_limb_u256(3074457344902430719);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+122,10,1,7,2,1
+);
+}
 fn ExtractRockyPlanetFerrousOreMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",122,50,5,35,10,5);}
+let resource_selector_upper=action.top_limb_u256(3074457344902430719);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+122,50,5,35,10,5
+);
+}
 fn ExtractRockyPlanetFerrousOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",122,250,25,175,50,25);}
+let resource_selector_upper=action.top_limb_u256(3074457344902430719);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+122,250,25,175,50,25
+);
+}
 fn ExtractRockyPlanetBaseMetalOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",123,10,1,7,2,1);}
+let resource_selector_lower=action.top_limb_u256(3074457344902430720);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+123,10,1,7,2,1
+);
+}
 fn ExtractRockyPlanetBaseMetalOreMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",123,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(3074457344902430720);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+123,50,5,35,10,5
+);
+}
 fn ExtractRockyPlanetBaseMetalOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",123,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(3074457344902430720);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+123,250,25,175,50,25
+);
+}
 fn ExtractRockyPlanetSilicateMineral(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",124,10,1,7,2,1);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+124,10,1,7,2,1
+);
+}
 fn ExtractRockyPlanetSilicateMineralMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",124,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+124,50,5,35,10,5
+);
+}
 fn ExtractRockyPlanetSilicateMineralLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",124,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+124,250,25,175,50,25
+);
+}
 fn ExtractRockyPlanetIndustrialMineral(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",125,10,1,7,2,1);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+125,10,1,7,2,1
+);
+}
 fn ExtractRockyPlanetIndustrialMineralMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",125,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+125,50,5,35,10,5
+);
+}
 fn ExtractRockyPlanetIndustrialMineralLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",125,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+125,250,25,175,50,25
+);
+}
 fn ExtractRockyPlanetIgneousRock(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",232,10,1,6,3,1);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-3074457349197398017);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+232,10,1,6,3,1
+);
+}
 fn ExtractRockyPlanetIgneousRockMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",232,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-3074457349197398017);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+232,50,5,30,15,5
+);
+}
 fn ExtractRockyPlanetIgneousRockLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",232,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-3074457349197398017);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+232,250,25,150,75,25
+);
+}
 fn ExtractRockyPlanetGeothermalEnergy(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,3,0,"energy_remaining",233,10,1);}
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+3,0,"energy_remaining",
+233,10,1
+);
+}
 fn ExtractRockyPlanetGeothermalEnergyMedium(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,3,0,"energy_remaining",233,50,5);}
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+3,0,"energy_remaining",
+233,50,5
+);
+}
 fn ExtractRockyPlanetGeothermalEnergyLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,3,0,"energy_remaining",233,250,25);}
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+3,0,"energy_remaining",
+233,250,25
+);
+}
 fn ExtractRockyPlanetSedimentaryRock(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",339,10,1,7,2,1);}
+let resource_selector_lower=action.top_limb_u256(-3074457349197398016);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+339,10,1,7,2,1
+);
+}
 fn ExtractRockyPlanetSedimentaryRockMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",339,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(-3074457349197398016);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+339,50,5,35,10,5
+);
+}
 fn ExtractRockyPlanetSedimentaryRockLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,3,0,"matter_remaining",339,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(-3074457349197398016);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+3,0,"matter_remaining",
+339,250,25,175,50,25
+);
+}
 fn ExtractOceanPlanetWater(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_2_core(action,next_ship,resource,ship,body,4,0,"matter_remaining",126,10,1);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_2_core(
+action,next_ship,resource,ship,body,
+4,0,"matter_remaining",
+126,10,1
+);
+}
 fn ExtractOceanPlanetWaterMedium(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_2_core(action,next_ship,resource,ship,body,4,0,"matter_remaining",126,50,5);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_2_core(
+action,next_ship,resource,ship,body,
+4,0,"matter_remaining",
+126,50,5
+);
+}
 fn ExtractOceanPlanetWaterLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_2_core(action,next_ship,resource,ship,body,4,0,"matter_remaining",126,250,25);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_2_core(
+action,next_ship,resource,ship,body,
+4,0,"matter_remaining",
+126,250,25
+);
+}
 fn ExtractOceanPlanetSeawaterMinerals(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,4,0,"crystal_remaining",127,10,1,7,2,1);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"crystal_remaining",
+127,10,1,7,2,1
+);
+}
 fn ExtractOceanPlanetSeawaterMineralsMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,4,0,"crystal_remaining",127,50,5,35,10,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"crystal_remaining",
+127,50,5,35,10,5
+);
+}
 fn ExtractOceanPlanetSeawaterMineralsLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,4,0,"crystal_remaining",127,250,25,175,50,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"crystal_remaining",
+127,250,25,175,50,25
+);
+}
 fn ExtractOceanPlanetAtmosphericGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,4,0,"gas_remaining",128,10,1,5,3,2);}
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"gas_remaining",
+128,10,1,5,3,2
+);
+}
 fn ExtractOceanPlanetAtmosphericGasMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,4,0,"gas_remaining",128,50,5,25,15,10);}
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"gas_remaining",
+128,50,5,25,15,10
+);
+}
 fn ExtractOceanPlanetAtmosphericGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,4,0,"gas_remaining",128,250,25,125,75,50);}
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"gas_remaining",
+128,250,25,125,75,50
+);
+}
 fn ExtractOceanPlanetSeafloorSulfideOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,4,0,"matter_remaining",234,10,1,7,2,1);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"matter_remaining",
+234,10,1,7,2,1
+);
+}
 fn ExtractOceanPlanetSeafloorSulfideOreMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,4,0,"matter_remaining",234,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"matter_remaining",
+234,50,5,35,10,5
+);
+}
 fn ExtractOceanPlanetSeafloorSulfideOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,4,0,"matter_remaining",234,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"matter_remaining",
+234,250,25,175,50,25
+);
+}
 fn ExtractOceanPlanetMarineBiomass(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,4,0,"matter_remaining",235,10,1,5,3,2);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"matter_remaining",
+235,10,1,5,3,2
+);
+}
 fn ExtractOceanPlanetMarineBiomassMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,4,0,"matter_remaining",235,50,5,25,15,10);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"matter_remaining",
+235,50,5,25,15,10
+);
+}
 fn ExtractOceanPlanetMarineBiomassLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,4,0,"matter_remaining",235,250,25,125,75,50);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"matter_remaining",
+235,250,25,125,75,50
+);
+}
 fn ExtractOceanPlanetTidalEnergy(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,4,0,"energy_remaining",236,10,1);}
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+4,0,"energy_remaining",
+236,10,1
+);
+}
 fn ExtractOceanPlanetTidalEnergyMedium(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,4,0,"energy_remaining",236,50,5);}
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+4,0,"energy_remaining",
+236,50,5
+);
+}
 fn ExtractOceanPlanetTidalEnergyLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_4_core(action,next_ship,resource,ship,body,4,0,"energy_remaining",236,250,25);}
+extract_direct_body_vdf_4_core(
+action,next_ship,resource,ship,body,
+4,0,"energy_remaining",
+236,250,25
+);
+}
 fn ExtractOceanPlanetDissolvedTraceMinerals(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,4,0,"crystal_remaining",340,10,1,7,2,1);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"crystal_remaining",
+340,10,1,7,2,1
+);
+}
 fn ExtractOceanPlanetDissolvedTraceMineralsMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,4,0,"crystal_remaining",340,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"crystal_remaining",
+340,50,5,35,10,5
+);
+}
 fn ExtractOceanPlanetDissolvedTraceMineralsLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,4,0,"crystal_remaining",340,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+4,0,"crystal_remaining",
+340,250,25,175,50,25
+);
+}
 fn ExtractGardenPlanetBiomass(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",129,10,1,5,3,2);}
+let resource_selector_upper=action.top_limb_u256(4611686017353646079);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+129,10,1,5,3,2
+);
+}
 fn ExtractGardenPlanetBiomassMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",129,50,5,25,15,10);}
+let resource_selector_upper=action.top_limb_u256(4611686017353646079);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+129,50,5,25,15,10
+);
+}
 fn ExtractGardenPlanetBiomassLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",129,250,25,125,75,50);}
+let resource_selector_upper=action.top_limb_u256(4611686017353646079);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+129,250,25,125,75,50
+);
+}
 fn ExtractGardenPlanetGeneticMaterial(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",130,10,1,5,3,2);}
+let resource_selector_lower=action.top_limb_u256(4611686017353646080);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+130,10,1,5,3,2
+);
+}
 fn ExtractGardenPlanetGeneticMaterialMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",130,50,5,25,15,10);}
+let resource_selector_lower=action.top_limb_u256(4611686017353646080);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+130,50,5,25,15,10
+);
+}
 fn ExtractGardenPlanetGeneticMaterialLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",130,250,25,125,75,50);}
+let resource_selector_lower=action.top_limb_u256(4611686017353646080);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+130,250,25,125,75,50
+);
+}
 fn ExtractGardenPlanetBiochemicalMixture(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,5,0,"gas_remaining",131,10,1,5,3,2);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"gas_remaining",
+131,10,1,5,3,2
+);
+}
 fn ExtractGardenPlanetBiochemicalMixtureMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,5,0,"gas_remaining",131,50,5,25,15,10);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"gas_remaining",
+131,50,5,25,15,10
+);
+}
 fn ExtractGardenPlanetBiochemicalMixtureLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,5,0,"gas_remaining",131,250,25,125,75,50);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"gas_remaining",
+131,250,25,125,75,50
+);
+}
 fn ExtractGardenPlanetMicrobialCulture(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",132,10,1,5,3,2);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-4611686021648613377);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+132,10,1,5,3,2
+);
+}
 fn ExtractGardenPlanetMicrobialCultureMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",132,50,5,25,15,10);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-4611686021648613377);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+132,50,5,25,15,10
+);
+}
 fn ExtractGardenPlanetMicrobialCultureLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",132,250,25,125,75,50);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-4611686021648613377);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+132,250,25,125,75,50
+);
+}
 fn ExtractGardenPlanetNaturalMaterial(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,0,"crystal_remaining",133,10,1,5,3,2);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"crystal_remaining",
+133,10,1,5,3,2
+);
+}
 fn ExtractGardenPlanetNaturalMaterialMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,0,"crystal_remaining",133,50,5,25,15,10);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"crystal_remaining",
+133,50,5,25,15,10
+);
+}
 fn ExtractGardenPlanetNaturalMaterialLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,0,"crystal_remaining",133,250,25,125,75,50);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"crystal_remaining",
+133,250,25,125,75,50
+);
+}
 fn ExtractGardenPlanetLivingSoil(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,17,"matter_remaining",237,10,1,6,3,1);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,17,"matter_remaining",
+237,10,1,6,3,1
+);
+}
 fn ExtractGardenPlanetLivingSoilMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,17,"matter_remaining",237,50,5,30,15,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,17,"matter_remaining",
+237,50,5,30,15,5
+);
+}
 fn ExtractGardenPlanetLivingSoilLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,5,17,"matter_remaining",237,250,25,150,75,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+5,17,"matter_remaining",
+237,250,25,150,75,25
+);
+}
 fn ExtractGardenPlanetPlantExtract(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",341,10,1,6,3,1);}
+let resource_selector_lower=action.top_limb_u256(-4611686021648613376);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+341,10,1,6,3,1
+);
+}
 fn ExtractGardenPlanetPlantExtractMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",341,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(-4611686021648613376);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+341,50,5,30,15,5
+);
+}
 fn ExtractGardenPlanetPlantExtractLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,5,0,"matter_remaining",341,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(-4611686021648613376);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+5,0,"matter_remaining",
+341,250,25,150,75,25
+);
+}
 fn ExtractGasGiantFusionGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,6,0,"gas_remaining",119,50,5,30,15,5);}
+let resource_selector_upper=action.top_limb_u256(4611686017353646079);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+6,0,"gas_remaining",
+119,50,5,30,15,5
+);
+}
 fn ExtractGasGiantFusionGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,6,0,"gas_remaining",119,250,25,150,75,25);}
+let resource_selector_upper=action.top_limb_u256(4611686017353646079);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+6,0,"gas_remaining",
+119,250,25,150,75,25
+);
+}
 fn ExtractGasGiantAtmosphericGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,6,0,"gas_remaining",128,50,5,25,15,10);}
+let resource_selector_lower=action.top_limb_u256(4611686017353646080);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+6,0,"gas_remaining",
+128,50,5,25,15,10
+);
+}
 fn ExtractGasGiantAtmosphericGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,6,0,"gas_remaining",128,250,25,125,75,50);}
+let resource_selector_lower=action.top_limb_u256(4611686017353646080);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+6,0,"gas_remaining",
+128,250,25,125,75,50
+);
+}
 fn ExtractGasGiantNobleGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,6,0,"gas_remaining",134,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-4611686021648613377);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+6,0,"gas_remaining",
+134,50,5,35,10,5
+);
+}
 fn ExtractGasGiantNobleGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,6,0,"gas_remaining",134,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-4611686021648613377);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+6,0,"gas_remaining",
+134,250,25,175,50,25
+);
+}
 fn ExtractGasGiantDeepAtmosphereGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,6,3,"gas_remaining",238,50,5,30,15,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+6,3,"gas_remaining",
+238,50,5,30,15,5
+);
+}
 fn ExtractGasGiantDeepAtmosphereGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,6,3,"gas_remaining",238,250,25,150,75,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+6,3,"gas_remaining",
+238,250,25,150,75,25
+);
+}
 fn ExtractGasGiantHydrocarbonCloud(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,6,0,"gas_remaining",239,50,5,25,15,10);}
+let resource_selector_lower=action.top_limb_u256(-4611686021648613376);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+6,0,"gas_remaining",
+239,50,5,25,15,10
+);
+}
 fn ExtractGasGiantHydrocarbonCloudLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,6,0,"gas_remaining",239,250,25,125,75,50);}
+let resource_selector_lower=action.top_limb_u256(-4611686021648613376);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+6,0,"gas_remaining",
+239,250,25,125,75,50
+);
+}
 fn ExtractGasGiantStormFieldData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,6,11,"energy_remaining",240,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+6,11,"energy_remaining",
+240,50,5
+);
+}
 fn ExtractGasGiantStormFieldDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,6,11,"energy_remaining",240,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+6,11,"energy_remaining",
+240,250,25
+);
+}
 fn ExtractGasGiantSulfurCloud(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,6,3,"gas_remaining",342,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+6,3,"gas_remaining",
+342,50,5,35,10,5
+);
+}
 fn ExtractGasGiantSulfurCloudLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,6,3,"gas_remaining",342,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+6,3,"gas_remaining",
+342,250,25,175,50,25
+);
+}
 fn ExtractIceGiantFusionGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,7,0,"gas_remaining",119,50,5,30,15,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+7,0,"gas_remaining",
+119,50,5,30,15,5
+);
+}
 fn ExtractIceGiantFusionGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,7,0,"gas_remaining",119,250,25,150,75,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+7,0,"gas_remaining",
+119,250,25,150,75,25
+);
+}
 fn ExtractIceGiantVolatileIce(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,7,0,"crystal_remaining",135,50,5,45,4,1);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+7,0,"crystal_remaining",
+135,50,5,45,4,1
+);
+}
 fn ExtractIceGiantVolatileIceLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,7,0,"crystal_remaining",135,250,25,225,20,5);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+7,0,"crystal_remaining",
+135,250,25,225,20,5
+);
+}
 fn ExtractIceGiantNobleGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,7,0,"gas_remaining",134,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+7,0,"gas_remaining",
+134,50,5,35,10,5
+);
+}
 fn ExtractIceGiantNobleGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,7,0,"gas_remaining",134,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+7,0,"gas_remaining",
+134,250,25,175,50,25
+);
+}
 fn ExtractIceGiantCryogenicVolatile(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,7,3,"gas_remaining",241,50,5,35,10,5);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+7,3,"gas_remaining",
+241,50,5,35,10,5
+);
+}
 fn ExtractIceGiantCryogenicVolatileLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,7,3,"gas_remaining",241,250,25,175,50,25);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+7,3,"gas_remaining",
+241,250,25,175,50,25
+);
+}
 fn ExtractIceGiantIceMantleMaterial(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,7,7,"crystal_remaining",242,50,5,30,15,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+7,7,"crystal_remaining",
+242,50,5,30,15,5
+);
+}
 fn ExtractIceGiantIceMantleMaterialLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,7,7,"crystal_remaining",242,250,25,150,75,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+7,7,"crystal_remaining",
+242,250,25,150,75,25
+);
+}
 fn ExtractIceGiantHighPressurePhaseData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,7,7,"energy_remaining",243,50,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+7,7,"energy_remaining",
+243,50,5
+);
+}
 fn ExtractIceGiantHighPressurePhaseDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,7,7,"energy_remaining",243,250,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+7,7,"energy_remaining",
+243,250,25
+);
+}
 fn ExtractIceGiantCryosphereSpectrumData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,7,7,"energy_remaining",343,50,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+7,7,"energy_remaining",
+343,50,5
+);
+}
 fn ExtractIceGiantCryosphereSpectrumDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,7,7,"energy_remaining",343,250,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+7,7,"energy_remaining",
+343,250,25
+);
+}
 fn ExtractBarrenPlanetLightMetalOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",136,10,1,8,1,1);}
+let resource_selector_upper=action.top_limb_u256(3689348813882916863);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+136,10,1,8,1,1
+);
+}
 fn ExtractBarrenPlanetLightMetalOreMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",136,50,5,40,5,5);}
+let resource_selector_upper=action.top_limb_u256(3689348813882916863);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+136,50,5,40,5,5
+);
+}
 fn ExtractBarrenPlanetLightMetalOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",136,250,25,200,25,25);}
+let resource_selector_upper=action.top_limb_u256(3689348813882916863);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+136,250,25,200,25,25
+);
+}
 fn ExtractBarrenPlanetPreciousMetalOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"crystal_remaining",137,10,1,8,1,1);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"crystal_remaining",
+137,10,1,8,1,1
+);
+}
 fn ExtractBarrenPlanetPreciousMetalOreMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"crystal_remaining",137,50,5,40,5,5);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"crystal_remaining",
+137,50,5,40,5,5
+);
+}
 fn ExtractBarrenPlanetPreciousMetalOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"crystal_remaining",137,250,25,200,25,25);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"crystal_remaining",
+137,250,25,200,25,25
+);
+}
 fn ExtractBarrenPlanetNuclearOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,8,0,"crystal_remaining",138,50,5,45,4,1);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"crystal_remaining",
+138,50,5,45,4,1
+);
+}
 fn ExtractBarrenPlanetNuclearOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,8,0,"crystal_remaining",138,250,25,225,20,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"crystal_remaining",
+138,250,25,225,20,5
+);
+}
 fn ExtractBarrenPlanetCarbonaceousDeposit(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",139,10,1,6,3,1);}
+let resource_selector_lower=action.top_limb_u256(3689348813882916864);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(7378697627765833727);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+139,10,1,6,3,1
+);
+}
 fn ExtractBarrenPlanetCarbonaceousDepositMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",139,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(3689348813882916864);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(7378697627765833727);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+139,50,5,30,15,5
+);
+}
 fn ExtractBarrenPlanetCarbonaceousDepositLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",139,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(3689348813882916864);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(7378697627765833727);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+139,250,25,150,75,25
+);
+}
 fn ExtractBarrenPlanetFertilizerMineral(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",140,10,1,8,1,1);}
+let resource_selector_lower=action.top_limb_u256(7378697627765833728);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-7378697632060801025);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+140,10,1,8,1,1
+);
+}
 fn ExtractBarrenPlanetFertilizerMineralMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",140,50,5,40,5,5);}
+let resource_selector_lower=action.top_limb_u256(7378697627765833728);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-7378697632060801025);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+140,50,5,40,5,5
+);
+}
 fn ExtractBarrenPlanetFertilizerMineralLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",140,250,25,200,25,25);}
+let resource_selector_lower=action.top_limb_u256(7378697627765833728);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-7378697632060801025);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+140,250,25,200,25,25
+);
+}
 fn ExtractBarrenPlanetDenseMetalOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",141,50,5,45,4,1);}
+let resource_selector_lower=action.top_limb_u256(-7378697632060801024);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-3689348818177884161);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+141,50,5,45,4,1
+);
+}
 fn ExtractBarrenPlanetDenseMetalOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",141,250,25,225,20,5);}
+let resource_selector_lower=action.top_limb_u256(-7378697632060801024);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-3689348818177884161);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+141,250,25,225,20,5
+);
+}
 fn ExtractBarrenPlanetRareEarthOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"crystal_remaining",142,50,5,45,4,1);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"crystal_remaining",
+142,50,5,45,4,1
+);
+}
 fn ExtractBarrenPlanetRareEarthOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"crystal_remaining",142,250,25,225,20,5);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"crystal_remaining",
+142,250,25,225,20,5
+);
+}
 fn ExtractBarrenPlanetAlkaliMineralOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",344,10,1,7,2,1);}
+let resource_selector_lower=action.top_limb_u256(-3689348818177884160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+344,10,1,7,2,1
+);
+}
 fn ExtractBarrenPlanetAlkaliMineralOreMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",344,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(-3689348818177884160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+344,50,5,35,10,5
+);
+}
 fn ExtractBarrenPlanetAlkaliMineralOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,8,0,"matter_remaining",344,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(-3689348818177884160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+8,0,"matter_remaining",
+344,250,25,175,50,25
+);
+}
 fn ExtractNeutronStarMetalRichOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,9,16,"matter_remaining",120,250,25,225,20,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+9,16,"matter_remaining",
+120,250,25,225,20,5
+);
+}
 fn ExtractNeutronStarHighEnergyRadiation(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,9,8,"energy_remaining",143,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+9,8,"energy_remaining",
+143,250,25
+);
+}
 fn ExtractNeutronStarGravitationalData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,9,16,"energy_remaining",144,250,25);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+9,16,"energy_remaining",
+144,250,25
+);
+}
 fn ExtractNeutronStarRProcessEjecta(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,9,13,"matter_remaining",244,250,25,225,20,5);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+9,13,"matter_remaining",
+244,250,25,225,20,5
+);
+}
 fn ExtractNeutronStarDegenerateCrustMaterial(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,9,13,"crystal_remaining",245,250,25,225,20,5);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+9,13,"crystal_remaining",
+245,250,25,225,20,5
+);
+}
 fn ExtractNeutronStarPulsarEmissionData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,9,16,"energy_remaining",246,250,25);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+9,16,"energy_remaining",
+246,250,25
+);
+}
 fn ExtractNeutronStarMagnetosphericParticleFlux(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,9,13,"energy_remaining",345,250,25,225,20,5);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+9,13,"energy_remaining",
+345,250,25,225,20,5
+);
+}
 fn ExtractNeutronStarPulsarTimingData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,9,16,"energy_remaining",346,250,25);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+9,16,"energy_remaining",
+346,250,25
+);
+}
 fn ExtractBlackHoleHighEnergyRadiation(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,10,8,"energy_remaining",143,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+10,8,"energy_remaining",
+143,250,25
+);
+}
 fn ExtractBlackHoleGravitationalData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,10,16,"energy_remaining",144,250,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+10,16,"energy_remaining",
+144,250,25
+);
+}
 fn ExtractBlackHoleAccretionData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,10,16,"energy_remaining",145,250,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+10,16,"energy_remaining",
+145,250,25
+);
+}
 fn ExtractBlackHoleAccretionDiskMatter(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,10,13,"energy_remaining",247,250,25,225,20,5);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+10,13,"energy_remaining",
+247,250,25,225,20,5
+);
+}
 fn ExtractBlackHoleRelativisticPlasma(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,10,13,"energy_remaining",248,250,25,225,20,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+10,13,"energy_remaining",
+248,250,25,225,20,5
+);
+}
 fn ExtractBlackHoleLensingData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,10,14,"energy_remaining",249,250,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+10,14,"energy_remaining",
+249,250,25
+);
+}
 fn ExtractBlackHoleAccretionAerosol(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,10,13,"energy_remaining",347,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+10,13,"energy_remaining",
+347,250,25,150,75,25
+);
+}
 fn ExtractBlackHoleHawkingRadiationData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,10,14,"energy_remaining",348,250,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+10,14,"energy_remaining",
+348,250,25
+);
+}
 fn ExtractAnomalyTemporalData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,11,14,"energy_remaining",146,250,25);}
+let resource_selector_upper=action.top_limb_u256(4611686017353646079);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+11,14,"energy_remaining",
+146,250,25
+);
+}
 fn ExtractAnomalyGravitationalData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,11,14,"matter_remaining",144,250,25);}
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+11,14,"matter_remaining",
+144,250,25
+);
+}
 fn ExtractAnomalyFieldData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,11,14,"crystal_remaining",147,250,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+11,14,"crystal_remaining",
+147,250,25
+);
+}
 fn ExtractAnomalyPhaseShiftedMatter(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,11,13,"matter_remaining",250,250,25,225,20,5);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+11,13,"matter_remaining",
+250,250,25,225,20,5
+);
+}
 fn ExtractAnomalyMagneticObservation(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,11,14,"crystal_remaining",251,250,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+11,14,"crystal_remaining",
+251,250,25
+);
+}
 fn ExtractAnomalyRadiationObservation(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,11,14,"energy_remaining",252,250,25);}
+let resource_selector_lower=action.top_limb_u256(4611686017353646080);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+11,14,"energy_remaining",
+252,250,25
+);
+}
 fn ExtractAnomalyPolarizationData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,11,14,"energy_remaining",349,250,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-4611686021648613377);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+11,14,"energy_remaining",
+349,250,25
+);
+}
 fn ExtractAnomalyVacuumFluctuationData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,11,14,"energy_remaining",350,250,25);}
+let resource_selector_lower=action.top_limb_u256(-4611686021648613376);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+11,14,"energy_remaining",
+350,250,25
+);
+}
 fn ExtractMegastructureStructuralSalvage(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,6,"matter_remaining",148,10,1,6,3,1);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,6,"matter_remaining",
+148,10,1,6,3,1
+);
+}
 fn ExtractMegastructureStructuralSalvageMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,6,"matter_remaining",148,50,5,30,15,5);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,6,"matter_remaining",
+148,50,5,30,15,5
+);
+}
 fn ExtractMegastructureStructuralSalvageLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,6,"matter_remaining",148,250,25,150,75,25);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,6,"matter_remaining",
+148,250,25,150,75,25
+);
+}
 fn ExtractMegastructureElectronicSalvage(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,2,"crystal_remaining",149,50,5,40,5,5);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,2,"crystal_remaining",
+149,50,5,40,5,5
+);
+}
 fn ExtractMegastructureElectronicSalvageLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,2,"crystal_remaining",149,250,25,200,25,25);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,2,"crystal_remaining",
+149,250,25,200,25,25
+);
+}
 fn ExtractMegastructureCeramicSalvage(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,1,"matter_remaining",150,50,5,40,5,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,1,"matter_remaining",
+150,50,5,40,5,5
+);
+}
 fn ExtractMegastructureCeramicSalvageLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,1,"matter_remaining",150,250,25,200,25,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,1,"matter_remaining",
+150,250,25,200,25,25
+);
+}
 fn ExtractMegastructureArchiveData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_32_core(action,next_ship,resource,ship,body,12,18,"crystal_remaining",151,250,25);}
+extract_direct_body_vdf_32_core(
+action,next_ship,resource,ship,body,
+12,18,"crystal_remaining",
+151,250,25
+);
+}
 fn ExtractMegastructurePolymerSalvage(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,10,"matter_remaining",253,10,1,8,1,1);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,10,"matter_remaining",
+253,10,1,8,1,1
+);
+}
 fn ExtractMegastructurePolymerSalvageMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,10,"matter_remaining",253,50,5,40,5,5);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,10,"matter_remaining",
+253,50,5,40,5,5
+);
+}
 fn ExtractMegastructurePolymerSalvageLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,10,"matter_remaining",253,250,25,200,25,25);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,10,"matter_remaining",
+253,250,25,200,25,25
+);
+}
 fn ExtractMegastructureOpticalSalvage(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,15,"crystal_remaining",254,10,1,8,1,1);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,15,"crystal_remaining",
+254,10,1,8,1,1
+);
+}
 fn ExtractMegastructureOpticalSalvageMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,15,"crystal_remaining",254,50,5,40,5,5);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,15,"crystal_remaining",
+254,50,5,40,5,5
+);
+}
 fn ExtractMegastructureOpticalSalvageLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,15,"crystal_remaining",254,250,25,200,25,25);}
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,15,"crystal_remaining",
+254,250,25,200,25,25
+);
+}
 fn ExtractMegastructureMechanicalSalvage(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,1,"matter_remaining",351,10,1,8,1,1);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,1,"matter_remaining",
+351,10,1,8,1,1
+);
+}
 fn ExtractMegastructureMechanicalSalvageMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,1,"matter_remaining",351,50,5,40,5,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,1,"matter_remaining",
+351,50,5,40,5,5
+);
+}
 fn ExtractMegastructureMechanicalSalvageLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_32_core(action,next_ship,composite_resource,ship,body,12,1,"matter_remaining",351,250,25,200,25,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_32_core(
+action,next_ship,composite_resource,ship,body,
+12,1,"matter_remaining",
+351,250,25,200,25,25
+);
+}
 fn ExtractGasClusterFusionGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,13,0,"gas_remaining",119,10,1,6,3,1);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"gas_remaining",
+119,10,1,6,3,1
+);
+}
 fn ExtractGasClusterFusionGasMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,13,0,"gas_remaining",119,50,5,30,15,5);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"gas_remaining",
+119,50,5,30,15,5
+);
+}
 fn ExtractGasClusterFusionGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,13,0,"gas_remaining",119,250,25,150,75,25);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"gas_remaining",
+119,250,25,150,75,25
+);
+}
 fn ExtractGasClusterNobleGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,13,0,"gas_remaining",134,10,1,7,2,1);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"gas_remaining",
+134,10,1,7,2,1
+);
+}
 fn ExtractGasClusterNobleGasMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,13,0,"gas_remaining",134,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"gas_remaining",
+134,50,5,35,10,5
+);
+}
 fn ExtractGasClusterNobleGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,13,0,"gas_remaining",134,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"gas_remaining",
+134,250,25,175,50,25
+);
+}
 fn ExtractGasClusterOrganicOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,13,0,"matter_remaining",152,10,1,5,3,2);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"matter_remaining",
+152,10,1,5,3,2
+);
+}
 fn ExtractGasClusterOrganicOreMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,13,0,"matter_remaining",152,50,5,25,15,10);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"matter_remaining",
+152,50,5,25,15,10
+);
+}
 fn ExtractGasClusterOrganicOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,13,0,"matter_remaining",152,250,25,125,75,50);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"matter_remaining",
+152,250,25,125,75,50
+);
+}
 fn ExtractGasClusterMolecularCloudGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,13,0,"gas_remaining",255,10,1,6,3,1);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"gas_remaining",
+255,10,1,6,3,1
+);
+}
 fn ExtractGasClusterMolecularCloudGasMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,13,0,"gas_remaining",255,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"gas_remaining",
+255,50,5,30,15,5
+);
+}
 fn ExtractGasClusterMolecularCloudGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_2_core(action,next_ship,composite_resource,ship,body,13,0,"gas_remaining",255,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_2_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"gas_remaining",
+255,250,25,150,75,25
+);
+}
 fn ExtractGasClusterInterstellarDust(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,13,0,"matter_remaining",256,10,1,6,3,1);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"matter_remaining",
+256,10,1,6,3,1
+);
+}
 fn ExtractGasClusterInterstellarDustMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,13,0,"matter_remaining",256,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"matter_remaining",
+256,50,5,30,15,5
+);
+}
 fn ExtractGasClusterInterstellarDustLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,13,0,"matter_remaining",256,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+13,0,"matter_remaining",
+256,250,25,150,75,25
+);
+}
 fn ExtractGasClusterMolecularSpectrumData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,13,11,"energy_remaining",257,10,1);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+13,11,"energy_remaining",
+257,10,1
+);
+}
 fn ExtractGasClusterMolecularSpectrumDataMedium(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,13,11,"energy_remaining",257,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+13,11,"energy_remaining",
+257,50,5
+);
+}
 fn ExtractGasClusterMolecularSpectrumDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,13,11,"energy_remaining",257,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+13,11,"energy_remaining",
+257,250,25
+);
+}
 fn ExtractGasClusterPrebioticMoleculeMixture(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,13,5,"matter_remaining",352,10,1,5,3,2);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+13,5,"matter_remaining",
+352,10,1,5,3,2
+);
+}
 fn ExtractGasClusterPrebioticMoleculeMixtureMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,13,5,"matter_remaining",352,50,5,25,15,10);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+13,5,"matter_remaining",
+352,50,5,25,15,10
+);
+}
 fn ExtractGasClusterPrebioticMoleculeMixtureLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,13,5,"matter_remaining",352,250,25,125,75,50);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+13,5,"matter_remaining",
+352,250,25,125,75,50
+);
+}
 fn ExtractStellarRemnantMetalRichOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,14,16,"matter_remaining",120,50,5,45,4,1);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+14,16,"matter_remaining",
+120,50,5,45,4,1
+);
+}
 fn ExtractStellarRemnantMetalRichOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,14,16,"matter_remaining",120,250,25,225,20,5);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+14,16,"matter_remaining",
+120,250,25,225,20,5
+);
+}
 fn ExtractStellarRemnantNuclearOre(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,14,16,"energy_remaining",138,50,5,45,4,1);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+14,16,"energy_remaining",
+138,50,5,45,4,1
+);
+}
 fn ExtractStellarRemnantNuclearOreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,14,16,"energy_remaining",138,250,25,225,20,5);}
+let resource_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+14,16,"energy_remaining",
+138,250,25,225,20,5
+);
+}
 fn ExtractStellarRemnantCarbonaceousDeposit(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,14,16,"matter_remaining",139,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+14,16,"matter_remaining",
+139,50,5,30,15,5
+);
+}
 fn ExtractStellarRemnantCarbonaceousDepositLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,14,16,"matter_remaining",139,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+14,16,"matter_remaining",
+139,250,25,150,75,25
+);
+}
 fn ExtractStellarRemnantSupernovaEjecta(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,14,16,"matter_remaining",258,50,5,25,15,10);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+14,16,"matter_remaining",
+258,50,5,25,15,10
+);
+}
 fn ExtractStellarRemnantSupernovaEjectaLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,14,16,"matter_remaining",258,250,25,125,75,50);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+14,16,"matter_remaining",
+258,250,25,125,75,50
+);
+}
 fn ExtractStellarRemnantRadioisotopeDeposit(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,14,4,"energy_remaining",259,50,5,30,15,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+14,4,"energy_remaining",
+259,50,5,30,15,5
+);
+}
 fn ExtractStellarRemnantRadioisotopeDepositLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,14,4,"energy_remaining",259,250,25,150,75,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+14,4,"energy_remaining",
+259,250,25,150,75,25
+);
+}
 fn ExtractStellarRemnantShockwaveSpectrumData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,14,16,"energy_remaining",260,50,5);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+14,16,"energy_remaining",
+260,50,5
+);
+}
 fn ExtractStellarRemnantShockwaveSpectrumDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,14,16,"energy_remaining",260,250,25);}
+let resource_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+let resource_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+14,16,"energy_remaining",
+260,250,25
+);
+}
 fn ExtractStellarRemnantDecaySpectrumData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,14,16,"energy_remaining",353,50,5);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+14,16,"energy_remaining",
+353,50,5
+);
+}
 fn ExtractStellarRemnantDecaySpectrumDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,14,16,"energy_remaining",353,250,25);}
+let resource_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+14,16,"energy_remaining",
+353,250,25
+);
+}
 fn ExtractAsteroidBeltNickelIronMatrix(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,1,"matter_remaining",435,10,1,7,2,1);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,1,"matter_remaining",
+435,10,1,7,2,1
+);
+}
 fn ExtractAsteroidBeltNickelIronMatrixMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,1,"matter_remaining",435,50,5,35,10,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,1,"matter_remaining",
+435,50,5,35,10,5
+);
+}
 fn ExtractAsteroidBeltNickelIronMatrixLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,1,"matter_remaining",435,250,25,175,50,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,1,"matter_remaining",
+435,250,25,175,50,25
+);
+}
 fn ExtractAsteroidBeltCarbonaceousRegolith(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,3,"matter_remaining",436,10,1,5,3,2);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,3,"matter_remaining",
+436,10,1,5,3,2
+);
+}
 fn ExtractAsteroidBeltCarbonaceousRegolithMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,3,"matter_remaining",436,50,5,25,15,10);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,3,"matter_remaining",
+436,50,5,25,15,10
+);
+}
 fn ExtractAsteroidBeltCarbonaceousRegolithLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,3,"matter_remaining",436,250,25,125,75,50);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,3,"matter_remaining",
+436,250,25,125,75,50
+);
+}
 fn ExtractAsteroidBeltSilicateRubble(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,6,"crystal_remaining",437,10,1,6,3,1);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,6,"crystal_remaining",
+437,10,1,6,3,1
+);
+}
 fn ExtractAsteroidBeltSilicateRubbleMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,6,"crystal_remaining",437,50,5,30,15,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,6,"crystal_remaining",
+437,50,5,30,15,5
+);
+}
 fn ExtractAsteroidBeltSilicateRubbleLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,6,"crystal_remaining",437,250,25,150,75,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,6,"crystal_remaining",
+437,250,25,150,75,25
+);
+}
 fn ExtractAsteroidBeltHydratedMineralAggregate(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,3,"crystal_remaining",438,10,1,5,3,2);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,3,"crystal_remaining",
+438,10,1,5,3,2
+);
+}
 fn ExtractAsteroidBeltHydratedMineralAggregateMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,3,"crystal_remaining",438,50,5,25,15,10);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,3,"crystal_remaining",
+438,50,5,25,15,10
+);
+}
 fn ExtractAsteroidBeltHydratedMineralAggregateLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,3,"crystal_remaining",438,250,25,125,75,50);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,3,"crystal_remaining",
+438,250,25,125,75,50
+);
+}
 fn ExtractAsteroidBeltPlatinumGroupVein(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,1,"matter_remaining",439,50,5,45,4,1);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,1,"matter_remaining",
+439,50,5,45,4,1
+);
+}
 fn ExtractAsteroidBeltPlatinumGroupVeinLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,1,"matter_remaining",439,250,25,225,20,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,1,"matter_remaining",
+439,250,25,225,20,5
+);
+}
 fn ExtractAsteroidBeltImpactGlassBreccia(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,7,"crystal_remaining",440,10,1,8,1,1);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,7,"crystal_remaining",
+440,10,1,8,1,1
+);
+}
 fn ExtractAsteroidBeltImpactGlassBrecciaMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,7,"crystal_remaining",440,50,5,40,5,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,7,"crystal_remaining",
+440,50,5,40,5,5
+);
+}
 fn ExtractAsteroidBeltImpactGlassBrecciaLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,15,7,"crystal_remaining",440,250,25,200,25,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+15,7,"crystal_remaining",
+440,250,25,200,25,25
+);
+}
 fn ExtractAsteroidBeltOrbitalSurveyData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,15,11,"energy_remaining",441,10,1);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+15,11,"energy_remaining",
+441,10,1
+);
+}
 fn ExtractAsteroidBeltOrbitalSurveyDataMedium(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,15,11,"energy_remaining",441,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+15,11,"energy_remaining",
+441,50,5
+);
+}
 fn ExtractAsteroidBeltOrbitalSurveyDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,15,11,"energy_remaining",441,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+15,11,"energy_remaining",
+441,250,25
+);
+}
 fn ExtractVolcanicPlanetUltramaficMagma(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,6,"matter_remaining",442,10,1,6,3,1);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,6,"matter_remaining",
+442,10,1,6,3,1
+);
+}
 fn ExtractVolcanicPlanetUltramaficMagmaMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,6,"matter_remaining",442,50,5,30,15,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,6,"matter_remaining",
+442,50,5,30,15,5
+);
+}
 fn ExtractVolcanicPlanetUltramaficMagmaLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,6,"matter_remaining",442,250,25,150,75,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,6,"matter_remaining",
+442,250,25,150,75,25
+);
+}
 fn ExtractVolcanicPlanetSulfideMagma(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,1,"matter_remaining",443,10,1,7,2,1);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,1,"matter_remaining",
+443,10,1,7,2,1
+);
+}
 fn ExtractVolcanicPlanetSulfideMagmaMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,1,"matter_remaining",443,50,5,35,10,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,1,"matter_remaining",
+443,50,5,35,10,5
+);
+}
 fn ExtractVolcanicPlanetSulfideMagmaLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,1,"matter_remaining",443,250,25,175,50,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,1,"matter_remaining",
+443,250,25,175,50,25
+);
+}
 fn ExtractVolcanicPlanetVolcanicAshDeposit(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,6,"matter_remaining",444,10,1,5,3,2);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,6,"matter_remaining",
+444,10,1,5,3,2
+);
+}
 fn ExtractVolcanicPlanetVolcanicAshDepositMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,6,"matter_remaining",444,50,5,25,15,10);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,6,"matter_remaining",
+444,50,5,25,15,10
+);
+}
 fn ExtractVolcanicPlanetVolcanicAshDepositLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,6,"matter_remaining",444,250,25,125,75,50);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,6,"matter_remaining",
+444,250,25,125,75,50
+);
+}
 fn ExtractVolcanicPlanetFumaroleCondensate(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,16,3,"gas_remaining",445,10,1,7,2,1);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+16,3,"gas_remaining",
+445,10,1,7,2,1
+);
+}
 fn ExtractVolcanicPlanetFumaroleCondensateMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,16,3,"gas_remaining",445,50,5,35,10,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+16,3,"gas_remaining",
+445,50,5,35,10,5
+);
+}
 fn ExtractVolcanicPlanetFumaroleCondensateLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,16,3,"gas_remaining",445,250,25,175,50,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+16,3,"gas_remaining",
+445,250,25,175,50,25
+);
+}
 fn ExtractVolcanicPlanetGeothermalBrine(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,16,3,"gas_remaining",446,10,1,6,3,1);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+16,3,"gas_remaining",
+446,10,1,6,3,1
+);
+}
 fn ExtractVolcanicPlanetGeothermalBrineMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,16,3,"gas_remaining",446,50,5,30,15,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+16,3,"gas_remaining",
+446,50,5,30,15,5
+);
+}
 fn ExtractVolcanicPlanetGeothermalBrineLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,16,3,"gas_remaining",446,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+16,3,"gas_remaining",
+446,250,25,150,75,25
+);
+}
 fn ExtractVolcanicPlanetMantleXenolith(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,7,"matter_remaining",447,10,1,8,1,1);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,7,"matter_remaining",
+447,10,1,8,1,1
+);
+}
 fn ExtractVolcanicPlanetMantleXenolithMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,7,"matter_remaining",447,50,5,40,5,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,7,"matter_remaining",
+447,50,5,40,5,5
+);
+}
 fn ExtractVolcanicPlanetMantleXenolithLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,16,7,"matter_remaining",447,250,25,200,25,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+16,7,"matter_remaining",
+447,250,25,200,25,25
+);
+}
 fn ExtractVolcanicPlanetSeismicTomographyData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,16,9,"energy_remaining",448,10,1);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+16,9,"energy_remaining",
+448,10,1
+);
+}
 fn ExtractVolcanicPlanetSeismicTomographyDataMedium(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,16,9,"energy_remaining",448,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+16,9,"energy_remaining",
+448,50,5
+);
+}
 fn ExtractVolcanicPlanetSeismicTomographyDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,16,9,"energy_remaining",448,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+16,9,"energy_remaining",
+448,250,25
+);
+}
 fn ExtractNebulaIonizedHydrogenCloud(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,17,8,"gas_remaining",449,50,5,30,15,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+17,8,"gas_remaining",
+449,50,5,30,15,5
+);
+}
 fn ExtractNebulaIonizedHydrogenCloudLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,17,8,"gas_remaining",449,250,25,150,75,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+17,8,"gas_remaining",
+449,250,25,150,75,25
+);
+}
 fn ExtractNebulaMolecularIceMantle(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,17,3,"gas_remaining",450,50,5,25,15,10);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+17,3,"gas_remaining",
+450,50,5,25,15,10
+);
+}
 fn ExtractNebulaMolecularIceMantleLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,17,3,"gas_remaining",450,250,25,125,75,50);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+17,3,"gas_remaining",
+450,250,25,125,75,50
+);
+}
 fn ExtractNebulaStellarNurseryDust(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,17,16,"matter_remaining",451,50,5,40,5,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+17,16,"matter_remaining",
+451,50,5,40,5,5
+);
+}
 fn ExtractNebulaStellarNurseryDustLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,17,16,"matter_remaining",451,250,25,200,25,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+17,16,"matter_remaining",
+451,250,25,200,25,25
+);
+}
 fn ExtractNebulaPolycyclicAromaticMixture(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,17,10,"gas_remaining",452,50,5,25,15,10);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+17,10,"gas_remaining",
+452,50,5,25,15,10
+);
+}
 fn ExtractNebulaPolycyclicAromaticMixtureLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,17,10,"gas_remaining",452,250,25,125,75,50);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+17,10,"gas_remaining",
+452,250,25,125,75,50
+);
+}
 fn ExtractNebulaShockedNebularGas(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,17,16,"gas_remaining",453,50,5,35,10,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+17,16,"gas_remaining",
+453,50,5,35,10,5
+);
+}
 fn ExtractNebulaShockedNebularGasLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,17,16,"gas_remaining",453,250,25,175,50,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+17,16,"gas_remaining",
+453,250,25,175,50,25
+);
+}
 fn ExtractNebulaProtostarCensusData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,17,11,"energy_remaining",454,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+17,11,"energy_remaining",
+454,50,5
+);
+}
 fn ExtractNebulaProtostarCensusDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,17,11,"energy_remaining",454,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+17,11,"energy_remaining",
+454,250,25
+);
+}
 fn ExtractNebulaEmissionLineMap(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,17,9,"energy_remaining",455,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+17,9,"energy_remaining",
+455,50,5
+);
+}
 fn ExtractNebulaEmissionLineMapLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,17,9,"energy_remaining",455,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+17,9,"energy_remaining",
+455,250,25
+);
+}
 fn ExtractCometClusterPrimitiveIceMatrix(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,18,3,"crystal_remaining",456,10,1,6,3,1);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+18,3,"crystal_remaining",
+456,10,1,6,3,1
+);
+}
 fn ExtractCometClusterPrimitiveIceMatrixMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,18,3,"crystal_remaining",456,50,5,30,15,5);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+18,3,"crystal_remaining",
+456,50,5,30,15,5
+);
+}
 fn ExtractCometClusterPrimitiveIceMatrixLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,18,3,"crystal_remaining",456,250,25,150,75,25);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+18,3,"crystal_remaining",
+456,250,25,150,75,25
+);
+}
 fn ExtractCometClusterRefractoryCometDust(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,18,7,"matter_remaining",457,10,1,7,2,1);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+18,7,"matter_remaining",
+457,10,1,7,2,1
+);
+}
 fn ExtractCometClusterRefractoryCometDustMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,18,7,"matter_remaining",457,50,5,35,10,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+18,7,"matter_remaining",
+457,50,5,35,10,5
+);
+}
 fn ExtractCometClusterRefractoryCometDustLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,18,7,"matter_remaining",457,250,25,175,50,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+18,7,"matter_remaining",
+457,250,25,175,50,25
+);
+}
 fn ExtractCometClusterComplexOrganicMantle(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,18,10,"matter_remaining",458,10,1,5,3,2);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+18,10,"matter_remaining",
+458,10,1,5,3,2
+);
+}
 fn ExtractCometClusterComplexOrganicMantleMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,18,10,"matter_remaining",458,50,5,25,15,10);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+18,10,"matter_remaining",
+458,50,5,25,15,10
+);
+}
 fn ExtractCometClusterComplexOrganicMantleLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,18,10,"matter_remaining",458,250,25,125,75,50);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+18,10,"matter_remaining",
+458,250,25,125,75,50
+);
+}
 fn ExtractCometClusterCryovolcanicPlume(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,18,3,"gas_remaining",459,10,1,6,3,1);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+18,3,"gas_remaining",
+459,10,1,6,3,1
+);
+}
 fn ExtractCometClusterCryovolcanicPlumeMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,18,3,"gas_remaining",459,50,5,30,15,5);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+18,3,"gas_remaining",
+459,50,5,30,15,5
+);
+}
 fn ExtractCometClusterCryovolcanicPlumeLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,18,3,"gas_remaining",459,250,25,150,75,25);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+18,3,"gas_remaining",
+459,250,25,150,75,25
+);
+}
 fn ExtractCometClusterPresolarGrainAggregate(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,18,16,"crystal_remaining",460,50,5,45,4,1);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+18,16,"crystal_remaining",
+460,50,5,45,4,1
+);
+}
 fn ExtractCometClusterPresolarGrainAggregateLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,18,16,"crystal_remaining",460,250,25,225,20,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+18,16,"crystal_remaining",
+460,250,25,225,20,5
+);
+}
 fn ExtractCometClusterIrradiatedIceCrust(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,18,7,"crystal_remaining",461,10,1,8,1,1);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+18,7,"crystal_remaining",
+461,10,1,8,1,1
+);
+}
 fn ExtractCometClusterIrradiatedIceCrustMedium(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,18,7,"crystal_remaining",461,50,5,40,5,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+18,7,"crystal_remaining",
+461,50,5,40,5,5
+);
+}
 fn ExtractCometClusterIrradiatedIceCrustLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,18,7,"crystal_remaining",461,250,25,200,25,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+18,7,"crystal_remaining",
+461,250,25,200,25,25
+);
+}
 fn ExtractCometClusterCometaryOrbitSolution(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,18,11,"energy_remaining",462,10,1);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+18,11,"energy_remaining",
+462,10,1
+);
+}
 fn ExtractCometClusterCometaryOrbitSolutionMedium(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,18,11,"energy_remaining",462,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+18,11,"energy_remaining",
+462,50,5
+);
+}
 fn ExtractCometClusterCometaryOrbitSolutionLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,18,11,"energy_remaining",462,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+18,11,"energy_remaining",
+462,250,25
+);
+}
 fn ExtractBrownDwarfMetallicHydrogenLayer(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,19,8,"gas_remaining",463,50,5,40,5,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+19,8,"gas_remaining",
+463,50,5,40,5,5
+);
+}
 fn ExtractBrownDwarfMetallicHydrogenLayerLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,19,8,"gas_remaining",463,250,25,200,25,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+19,8,"gas_remaining",
+463,250,25,200,25,25
+);
+}
 fn ExtractBrownDwarfAlkaliCloudDeck(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,19,3,"gas_remaining",464,50,5,35,10,5);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+19,3,"gas_remaining",
+464,50,5,35,10,5
+);
+}
 fn ExtractBrownDwarfAlkaliCloudDeckLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,19,3,"gas_remaining",464,250,25,175,50,25);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+19,3,"gas_remaining",
+464,250,25,175,50,25
+);
+}
 fn ExtractBrownDwarfSilicateCloudLayer(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,19,7,"matter_remaining",465,50,5,30,15,5);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+19,7,"matter_remaining",
+465,50,5,30,15,5
+);
+}
 fn ExtractBrownDwarfSilicateCloudLayerLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_8_core(action,next_ship,composite_resource,ship,body,19,7,"matter_remaining",465,250,25,150,75,25);}
+extract_composite_vdf_8_core(
+action,next_ship,composite_resource,ship,body,
+19,7,"matter_remaining",
+465,250,25,150,75,25
+);
+}
 fn ExtractBrownDwarfCarbonChemistryMixture(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,19,10,"gas_remaining",466,50,5,25,15,10);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+19,10,"gas_remaining",
+466,50,5,25,15,10
+);
+}
 fn ExtractBrownDwarfCarbonChemistryMixtureLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_4_core(action,next_ship,composite_resource,ship,body,19,10,"gas_remaining",466,250,25,125,75,50);}
+extract_composite_vdf_4_core(
+action,next_ship,composite_resource,ship,body,
+19,10,"gas_remaining",
+466,250,25,125,75,50
+);
+}
 fn ExtractBrownDwarfDeuteriumBurnAsh(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,19,4,"matter_remaining",467,50,5,45,4,1);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+19,4,"matter_remaining",
+467,50,5,45,4,1
+);
+}
 fn ExtractBrownDwarfDeuteriumBurnAshLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,19,4,"matter_remaining",467,250,25,225,20,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+19,4,"matter_remaining",
+467,250,25,225,20,5
+);
+}
 fn ExtractBrownDwarfInfraredWeatherMap(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,19,9,"energy_remaining",468,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+19,9,"energy_remaining",
+468,50,5
+);
+}
 fn ExtractBrownDwarfInfraredWeatherMapLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,19,9,"energy_remaining",468,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+19,9,"energy_remaining",
+468,250,25
+);
+}
 fn ExtractBrownDwarfSubstellarRotationData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,19,11,"energy_remaining",469,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+19,11,"energy_remaining",
+469,50,5
+);
+}
 fn ExtractBrownDwarfSubstellarRotationDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,19,11,"energy_remaining",469,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+19,11,"energy_remaining",
+469,250,25
+);
+}
 fn ExtractWhiteDwarfCrystallizedCarbonOxygenCore(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,20,13,"crystal_remaining",470,50,5,45,4,1);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+20,13,"crystal_remaining",
+470,50,5,45,4,1
+);
+}
 fn ExtractWhiteDwarfCrystallizedCarbonOxygenCoreLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,20,13,"crystal_remaining",470,250,25,225,20,5);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+20,13,"crystal_remaining",
+470,250,25,225,20,5
+);
+}
 fn ExtractWhiteDwarfDegenerateHeliumEnvelope(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,20,16,"matter_remaining",471,50,5,25,15,10);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+20,16,"matter_remaining",
+471,50,5,25,15,10
+);
+}
 fn ExtractWhiteDwarfDegenerateHeliumEnvelopeLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,20,16,"matter_remaining",471,250,25,125,75,50);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+20,16,"matter_remaining",
+471,250,25,125,75,50
+);
+}
 fn ExtractWhiteDwarfMetalPollutedAtmosphere(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,20,16,"matter_remaining",472,50,5,35,10,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+20,16,"matter_remaining",
+472,50,5,35,10,5
+);
+}
 fn ExtractWhiteDwarfMetalPollutedAtmosphereLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,20,16,"matter_remaining",472,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+20,16,"matter_remaining",
+472,250,25,175,50,25
+);
+}
 fn ExtractWhiteDwarfTidalDebrisDisk(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,20,11,"crystal_remaining",473,50,5,25,15,10);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+20,11,"crystal_remaining",
+473,50,5,25,15,10
+);
+}
 fn ExtractWhiteDwarfTidalDebrisDiskLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,20,11,"crystal_remaining",473,250,25,125,75,50);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+20,11,"crystal_remaining",
+473,250,25,125,75,50
+);
+}
 fn ExtractWhiteDwarfElectronDegenerateMatter(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,20,13,"matter_remaining",474,50,5,40,5,5);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+20,13,"matter_remaining",
+474,50,5,40,5,5
+);
+}
 fn ExtractWhiteDwarfElectronDegenerateMatterLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,20,13,"matter_remaining",474,250,25,200,25,25);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+20,13,"matter_remaining",
+474,250,25,200,25,25
+);
+}
 fn ExtractWhiteDwarfNovaAshDeposit(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,20,4,"crystal_remaining",475,50,5,30,15,5);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+20,4,"crystal_remaining",
+475,50,5,30,15,5
+);
+}
 fn ExtractWhiteDwarfNovaAshDepositLarge(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_12_core(action,next_ship,composite_resource,ship,body,20,4,"crystal_remaining",475,250,25,150,75,25);}
+extract_composite_vdf_12_core(
+action,next_ship,composite_resource,ship,body,
+20,4,"crystal_remaining",
+475,250,25,150,75,25
+);
+}
 fn ExtractWhiteDwarfAsteroseismicModeData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,20,9,"energy_remaining",476,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+20,9,"energy_remaining",
+476,50,5
+);
+}
 fn ExtractWhiteDwarfAsteroseismicModeDataLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,20,9,"energy_remaining",476,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+20,9,"energy_remaining",
+476,250,25
+);
+}
 fn ExtractWhiteDwarfCoolingAgeCalibration(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,20,16,"energy_remaining",477,50,5);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+20,16,"energy_remaining",
+477,50,5
+);
+}
 fn ExtractWhiteDwarfCoolingAgeCalibrationLarge(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_12_core(action,next_ship,resource,ship,body,20,16,"energy_remaining",477,250,25);}
+extract_direct_body_vdf_12_core(
+action,next_ship,resource,ship,body,
+20,16,"energy_remaining",
+477,250,25
+);
+}
 fn ExtractMagnetarMagnetizedCrustalLattice(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,21,13,"crystal_remaining",478,250,25,200,25,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+21,13,"crystal_remaining",
+478,250,25,200,25,25
+);
+}
 fn ExtractMagnetarUltraStrongFieldCondensate(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,21,14,"energy_remaining",479,250,25,225,20,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+21,14,"energy_remaining",
+479,250,25,225,20,5
+);
+}
 fn ExtractMagnetarStarquakeEjecta(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,21,16,"matter_remaining",480,250,25,125,75,50);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+21,16,"matter_remaining",
+480,250,25,125,75,50
+);
+}
 fn ExtractMagnetarTwistedMagnetospherePlasma(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,21,8,"energy_remaining",481,250,25,150,75,25);}
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+21,8,"energy_remaining",
+481,250,25,150,75,25
+);
+}
 fn ExtractMagnetarQEDVacuumDeposit(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,21,14,"energy_remaining",482,250,25,225,20,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+21,14,"energy_remaining",
+482,250,25,225,20,5
+);
+}
 fn ExtractMagnetarDenseNuclearCondensate(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,21,13,"crystal_remaining",483,250,25,175,50,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+21,13,"crystal_remaining",
+483,250,25,175,50,25
+);
+}
 fn ExtractMagnetarGiantFlareLightCurve(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,21,9,"energy_remaining",484,250,25);}
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+21,9,"energy_remaining",
+484,250,25
+);
+}
 fn ExtractMagnetarMagneticTopologyMap(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,21,15,"energy_remaining",485,250,25);}
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+21,15,"energy_remaining",
+485,250,25
+);
+}
 fn ExtractWormholeMouthExoticThroatMatter(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,22,13,"matter_remaining",486,250,25,225,20,5);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+22,13,"matter_remaining",
+486,250,25,225,20,5
+);
+}
 fn ExtractWormholeMouthTidalShearCondensate(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,22,14,"crystal_remaining",487,250,25,200,25,25);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+22,14,"crystal_remaining",
+487,250,25,200,25,25
+);
+}
 fn ExtractWormholeMouthChronologyResidue(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,22,14,"energy_remaining",488,250,25,125,75,50);}
+let resource_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+22,14,"energy_remaining",
+488,250,25,125,75,50
+);
+}
 fn ExtractWormholeMouthVacuumBoundaryLayer(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,22,13,"matter_remaining",489,250,25,225,20,5);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+22,13,"matter_remaining",
+489,250,25,225,20,5
+);
+}
 fn ExtractWormholeMouthTraversabilityFieldMatrix(action){
 var next_ship=action.output("MicroverseShip");
 var composite_resource=action.output("MicroverseCompositeResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_composite_vdf_20_core(action,next_ship,composite_resource,ship,body,22,14,"crystal_remaining",490,250,25,150,75,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_composite_vdf_20_core(
+action,next_ship,composite_resource,ship,body,
+22,14,"crystal_remaining",
+490,250,25,150,75,25
+);
+}
 fn ExtractWormholeMouthThroatGeometrySolution(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,22,14,"energy_remaining",491,250,25);}
+let resource_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+22,14,"energy_remaining",
+491,250,25
+);
+}
 fn ExtractWormholeMouthTransitPhaseData(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,22,11,"energy_remaining",492,250,25);}
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+22,11,"energy_remaining",
+492,250,25
+);
+}
 fn ExtractWormholeMouthCausalConnectivityMap(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
 var ship=action.input("MicroverseShip");
 var body=action.mutate("MicroverseCelestialBody");
-extract_direct_body_vdf_20_core(action,next_ship,resource,ship,body,22,18,"energy_remaining",493,250,25);}
+extract_direct_body_vdf_20_core(
+action,next_ship,resource,ship,body,
+22,18,"energy_remaining",
+493,250,25
+);
+}
 fn RefineFusionGasToHydrogen(action){
 var next_ship=action.output("MicroverseShip");
 var resource=action.output("MicroverseResource");
@@ -11209,6 +13511,8 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_upper=action.top_limb_u256(3074457344902430719);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11225,6 +13529,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(3074457344902430720);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11241,6 +13549,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11257,6 +13569,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11273,6 +13589,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(-3074457349197398017);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11289,6 +13609,8 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(-3074457349197398016);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11305,6 +13627,8 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_upper=action.top_limb_u256(3074457344902430719);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11321,6 +13645,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(3074457344902430720);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11337,6 +13665,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11353,6 +13685,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11369,6 +13705,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(-3074457349197398017);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11385,6 +13725,8 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(-3074457349197398016);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11401,6 +13743,8 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_upper=action.top_limb_u256(3074457344902430719);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11417,6 +13761,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(3074457344902430720);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(6148914689804861439);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11433,6 +13781,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(6148914689804861440);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(9223372034707292159);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11449,6 +13801,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(9223372034707292160);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(-6148914694099828737);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11465,6 +13821,10 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(-6148914694099828736);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+let skill_selector_upper=action.top_limb_u256(-3074457349197398017);
+action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(
 action,
 next_ship,
@@ -11481,6 +13841,8 @@ var next_ship=action.output("MicroverseShip");
 var technology_skill=action.output("MicroverseTechnologySkill");
 var ship=action.input("MicroverseShip");
 var civilization=action.mutate("MicroverseCivilization");
+let skill_selector_lower=action.top_limb_u256(-3074457349197398016);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
 develop_technology_skill_core(
 action,
 next_ship,

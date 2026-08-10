@@ -35,6 +35,7 @@ POSITION_MAXIMUM_EXCLUSIVE = 2_000_000_000_000
 TIME_MINIMUM = 101
 TIME_MAXIMUM_EXCLUSIVE = 1_000_000_000_000
 EXPLICIT_SELECTION_MODE = "explicit_action_identity"
+DETERMINISTIC_SELECTOR_MODE = "stable_identifier_band_v1"
 
 V1_COORDINATE_POOL_MINIMUMS = {10: 18_000, 3: 9_001, 1: 9_000}
 V2_CHART_POOL_MINIMUMS = {10: 40_000, 3: 31_000, 1: 9_000}
@@ -1185,15 +1186,13 @@ def validate_resource_catalog(
             )
         validation.check(
             body.get("scan_threshold_subject")
-            == "complete MicroverseCelestialSignal object"
+            == "MicroverseCelestialSignal stable identifier"
             and body.get("scan_acceptance_comparison")
-            == "whole_object <= fixed target_top_limb"
-            and "scan_selector" not in body
-            and "scan_comparison" not in body,
+            == "fixed lower <= stable_identifier <= fixed upper"
+            and body.get("scan_selector")
+            == DETERMINISTIC_SELECTOR_MODE,
             "body.scan_threshold_semantics",
-            "body Scan eligibility must compare the complete CelestialSignal "
-            "object to its fixed target_top_limb; retired stable-identifier "
-            "selector fields are forbidden",
+            "body Scan eligibility must use the deterministic stable-ID band",
             f"resources.bodies[{index}]",
         )
         movement = first_present(body, "min_movement", "minimum_movement")
@@ -3856,7 +3855,10 @@ def validate_index(
         fixed = row.get("fixed_literals") if isinstance(row, Mapping) else None
         validation.check(
             isinstance(fixed, Mapping)
-            and fixed.get("selection_mode") == EXPLICIT_SELECTION_MODE
+            and fixed.get("selection_mode")
+            == DETERMINISTIC_SELECTOR_MODE
+            and fixed.get("selector_subject") == "sector.stable_identifier"
+            and isinstance(fixed.get("selector_band"), Mapping)
             and fixed.get("survey_profile") == profile
             and fixed.get("minimum_claim_serial") == minimum,
             "index.survey_selection",
@@ -3885,7 +3887,11 @@ def validate_index(
         fixed = row.get("fixed_literals") if isinstance(row, Mapping) else None
         validation.check(
             isinstance(fixed, Mapping)
-            and fixed.get("selection_mode") == EXPLICIT_SELECTION_MODE
+            and fixed.get("selection_mode")
+            == DETERMINISTIC_SELECTOR_MODE
+            and fixed.get("selector_subject")
+            == "life_signal.stable_identifier"
+            and isinstance(fixed.get("selector_band"), Mapping)
             and fixed.get("civilization_type") == civilization_type
             and fixed.get("minimum_civilization_scan_serial") == minimum,
             "index.civilization_selection",
@@ -3914,11 +3920,14 @@ def validate_index(
         validation.check(
             isinstance(fixed, Mapping)
             and fixed.get("candidate_code") == code
-            and isinstance(wrapper_literals, list)
-            and body.get("target_top_limb") in wrapper_literals,
+            and fixed.get("selection_mode")
+            == DETERMINISTIC_SELECTOR_MODE
+            and fixed.get("selector_subject") == "signal.stable_identifier"
+            and isinstance(fixed.get("selector_band"), Mapping)
+            and fixed.get("required_signal_candidate_code") == -1
+            and isinstance(wrapper_literals, list),
             "index.scan_threshold_binding",
-            f"{action_name} must bind the named candidate and fixed whole-object "
-            "target_top_limb from the resource catalog",
+            f"{action_name} must bind the named candidate and its stable-ID band",
             f"index.actions.{action_name}",
         )
     warp_action_contracts = states.get("warp", {}).get(
@@ -4179,7 +4188,7 @@ def validate_universe_selection_contract(
             and row.get("code") == code
             and row.get("name") == slug
             and row.get("slug") == slug
-            and row.get("selection_mode") == "explicit_action_identity"
+            and row.get("selection_mode") == DETERMINISTIC_SELECTOR_MODE
             and row.get("minimum_claim_serial") == minimum
             and row.get("survey_profile") == code
             and row.get("action") == action
@@ -4191,7 +4200,9 @@ def validate_universe_selection_contract(
         fixed = index_actions.get(action, {}).get("fixed_literals", {})
         validation.check(
             isinstance(fixed, Mapping)
-            and fixed.get("selection_mode") == "explicit_action_identity"
+            and fixed.get("selection_mode") == DETERMINISTIC_SELECTOR_MODE
+            and fixed.get("selector_subject") == "sector.stable_identifier"
+            and isinstance(fixed.get("selector_band"), Mapping)
             and fixed.get("survey_profile") == code
             and fixed.get("minimum_claim_serial") == minimum,
             "universe.survey_index_binding",
@@ -4222,7 +4233,7 @@ def validate_universe_selection_contract(
             and row.get("name") == name
             and row.get("slug") == slug
             and row.get("action") == action
-            and row.get("selection_mode") == "explicit_action_identity"
+            and row.get("selection_mode") == DETERMINISTIC_SELECTOR_MODE
             and row.get("minimum_civilization_scan_serial") == minimum,
             "universe.civilization_type_row",
             f"Civilization type {code} metadata/action binding changed",
@@ -4231,7 +4242,10 @@ def validate_universe_selection_contract(
         fixed = index_actions.get(action, {}).get("fixed_literals", {})
         validation.check(
             isinstance(fixed, Mapping)
-            and fixed.get("selection_mode") == "explicit_action_identity"
+            and fixed.get("selection_mode") == DETERMINISTIC_SELECTOR_MODE
+            and fixed.get("selector_subject")
+            == "life_signal.stable_identifier"
+            and isinstance(fixed.get("selector_band"), Mapping)
             and fixed.get("civilization_type") == code
             and fixed.get("minimum_civilization_scan_serial") == minimum,
             "universe.civilization_index_binding",
@@ -4239,9 +4253,9 @@ def validate_universe_selection_contract(
             f"{path}:civilization_types[{offset}]",
         )
     expected_policy = {
-        "selection_mode": "explicit_action_identity",
-        "outcome_source": "action name",
-        "stable_identifier_used": False,
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+        "outcome_source": "immutable stable-ID hierarchy",
+        "stable_identifier_used": True,
         "unlock_scope": "current compatible Ship",
         "transfer_policy": (
             "Any compatible co-located Ship that meets the milestone may "
@@ -4264,7 +4278,7 @@ def validate_universe_selection_contract(
                 "4": 128,
                 "5": 256,
             },
-            "highest_choices_remain_unlocked": True,
+            "selected_profile_is_unique": True,
         },
         "civilization": {
             "counter_field": "civilization_scan_serial",
@@ -4273,13 +4287,25 @@ def validate_universe_selection_contract(
                 "current Ship"
             ),
             "minimums_by_type": {"1": 64, "2": 1_024, "3": 16_384},
-            "highest_choices_remain_unlocked": True,
+            "selected_type_is_unique": True,
+        },
+        "root_skill": {
+            "selector_field": (
+                "civilization.source_life_signal_identifier"
+            ),
+            "band_count_per_civilization_type": 6,
+        },
+        "advanced_resource": {
+            "selector_field": "body.source_signal_identifier",
+            "partition_scope": (
+                "candidate_code + required skill + reserve pool"
+            ),
         },
     }
     validation.check(
         universe.get("selection_progression_policy") == expected_policy,
         "universe.selection_progression_policy",
-        "explicit current-Ship unlock/transfer policy changed",
+        "deterministic current-Ship unlock/transfer policy changed",
         str(path),
     )
 

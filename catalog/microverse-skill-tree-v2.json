@@ -30,7 +30,14 @@
       "2": { "vdf_tier": "artifact", "vdf_iterations": 32 },
       "3": { "vdf_tier": "artifact", "vdf_iterations": 32 }
     },
-    "root_development": "Preserve production behavior exactly; no VDF is added to the existing 18 Civilization-issued root skills."
+    "root_development": "No VDF is added to the 18 Civilization-issued root skills. Within each civilization type, the immutable source_life_signal_identifier selects exactly one of six fixed root-skill bands.",
+    "root_selection": {
+      "mode": "stable_identifier_band_v1",
+      "selector": "MicroverseCivilization.source_life_signal_identifier",
+      "band_count_per_civilization_type": 6,
+      "runtime_branching": false,
+      "runtime_loops": false
+    }
   },
   "schema": {
     "root": {
