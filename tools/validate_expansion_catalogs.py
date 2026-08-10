@@ -4301,7 +4301,37 @@ def validate_universe_selection_contract(
                 "candidate_code + required skill + reserve pool"
             ),
         },
+        "intelligent_life": {
+            "action": "DetectIntelligentLife",
+            "selector_field": "body.source_signal_identifier",
+            "eligible_candidate_codes": [4, 5],
+            "initial_life_stat": 0,
+            "selected_life_stat": 1,
+            "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+            "selector_band": {
+                "lower_top_limb": 8_974_091_709_444_932_912,
+                "upper_top_limb": 10_220_493_335_756_729_149,
+            },
+        },
     }
+    life_fixed = index_actions.get("DetectIntelligentLife", {}).get(
+        "fixed_literals", {}
+    )
+    validation.check(
+        isinstance(life_fixed, Mapping)
+        and life_fixed.get("selection_mode")
+        == DETERMINISTIC_SELECTOR_MODE
+        and life_fixed.get("selector_subject")
+        == "body.source_signal_identifier"
+        and life_fixed.get("selector_band")
+        == expected_policy["intelligent_life"]["selector_band"]
+        and life_fixed.get("initial_life_stat") == 0
+        and life_fixed.get("selected_life_stat") == 1
+        and life_fixed.get("candidate_codes") == [4, 5],
+        "universe.intelligent_life_index_binding",
+        "Intelligent-life stable-ID transition does not match the index",
+        str(path),
+    )
     validation.check(
         universe.get("selection_progression_policy") == expected_policy,
         "universe.selection_progression_policy",

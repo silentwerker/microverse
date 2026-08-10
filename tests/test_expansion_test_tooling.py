@@ -3690,20 +3690,69 @@ description = \"omitted\"
             plugin, actions, bank
         )
         self.assertEqual("pass", audit["status"])
-        self.assertEqual(400, audit["route_count"])
+        self.assertEqual(401, audit["route_count"])
         self.assertEqual(23, audit["detect_alias_count"])
         self.assertTrue(audit["checks"]["life_stat_is_boolean"])
-        self.assertTrue(audit["checks"]["life_candidates_exact"])
         self.assertTrue(
-            audit["checks"]["legacy_positive_life_values_remain_eligible"]
+            audit["checks"]["all_scanned_bodies_start_without_life"]
+        )
+        self.assertTrue(
+            audit["checks"][
+                "life_band_intersects_only_ocean_and_garden"
+            ]
+        )
+        self.assertTrue(audit["checks"]["life_action_metadata_exact"])
+        self.assertTrue(
+            audit["checks"]["life_action_requires_zero_then_updates_one"]
+        )
+        self.assertTrue(all(candidate["life_stat"] == 0 for candidate in bank))
+
+        scan_actions = {
+            action["name"]: action
+            for action in actions
+            if action["family"] == "scan_body"
+        }
+        self.assertEqual(23, len(scan_actions))
+        self.assertFalse(any(name.endswith("NoLife") for name in scan_actions))
+
+        life_action = next(
+            action
+            for action in actions
+            if action["name"] == "DetectIntelligentLife"
         )
         self.assertEqual(
-            {4: 1, 5: 1},
-            {
-                candidate["code"]: candidate["life_stat"]
-                for candidate in bank
-                if candidate["life_stat"]
-            },
+            production_generator.DETERMINISTIC_SELECTOR_MODE,
+            life_action["selection_mode"],
+        )
+        self.assertEqual([4, 5], life_action["candidate_codes"])
+        life_source = production_generator.action_function_source(
+            plugin, "DetectIntelligentLife"
+        )
+        self.assertIn("action.st_sum(body.life_stat,0,0);", life_source)
+        self.assertIn('body.update("life_stat",1);', life_source)
+        self.assertNotIn("action.st_gt(body.life_stat,0);", life_source)
+        self.assertEqual(
+            2,
+            len(
+                production_generator.rhai_method_statement_calls(
+                    life_source, "intro_lt_eq_u256"
+                )
+            ),
+        )
+
+        life_selector_statement = (
+            "action.intro_lt_eq_u256("
+            "life_selector_lower,body.source_signal_identifier);"
+        )
+        self.assertIn(life_selector_statement, life_source)
+        forged_life_selector = plugin.replace(
+            life_selector_statement, "", 1
+        )
+        self.assertEqual(
+            "fail",
+            production_generator.deterministic_hierarchy_audit(
+                forged_life_selector, actions, bank
+            )["status"],
         )
 
         non_boolean_bank = [dict(candidate) for candidate in bank]
@@ -3712,6 +3761,40 @@ description = \"omitted\"
             "fail",
             production_generator.deterministic_hierarchy_audit(
                 plugin, actions, non_boolean_bank
+            )["status"],
+        )
+
+        ocean_source = production_generator.action_function_source(
+            plugin, "ScanCelestialBody_04_OceanPlanet"
+        )
+        forged_ocean = plugin.replace(
+            ocean_source,
+            re.sub(
+                r",\s*4\s*,\s*1\s*,\s*0\s*,\s*14000\s*,",
+                ",4,1,1,14000,",
+                ocean_source,
+                count=1,
+            ),
+            1,
+        )
+        self.assertNotEqual(plugin, forged_ocean)
+        self.assertEqual(
+            "fail",
+            production_generator.deterministic_hierarchy_audit(
+                forged_ocean, actions, bank
+            )["status"],
+        )
+
+        forged_life_update = plugin.replace(
+            'body.update("life_stat",1);',
+            'body.update("life_stat",0);',
+            1,
+        )
+        self.assertNotEqual(plugin, forged_life_update)
+        self.assertEqual(
+            "fail",
+            production_generator.deterministic_hierarchy_audit(
+                forged_life_update, actions, bank
             )["status"],
         )
 

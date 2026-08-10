@@ -47,6 +47,40 @@ class ExpansionValidatorTests(unittest.TestCase):
             self.finding_codes(validation),
         )
 
+        wrong_life_band = json.loads(json.dumps(universe))
+        wrong_life_band["selection_progression_policy"][
+            "intelligent_life"
+        ]["selector_band"]["upper_top_limb"] -= 1
+        validation = validator.Validation()
+        validator.validate_universe_selection_contract(
+            wrong_life_band,
+            universe_path,
+            validation,
+            index,
+        )
+        self.assertIn(
+            "universe.selection_progression_policy",
+            self.finding_codes(validation),
+        )
+
+        wrong_life_index = json.loads(json.dumps(index))
+        next(
+            row
+            for row in wrong_life_index["actions"]
+            if row["name"] == "DetectIntelligentLife"
+        )["fixed_literals"]["selected_life_stat"] = 0
+        validation = validator.Validation()
+        validator.validate_universe_selection_contract(
+            universe,
+            universe_path,
+            validation,
+            wrong_life_index,
+        )
+        self.assertIn(
+            "universe.intelligent_life_index_binding",
+            self.finding_codes(validation),
+        )
+
     def test_warp_schemas_are_exact_raw_int_contracts_end_to_end(self) -> None:
         warp_path = ROOT / "catalog" / "microverse-warp-tree-v2.json"
         index_path = ROOT / "catalog" / "microverse-catalog-index-v2.json"

@@ -58,6 +58,7 @@ EXPLICIT_SELECTION_MODE = "explicit_action_identity"
 DETERMINISTIC_SELECTOR_MODE = "stable_identifier_band_v1"
 UNRESOLVED_CANDIDATE_CODE = -1
 GOLDILOCKS_TOP_LIMB_MODULUS = 0xFFFFFFFF00000001
+INTELLIGENT_LIFE_CANDIDATE_CODES = (4, 5)
 
 
 def _signed_u64(value: int) -> int:
@@ -914,8 +915,8 @@ BODY_BANK: list[dict[str, Any]] = [
     {"code": 1, "name": "Main Sequence Star", "slug": "MainSequenceStar", "body_type": 2, "body_profile": 11, "nominal_denominator": 32, "target_top_limb": 576_460_752_303_423_488, "life_stat": 0, "matter": 3_000, "crystal": 0, "gas": 4_000, "energy": 27_000, "satellites": 0},
     {"code": 2, "name": "Giant Star", "slug": "GiantStar", "body_type": 2, "body_profile": 12, "nominal_denominator": 256, "target_top_limb": 72_057_594_037_927_936, "life_stat": 0, "matter": 3_000, "crystal": 0, "gas": 4_000, "energy": 33_000, "satellites": 0},
     {"code": 3, "name": "Rocky Planet", "slug": "RockyPlanet", "body_type": 1, "body_profile": 20, "nominal_denominator": 8, "target_top_limb": 2_305_843_009_213_693_952, "life_stat": 0, "matter": 19_000, "crystal": 5_000, "gas": 3_000, "energy": 3_000, "satellites": 1},
-    {"code": 4, "name": "Ocean Planet", "slug": "OceanPlanet", "body_type": 1, "body_profile": 21, "nominal_denominator": 32, "target_top_limb": 576_460_752_303_423_488, "life_stat": 1, "matter": 14_000, "crystal": 3_000, "gas": 14_000, "energy": 3_000, "satellites": 2},
-    {"code": 5, "name": "Garden Planet", "slug": "GardenPlanet", "body_type": 1, "body_profile": 22, "nominal_denominator": 128, "target_top_limb": 144_115_188_075_855_872, "life_stat": 1, "matter": 17_000, "crystal": 9_000, "gas": 6_000, "energy": 6_000, "satellites": 1},
+    {"code": 4, "name": "Ocean Planet", "slug": "OceanPlanet", "body_type": 1, "body_profile": 21, "nominal_denominator": 32, "target_top_limb": 576_460_752_303_423_488, "life_stat": 0, "matter": 14_000, "crystal": 3_000, "gas": 14_000, "energy": 3_000, "satellites": 2},
+    {"code": 5, "name": "Garden Planet", "slug": "GardenPlanet", "body_type": 1, "body_profile": 22, "nominal_denominator": 128, "target_top_limb": 144_115_188_075_855_872, "life_stat": 0, "matter": 17_000, "crystal": 9_000, "gas": 6_000, "energy": 6_000, "satellites": 1},
     {"code": 6, "name": "Gas Giant", "slug": "GasGiant", "body_type": 3, "body_profile": 30, "nominal_denominator": 16, "target_top_limb": 1_152_921_504_606_846_976, "life_stat": 0, "matter": 2_000, "crystal": 0, "gas": 24_000, "energy": 6_000, "satellites": 4},
     {"code": 7, "name": "Ice Giant", "slug": "IceGiant", "body_type": 4, "body_profile": 31, "nominal_denominator": 32, "target_top_limb": 576_460_752_303_423_488, "life_stat": 0, "matter": 4_000, "crystal": 9_000, "gas": 17_000, "energy": 4_000, "satellites": 3},
     {"code": 8, "name": "Barren Planet", "slug": "BarrenPlanet", "body_type": 1, "body_profile": 23, "nominal_denominator": 16, "target_top_limb": 1_152_921_504_606_846_976, "life_stat": 0, "matter": 23_000, "crystal": 9_000, "gas": 0, "energy": 0, "satellites": 0},
@@ -4222,6 +4223,47 @@ def body_selector_bands(
     return result
 
 
+def intelligent_life_selector_band(
+    bank: list[dict[str, Any]],
+) -> dict[str, int | None]:
+    """Select half of Ocean and half of Garden with one contiguous band.
+
+    Ocean and Garden are adjacent in the Planet candidate partition. The band
+    begins halfway through Ocean and ends halfway through Garden, so a single
+    positive-only action can prove life for half of each candidate. Bodies
+    outside the band remain at their initial ``life_stat = 0``.
+    """
+    bands = body_selector_bands(bank)
+    ocean = bands[INTELLIGENT_LIFE_CANDIDATE_CODES[0]]
+    garden = bands[INTELLIGENT_LIFE_CANDIDATE_CODES[1]]
+    ocean_lower = ocean["lower_top_limb"]
+    ocean_upper = ocean["upper_top_limb"]
+    garden_lower = garden["lower_top_limb"]
+    garden_upper = garden["upper_top_limb"]
+    if not all(
+        isinstance(value, int)
+        for value in (
+            ocean_lower,
+            ocean_upper,
+            garden_lower,
+            garden_upper,
+        )
+    ):
+        raise ValueError("Ocean and Garden life bands must be bounded")
+    assert isinstance(ocean_lower, int)
+    assert isinstance(ocean_upper, int)
+    assert isinstance(garden_lower, int)
+    assert isinstance(garden_upper, int)
+    if ocean_upper + 1 != garden_lower:
+        raise ValueError("Ocean and Garden bands must remain adjacent")
+    ocean_width = ocean_upper - ocean_lower + 1
+    garden_width = garden_upper - garden_lower + 1
+    return {
+        "lower_top_limb": ocean_lower + ocean_width // 2,
+        "upper_top_limb": garden_lower + garden_width // 2 - 1,
+    }
+
+
 def survey_selector_bands() -> dict[int, dict[str, int | None]]:
     maximum = max(
         profile["minimum_claim_serial"] for profile in SURVEY_PROFILES
@@ -4946,18 +4988,27 @@ def build_actions(bank: list[dict[str, Any]]) -> list[dict[str, Any]]:
             ],
         )
     )
-    actions.append(
-        action_record(
-            "DetectIntelligentLife",
-            "detect_intelligent_life",
-            [
-                ("output", SHIP),
-                ("output", LIFE_SIGNAL),
-                ("input", SHIP),
-                ("mutate", BODY),
-            ],
-        )
+    detect_life_action = action_record(
+        "DetectIntelligentLife",
+        "detect_intelligent_life",
+        [
+            ("output", SHIP),
+            ("output", LIFE_SIGNAL),
+            ("input", SHIP),
+            ("mutate", BODY),
+        ],
     )
+    detect_life_action.update(
+        {
+            "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+            "selector_subject": "body.source_signal_identifier",
+            "selector_band": intelligent_life_selector_band(bank),
+            "initial_life_stat": 0,
+            "selected_life_stat": 1,
+            "candidate_codes": list(INTELLIGENT_LIFE_CANDIDATE_CODES),
+        }
+    )
+    actions.append(detect_life_action)
     for civilization_type in CIVILIZATION_TYPES:
         gate = EXPLICIT_COUNTER_GATES[civilization_type["action"]]
         action = action_record(
@@ -7252,7 +7303,14 @@ fn DiscoverSatellite(action) {{
 """
 
 
-def detect_intelligent_life_source() -> str:
+def detect_intelligent_life_source(
+    bank: list[dict[str, Any]] | None = None,
+) -> str:
+    selector_constraints = selector_constraints_source(
+        "body.source_signal_identifier",
+        intelligent_life_selector_band(BODY_BANK if bank is None else bank),
+        prefix="life_selector",
+    )
     return f"""
 fn DetectIntelligentLife(action) {{
     var next_ship = action.output("{SHIP}");
@@ -7261,8 +7319,9 @@ fn DetectIntelligentLife(action) {{
     var body = action.mutate("{BODY}");
 {replacement_ship_state_source("body", ("sector_x", "sector_y", "sector_z", "sector_epoch"), "civilization_scan_serial")}
 
+{selector_constraints}
     action.st_sum(body.body_type, 0, 1);
-    action.st_gt(body.life_stat, 0);
+    action.st_sum(body.life_stat, 0, 0);
     action.st_sum(body.civilization_discovered, 0, 0);
     var source_body_identifier = action.random();
     var_assign(source_body_identifier, body.stable_identifier);
@@ -7280,6 +7339,7 @@ fn DetectIntelligentLife(action) {{
     ]);
     let zero = action.top_limb_u256(0);
     life_signal.update("key", zero);
+    body.update("life_stat", 1);
     body.update("civilization_discovered", 1);
     var next_body_key = action.random();
     rotate_key(body, next_body_key);
@@ -8369,7 +8429,7 @@ def sources_for_bank(bank: list[dict[str, Any]]) -> dict[str, str]:
                 ship_tier=tier,
             )
     result["DiscoverSatellite"] = satellite_source()
-    result["DetectIntelligentLife"] = detect_intelligent_life_source()
+    result["DetectIntelligentLife"] = detect_intelligent_life_source(bank)
     for civilization_type in CIVILIZATION_TYPES:
         result[civilization_type["action"]] = (
             materialize_civilization_source(civilization_type)
@@ -9076,6 +9136,19 @@ def civilization_tech_catalog(
                     f"ScanCelestialBody_{candidate['code']:02d}_"
                     f"{candidate['slug']}"
                 ),
+                "initial_life_stat": 0,
+                "life_detection_action": (
+                    "DetectIntelligentLife"
+                    if candidate["code"]
+                    in INTELLIGENT_LIFE_CANDIDATE_CODES
+                    else None
+                ),
+                "life_selection_mode": (
+                    DETERMINISTIC_SELECTOR_MODE
+                    if candidate["code"]
+                    in INTELLIGENT_LIFE_CANDIDATE_CODES
+                    else "not_eligible"
+                ),
             }
         )
 
@@ -9407,6 +9480,9 @@ def expansion_catalog_index(
         "minimum_claim_serial",
         "civilization_type",
         "minimum_civilization_scan_serial",
+        "initial_life_stat",
+        "selected_life_stat",
+        "candidate_codes",
         "minimum_source_pool_inclusive",
         "direction",
         "final_use",
@@ -11133,6 +11209,17 @@ def generate_package(
                     "partition_scope": (
                         "candidate_code + required skill + reserve pool"
                     ),
+                },
+                "intelligent_life": {
+                    "action": "DetectIntelligentLife",
+                    "selector_field": "body.source_signal_identifier",
+                    "eligible_candidate_codes": list(
+                        INTELLIGENT_LIFE_CANDIDATE_CODES
+                    ),
+                    "initial_life_stat": 0,
+                    "selected_life_stat": 1,
+                    "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+                    "selector_band": intelligent_life_selector_band(bank),
                 },
             },
             "body_bank": bank,
@@ -18197,6 +18284,11 @@ def deterministic_hierarchy_audit(
             for row in bank
         }
     )
+    selector_specs["DetectIntelligentLife"] = (
+        "body.source_signal_identifier",
+        "life_selector",
+        "life_presence",
+    )
     selector_specs.update(
         {
             row["action"]: (
@@ -18300,7 +18392,40 @@ def deterministic_hierarchy_audit(
 
     scan_core = named_function_source(plugin, "scan_body_core")
     detect_life = action_function_source(plugin, "DetectIntelligentLife")
-    life_rows = [row for row in bank if row["life_stat"] == 1]
+    life_band = intelligent_life_selector_band(bank)
+    planet_bands = body_selector_bands(bank)
+    intersecting_planet_codes = [
+        row["code"]
+        for row in bank
+        if row["body_type"] == 1
+        and (
+            planet_bands[row["code"]]["upper_top_limb"] is None
+            or life_band["lower_top_limb"] is None
+            or planet_bands[row["code"]]["upper_top_limb"]
+            >= life_band["lower_top_limb"]
+        )
+        and (
+            life_band["upper_top_limb"] is None
+            or planet_bands[row["code"]]["lower_top_limb"] is None
+            or life_band["upper_top_limb"]
+            >= planet_bands[row["code"]]["lower_top_limb"]
+        )
+    ]
+    life_updates = object_update_pairs(detect_life, "body")
+    scan_life_literals_exact = all(
+        len(calls) == 1 and len(calls[0]) == 13 and calls[0][7] == "0"
+        for candidate in bank
+        for calls in [
+            rhai_call_arguments(
+                action_function_source(
+                    plugin,
+                    f"ScanCelestialBody_{candidate['code']:02d}_"
+                    f"{candidate['slug']}",
+                ),
+                "scan_body_core",
+            )
+        ]
+    )
     checks = {
         "survey_partition_exact": survey_partition_exact,
         "body_partitions_exact": body_partitions_exact,
@@ -18325,9 +18450,35 @@ def deterministic_hierarchy_audit(
         "life_stat_is_boolean": all(
             row["life_stat"] in (0, 1) for row in bank
         ),
-        "life_candidates_exact": [row["code"] for row in life_rows] == [4, 5],
-        "legacy_positive_life_values_remain_eligible": rhai_contains(
-            detect_life, "action.st_gt(body.life_stat,0);"
+        "all_scanned_bodies_start_without_life": all(
+            row["life_stat"] == 0 for row in bank
+        ) and scan_life_literals_exact,
+        "life_band_intersects_only_ocean_and_garden": (
+            intersecting_planet_codes
+            == list(INTELLIGENT_LIFE_CANDIDATE_CODES)
+        ),
+        "life_action_metadata_exact": (
+            actions_by_name["DetectIntelligentLife"].get(
+                "selection_mode"
+            ) == DETERMINISTIC_SELECTOR_MODE
+            and actions_by_name["DetectIntelligentLife"].get(
+                "selector_subject"
+            ) == "body.source_signal_identifier"
+            and actions_by_name["DetectIntelligentLife"].get(
+                "selector_band"
+            ) == life_band
+            and actions_by_name["DetectIntelligentLife"].get(
+                "candidate_codes"
+            ) == list(INTELLIGENT_LIFE_CANDIDATE_CODES)
+        ),
+        "life_action_requires_zero_then_updates_one": (
+            rhai_contains(
+                detect_life, "action.st_sum(body.life_stat,0,0);"
+            )
+            and not rhai_contains(
+                detect_life, "action.st_gt(body.life_stat,0);"
+            )
+            and life_updates.count(("life_stat", "1")) == 1
         ),
     }
     return {
