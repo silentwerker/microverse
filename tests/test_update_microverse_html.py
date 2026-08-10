@@ -230,6 +230,47 @@ class UpdateMicroverseHtmlTests(unittest.TestCase):
             "0b9895559132f017304163a09225c1fc846b447cbb8af65ebd3e1cfd2c7c8dae",
         )
 
+    def test_runtime_uses_the_pexe_deterministic_hierarchy(self):
+        candidate_fields = assigned_json(self.source, "var Uc=")
+        category_codes = assigned_json(self.source, ",Sn=")
+        category_labels = assigned_json(self.source, ",vn=")
+        survey_counts = assigned_json(self.source, ",Jn=")
+        self.assertEqual(set(candidate_fields), {f"{code:02d}" for code in range(23)})
+        self.assertEqual(set(category_codes.values()), set(range(1, 12)))
+        self.assertEqual(category_codes["minor_body_field_remaining"], 11)
+        self.assertEqual(category_labels["minor_body_field_remaining"], "minor-body field")
+        self.assertEqual(survey_counts["1"]["minor_body_field_remaining"], 1)
+
+        contract = assigned_json(self.source, "var Xo=")
+        detect = [row for row in contract["actions"] if row["family"] == "detect_signal"]
+        scan = [row for row in contract["actions"] if row["family"] == "scan_body"]
+        self.assertEqual(len(detect), 23)
+        self.assertTrue(all(row["output_candidate_code"] == -1 for row in detect))
+        self.assertEqual(len(scan), 23)
+        self.assertTrue(
+            all(row["selection_mode"] == "stable_identifier_band_v1" for row in scan)
+        )
+
+        for fragment in (
+            "function mvStableBandMatch",
+            'mvSelectedAction("survey_sector",A.stable_identifier)',
+            'mvSelectedAction("scan_body",e',
+            "BigInt(I.output_candidate_code)",
+            'code:"-1",category:N(C,"category_code",-1)',
+            'Rc=function(e){let l=Yn(e.action,e.driverObject);',
+            'mvSelectedAction("materialize_civilization"',
+            'life:A.driverObject?N(A.driverObject,"life_stat",l.life):l.life',
+            'let t=to(a.class.name,{driverObject:a});',
+            "this planet's stable-ID band has no intelligent-life signal",
+        ):
+            self.assertIn(fragment, self.source)
+        self.assertNotIn("4611686018427387905n,9223372036854775807n", self.source)
+
+        body_visuals = assigned_json(self.source, "var cs=")
+        self.assertEqual(set(body_visuals), {f"{code:02d}" for code in range(23)})
+        self.assertEqual(body_visuals["15"], "belt")
+        self.assertEqual(body_visuals["22"], "anomaly")
+
 
 if __name__ == "__main__":
     unittest.main()
