@@ -914,8 +914,8 @@ BODY_BANK: list[dict[str, Any]] = [
     {"code": 1, "name": "Main Sequence Star", "slug": "MainSequenceStar", "body_type": 2, "body_profile": 11, "nominal_denominator": 32, "target_top_limb": 576_460_752_303_423_488, "life_stat": 0, "matter": 3_000, "crystal": 0, "gas": 4_000, "energy": 27_000, "satellites": 0},
     {"code": 2, "name": "Giant Star", "slug": "GiantStar", "body_type": 2, "body_profile": 12, "nominal_denominator": 256, "target_top_limb": 72_057_594_037_927_936, "life_stat": 0, "matter": 3_000, "crystal": 0, "gas": 4_000, "energy": 33_000, "satellites": 0},
     {"code": 3, "name": "Rocky Planet", "slug": "RockyPlanet", "body_type": 1, "body_profile": 20, "nominal_denominator": 8, "target_top_limb": 2_305_843_009_213_693_952, "life_stat": 0, "matter": 19_000, "crystal": 5_000, "gas": 3_000, "energy": 3_000, "satellites": 1},
-    {"code": 4, "name": "Ocean Planet", "slug": "OceanPlanet", "body_type": 1, "body_profile": 21, "nominal_denominator": 32, "target_top_limb": 576_460_752_303_423_488, "life_stat": 2, "matter": 14_000, "crystal": 3_000, "gas": 14_000, "energy": 3_000, "satellites": 2},
-    {"code": 5, "name": "Garden Planet", "slug": "GardenPlanet", "body_type": 1, "body_profile": 22, "nominal_denominator": 128, "target_top_limb": 144_115_188_075_855_872, "life_stat": 4, "matter": 17_000, "crystal": 9_000, "gas": 6_000, "energy": 6_000, "satellites": 1},
+    {"code": 4, "name": "Ocean Planet", "slug": "OceanPlanet", "body_type": 1, "body_profile": 21, "nominal_denominator": 32, "target_top_limb": 576_460_752_303_423_488, "life_stat": 1, "matter": 14_000, "crystal": 3_000, "gas": 14_000, "energy": 3_000, "satellites": 2},
+    {"code": 5, "name": "Garden Planet", "slug": "GardenPlanet", "body_type": 1, "body_profile": 22, "nominal_denominator": 128, "target_top_limb": 144_115_188_075_855_872, "life_stat": 1, "matter": 17_000, "crystal": 9_000, "gas": 6_000, "energy": 6_000, "satellites": 1},
     {"code": 6, "name": "Gas Giant", "slug": "GasGiant", "body_type": 3, "body_profile": 30, "nominal_denominator": 16, "target_top_limb": 1_152_921_504_606_846_976, "life_stat": 0, "matter": 2_000, "crystal": 0, "gas": 24_000, "energy": 6_000, "satellites": 4},
     {"code": 7, "name": "Ice Giant", "slug": "IceGiant", "body_type": 4, "body_profile": 31, "nominal_denominator": 32, "target_top_limb": 576_460_752_303_423_488, "life_stat": 0, "matter": 4_000, "crystal": 9_000, "gas": 17_000, "energy": 4_000, "satellites": 3},
     {"code": 8, "name": "Barren Planet", "slug": "BarrenPlanet", "body_type": 1, "body_profile": 23, "nominal_denominator": 16, "target_top_limb": 1_152_921_504_606_846_976, "life_stat": 0, "matter": 23_000, "crystal": 9_000, "gas": 0, "energy": 0, "satellites": 0},
@@ -18299,6 +18299,8 @@ def deterministic_hierarchy_audit(
         }
 
     scan_core = named_function_source(plugin, "scan_body_core")
+    detect_life = action_function_source(plugin, "DetectIntelligentLife")
+    life_rows = [row for row in bank if row["life_stat"] == 1]
     checks = {
         "survey_partition_exact": survey_partition_exact,
         "body_partitions_exact": body_partitions_exact,
@@ -18319,6 +18321,13 @@ def deterministic_hierarchy_audit(
         ),
         "scan_core_owns_no_selector": not rhai_method_statement_calls(
             scan_core, "intro_lt_eq_u256"
+        ),
+        "life_stat_is_boolean": all(
+            row["life_stat"] in (0, 1) for row in bank
+        ),
+        "life_candidates_exact": [row["code"] for row in life_rows] == [4, 5],
+        "legacy_positive_life_values_remain_eligible": rhai_contains(
+            detect_life, "action.st_gt(body.life_stat,0);"
         ),
     }
     return {

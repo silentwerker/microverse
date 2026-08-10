@@ -1,7 +1,7 @@
 [plugin]
 name = "microverse-celestial-prototype"
 version = "0.1.0"
-module_hash = "30f1cd42dfa82f1a802df3fcec870876a4ec97260a97aa577b2ac0db5c491eae"
+module_hash = "44275e5c8391f3f8d5d722ff16ae2054e5edf9ee67a60630bf49ded5dc2ede30"
 
 [[classes]]
 name = "MicroverseShip"

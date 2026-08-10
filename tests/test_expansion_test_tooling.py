@@ -3692,6 +3692,28 @@ description = \"omitted\"
         self.assertEqual("pass", audit["status"])
         self.assertEqual(400, audit["route_count"])
         self.assertEqual(23, audit["detect_alias_count"])
+        self.assertTrue(audit["checks"]["life_stat_is_boolean"])
+        self.assertTrue(audit["checks"]["life_candidates_exact"])
+        self.assertTrue(
+            audit["checks"]["legacy_positive_life_values_remain_eligible"]
+        )
+        self.assertEqual(
+            {4: 1, 5: 1},
+            {
+                candidate["code"]: candidate["life_stat"]
+                for candidate in bank
+                if candidate["life_stat"]
+            },
+        )
+
+        non_boolean_bank = [dict(candidate) for candidate in bank]
+        non_boolean_bank[4]["life_stat"] = 2
+        self.assertEqual(
+            "fail",
+            production_generator.deterministic_hierarchy_audit(
+                plugin, actions, non_boolean_bank
+            )["status"],
+        )
 
         rocky = production_generator.action_function_source(
             plugin, "ScanCelestialBody_03_RockyPlanet"

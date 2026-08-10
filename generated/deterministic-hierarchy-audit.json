@@ -11,6 +11,9 @@
     "all_selector_routes_exact": true,
     "body_partitions_exact": true,
     "civilization_partition_exact": true,
+    "legacy_positive_life_values_remain_eligible": true,
+    "life_candidates_exact": true,
+    "life_stat_is_boolean": true,
     "root_skill_partitions_exact": true,
     "scan_core_owns_no_selector": true,
     "scan_core_requires_unresolved_signal": true,
@@ -203,7 +206,7 @@
       "status": "pass"
     }
   },
-  "plugin_sha256": "9ca4088581f0fd9503b0d1ae59a43c297de67a6d443b86668ffe24fe77e19e9b",
+  "plugin_sha256": "8f6cfd1d2419694d01695514cfac57b9312b78198ce5909c0c1f262be8d53637",
   "route_count": 400,
   "routes": {
     "DevelopTypeIChemicalEngineeringSkill": {

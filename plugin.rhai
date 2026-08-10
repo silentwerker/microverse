@@ -1973,7 +1973,7 @@ let body_selector_lower=action.top_limb_u256(7976970408395495922);
 action.intro_lt_eq_u256(body_selector_lower,signal);
 let body_selector_upper=action.top_limb_u256(-8475531063215181714);
 action.intro_lt_eq_u256(signal,body_selector_upper);
-scan_body_core(action,body,signal,ship,1,4,1,2,14000,3000,14000,3000,2);
+scan_body_core(action,body,signal,ship,1,4,1,1,14000,3000,14000,3000,2);
 }
 fn ScanCelestialBody_05_GardenPlanet(action){
 var body=action.output("MicroverseCelestialBody");
@@ -1983,7 +1983,7 @@ let body_selector_lower=action.top_limb_u256(-8475531063215181713);
 action.intro_lt_eq_u256(body_selector_lower,signal);
 let body_selector_upper=action.top_limb_u256(-7976970412690463219);
 action.intro_lt_eq_u256(signal,body_selector_upper);
-scan_body_core(action,body,signal,ship,1,5,1,4,17000,9000,6000,6000,1);
+scan_body_core(action,body,signal,ship,1,5,1,1,17000,9000,6000,6000,1);
 }
 fn ScanCelestialBody_06_GasGiant(action){
 var body=action.output("MicroverseCelestialBody");
