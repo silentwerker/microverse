@@ -1,0 +1,89 @@
+{
+  "host": {
+    "cargo": "cargo 1.92.0 (344c4567c 2025-10-21)",
+    "machine": "AMD64",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "processor": "Intel64 Family 6 Model 63 Stepping 2, GenuineIntel",
+    "python": "3.10.1",
+    "rust": "rustc 1.92.0 (ded5c06cf 2025-12-08)"
+  },
+  "installed_source_kind": "exported tree without Git metadata",
+  "installed_source_root": "D:\\digitalobjectsnetwork\\digital-objects-network",
+  "pexe": {
+    "bytes": 16119296,
+    "exists": true,
+    "path": "C:\\Users\\Rich\\.dobj\\bin\\pexe.exe",
+    "sha256": "7c20cba130f8a7e0e301f3f88eb8da95076f337c3ff7685d26738221d7d7bfed",
+    "version": "pexe v0.1.0-rc.43 (x86_64-pc-windows-msvc)"
+  },
+  "plonky2_revision": "109d517d09c210ae4c2cee381d3e3fbc04aa3812",
+  "pod2_revision": "da6c08f3c3341a51aa8f7f0f863ec694bcb9d9a3",
+  "review_baseline_commit": "97ef94b3f18851a4d8d472e16c70030f49caf8ce",
+  "source_files": {
+    "Cargo.lock": {
+      "bytes": 257342,
+      "exists": true,
+      "sha256": "f55afbf38c82645b7bd9fccba4a7cfea05d19234cc436481a45cd86d24bc0c5b"
+    },
+    "Cargo.toml": {
+      "bytes": 1590,
+      "exists": true,
+      "sha256": "7165caf1c1b6ee393aec19d4b5f0b65d665bed690616571b4a27f674edae764d"
+    },
+    "examples/craft-basics/plugin.rhai": {
+      "bytes": 1986,
+      "exists": true,
+      "sha256": "be995feb1fcd59d0d9f3ab8e27e788c7329a89f0482a5cf60f729bea8af997e7"
+    },
+    "libs/payload/src/blob.rs": {
+      "bytes": 3052,
+      "exists": true,
+      "sha256": "c61099f8c3e26a430c70c433d680bf465da0225ea917432555a24bebba6f34c9"
+    },
+    "libs/payload/src/payload.rs": {
+      "bytes": 11507,
+      "exists": true,
+      "sha256": "c6acd2a5af297a1043c831307974d2309c6c90f6968a58f569aad3a4482d5867"
+    },
+    "libs/pexe/src/bin/pexe.rs": {
+      "bytes": 13815,
+      "exists": true,
+      "sha256": "f1750e8aced17b776e2988d84fe01de80612910d033b212e92b75b98824de4d7"
+    },
+    "libs/pexe/src/fixtures.rs": {
+      "bytes": 8304,
+      "exists": true,
+      "sha256": "0284700ae4e571ee5cfe9a628dd0790a3b3de28cb4dd2accea671debd159538c"
+    },
+    "libs/pexe/src/lib.rs": {
+      "bytes": 10965,
+      "exists": true,
+      "sha256": "138cb2b5d5e825f1a186d3c7e56d3a54913951a2e131d324f1f586275dd0dde3"
+    },
+    "libs/sdk/src/fmt_podlang.rs": {
+      "bytes": 25502,
+      "exists": true,
+      "sha256": "24d7f9ee2ab9445f139dc1c33523e9522041cb6f44604dd6c2b2fad6264797b1"
+    },
+    "libs/sdk/src/lib.rs": {
+      "bytes": 99870,
+      "exists": true,
+      "sha256": "0b9eaa06c3ac84adc7f1485dc38e18f8753f713f85e4c6d9d8e38f171f409db0"
+    },
+    "libs/sdk/src/manifest.rs": {
+      "bytes": 1444,
+      "exists": true,
+      "sha256": "2609e3d46473cbfea0fdab4edf4d2eea71bd8294b0b1fd2b9b5a15bb454a50d4"
+    },
+    "libs/txlib/src/lib.rs": {
+      "bytes": 61201,
+      "exists": true,
+      "sha256": "311d4d7c6a40b94d656645023fc5e6cd099eb322165e90e921e289f4f6b50d9c"
+    },
+    "services/synchronizer/src/state_machine.rs": {
+      "bytes": 22372,
+      "exists": true,
+      "sha256": "1f10d1da65eb397ee7d17e74f0c8cf1c0d0e96c2ec12fc468bd125dbab5c80a4"
+    }
+  }
+}

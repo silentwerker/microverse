@@ -1,0 +1,671 @@
+{
+  "changes": [
+    "epoch"
+  ],
+  "class": "MicroverseTimeCoordinate",
+  "coordinate_selection": {
+    "mapping": "one action name maps to one fixed destination row",
+    "selection_mode": "explicit_action_identity",
+    "selector_source": "action name",
+    "stable_identifier_used": false
+  },
+  "destination_count": 86,
+  "destinations": [
+    {
+      "code": 1,
+      "epoch": 101,
+      "minimum_source_pool_inclusive": 18000,
+      "slug": "01",
+      "uses": 10
+    },
+    {
+      "code": 2,
+      "epoch": 19257,
+      "minimum_source_pool_inclusive": 9001,
+      "slug": "02",
+      "uses": 3
+    },
+    {
+      "code": 3,
+      "epoch": 306610,
+      "minimum_source_pool_inclusive": 9001,
+      "slug": "03",
+      "uses": 3
+    },
+    {
+      "code": 4,
+      "epoch": 1551806,
+      "minimum_source_pool_inclusive": 9001,
+      "slug": "04",
+      "uses": 3
+    },
+    {
+      "code": 5,
+      "epoch": 4904256,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "05",
+      "uses": 1
+    },
+    {
+      "code": 6,
+      "epoch": 11973137,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "06",
+      "uses": 1
+    },
+    {
+      "code": 7,
+      "epoch": 24827389,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "07",
+      "uses": 1
+    },
+    {
+      "code": 8,
+      "epoch": 45995718,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "08",
+      "uses": 1
+    },
+    {
+      "code": 9,
+      "epoch": 78466594,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "09",
+      "uses": 1
+    },
+    {
+      "code": 10,
+      "epoch": 125688251,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "10",
+      "uses": 1
+    },
+    {
+      "code": 11,
+      "epoch": 191568688,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "11",
+      "uses": 1
+    },
+    {
+      "code": 12,
+      "epoch": 280475669,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "12",
+      "uses": 1
+    },
+    {
+      "code": 13,
+      "epoch": 397236724,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "13",
+      "uses": 1
+    },
+    {
+      "code": 14,
+      "epoch": 547139143,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "14",
+      "uses": 1
+    },
+    {
+      "code": 15,
+      "epoch": 735929986,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "15",
+      "uses": 1
+    },
+    {
+      "code": 16,
+      "epoch": 969816075,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "16",
+      "uses": 1
+    },
+    {
+      "code": 17,
+      "epoch": 1255463996,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "17",
+      "uses": 1
+    },
+    {
+      "code": 18,
+      "epoch": 1600000100,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "18",
+      "uses": 1
+    },
+    {
+      "code": 19,
+      "epoch": 2011010505,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "19",
+      "uses": 1
+    },
+    {
+      "code": 20,
+      "epoch": 2496541090,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "20",
+      "uses": 1
+    },
+    {
+      "code": 21,
+      "epoch": 3065097501,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "21",
+      "uses": 1
+    },
+    {
+      "code": 22,
+      "epoch": 3725645147,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "22",
+      "uses": 1
+    },
+    {
+      "code": 23,
+      "epoch": 4487609204,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "23",
+      "uses": 1
+    },
+    {
+      "code": 24,
+      "epoch": 5360874611,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "24",
+      "uses": 1
+    },
+    {
+      "code": 25,
+      "epoch": 6355786070,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "25",
+      "uses": 1
+    },
+    {
+      "code": 26,
+      "epoch": 7483148051,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "26",
+      "uses": 1
+    },
+    {
+      "code": 27,
+      "epoch": 8754224786,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "27",
+      "uses": 1
+    },
+    {
+      "code": 28,
+      "epoch": 10180740273,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "28",
+      "uses": 1
+    },
+    {
+      "code": 29,
+      "epoch": 11774878274,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "29",
+      "uses": 1
+    },
+    {
+      "code": 30,
+      "epoch": 13549282316,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "30",
+      "uses": 1
+    },
+    {
+      "code": 31,
+      "epoch": 15517055690,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "31",
+      "uses": 1
+    },
+    {
+      "code": 32,
+      "epoch": 17691761452,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "32",
+      "uses": 1
+    },
+    {
+      "code": 33,
+      "epoch": 20087422423,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "33",
+      "uses": 1
+    },
+    {
+      "code": 34,
+      "epoch": 22718521189,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "34",
+      "uses": 1
+    },
+    {
+      "code": 35,
+      "epoch": 25600000098,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "35",
+      "uses": 1
+    },
+    {
+      "code": 36,
+      "epoch": 28747261265,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "36",
+      "uses": 1
+    },
+    {
+      "code": 37,
+      "epoch": 32176166570,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "37",
+      "uses": 1
+    },
+    {
+      "code": 38,
+      "epoch": 35903037656,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "38",
+      "uses": 1
+    },
+    {
+      "code": 39,
+      "epoch": 39944655931,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "39",
+      "uses": 1
+    },
+    {
+      "code": 40,
+      "epoch": 44318262569,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "40",
+      "uses": 1
+    },
+    {
+      "code": 41,
+      "epoch": 49041558506,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "41",
+      "uses": 1
+    },
+    {
+      "code": 42,
+      "epoch": 54132704445,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "42",
+      "uses": 1
+    },
+    {
+      "code": 43,
+      "epoch": 59610320852,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "43",
+      "uses": 1
+    },
+    {
+      "code": 44,
+      "epoch": 65493487959,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "44",
+      "uses": 1
+    },
+    {
+      "code": 45,
+      "epoch": 71801745762,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "45",
+      "uses": 1
+    },
+    {
+      "code": 46,
+      "epoch": 78555094021,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "46",
+      "uses": 1
+    },
+    {
+      "code": 47,
+      "epoch": 85773992261,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "47",
+      "uses": 1
+    },
+    {
+      "code": 48,
+      "epoch": 93479359773,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "48",
+      "uses": 1
+    },
+    {
+      "code": 49,
+      "epoch": 101692575610,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "49",
+      "uses": 1
+    },
+    {
+      "code": 50,
+      "epoch": 110435478592,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "50",
+      "uses": 1
+    },
+    {
+      "code": 51,
+      "epoch": 119730367301,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "51",
+      "uses": 1
+    },
+    {
+      "code": 52,
+      "epoch": 129600000087,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "52",
+      "uses": 1
+    },
+    {
+      "code": 53,
+      "epoch": 140067595062,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "53",
+      "uses": 1
+    },
+    {
+      "code": 54,
+      "epoch": 151156830104,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "54",
+      "uses": 1
+    },
+    {
+      "code": 55,
+      "epoch": 162891842854,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "55",
+      "uses": 1
+    },
+    {
+      "code": 56,
+      "epoch": 175297230719,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "56",
+      "uses": 1
+    },
+    {
+      "code": 57,
+      "epoch": 188398050871,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "57",
+      "uses": 1
+    },
+    {
+      "code": 58,
+      "epoch": 202219820245,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "58",
+      "uses": 1
+    },
+    {
+      "code": 59,
+      "epoch": 216788515542,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "59",
+      "uses": 1
+    },
+    {
+      "code": 60,
+      "epoch": 232130573226,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "60",
+      "uses": 1
+    },
+    {
+      "code": 61,
+      "epoch": 248272889528,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "61",
+      "uses": 1
+    },
+    {
+      "code": 62,
+      "epoch": 265242820442,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "62",
+      "uses": 1
+    },
+    {
+      "code": 63,
+      "epoch": 283068181727,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "63",
+      "uses": 1
+    },
+    {
+      "code": 64,
+      "epoch": 301777248905,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "64",
+      "uses": 1
+    },
+    {
+      "code": 65,
+      "epoch": 321398757267,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "65",
+      "uses": 1
+    },
+    {
+      "code": 66,
+      "epoch": 341961901863,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "66",
+      "uses": 1
+    },
+    {
+      "code": 67,
+      "epoch": 363496337511,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "67",
+      "uses": 1
+    },
+    {
+      "code": 68,
+      "epoch": 386032178795,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "68",
+      "uses": 1
+    },
+    {
+      "code": 69,
+      "epoch": 409600000059,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "69",
+      "uses": 1
+    },
+    {
+      "code": 70,
+      "epoch": 434230835415,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "70",
+      "uses": 1
+    },
+    {
+      "code": 71,
+      "epoch": 459956178739,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "71",
+      "uses": 1
+    },
+    {
+      "code": 72,
+      "epoch": 486807983672,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "72",
+      "uses": 1
+    },
+    {
+      "code": 73,
+      "epoch": 514818663618,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "73",
+      "uses": 1
+    },
+    {
+      "code": 74,
+      "epoch": 544021091746,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "74",
+      "uses": 1
+    },
+    {
+      "code": 75,
+      "epoch": 574448600993,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "75",
+      "uses": 1
+    },
+    {
+      "code": 76,
+      "epoch": 606134984055,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "76",
+      "uses": 1
+    },
+    {
+      "code": 77,
+      "epoch": 639114493396,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "77",
+      "uses": 1
+    },
+    {
+      "code": 78,
+      "epoch": 673421841245,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "78",
+      "uses": 1
+    },
+    {
+      "code": 79,
+      "epoch": 709092199595,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "79",
+      "uses": 1
+    },
+    {
+      "code": 80,
+      "epoch": 746161200202,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "80",
+      "uses": 1
+    },
+    {
+      "code": 81,
+      "epoch": 784664934588,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "81",
+      "uses": 1
+    },
+    {
+      "code": 82,
+      "epoch": 824639954040,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "82",
+      "uses": 1
+    },
+    {
+      "code": 83,
+      "epoch": 866123269609,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "83",
+      "uses": 1
+    },
+    {
+      "code": 84,
+      "epoch": 909152352111,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "84",
+      "uses": 1
+    },
+    {
+      "code": 85,
+      "epoch": 953765132126,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "85",
+      "uses": 1
+    },
+    {
+      "code": 86,
+      "epoch": 999999999999,
+      "minimum_source_pool_inclusive": 9000,
+      "slug": "86",
+      "uses": 1
+    }
+  ],
+  "energy_cost": 9000,
+  "preserves": [
+    "x",
+    "y",
+    "z"
+  ],
+  "required_skill_type": 14,
+  "schema": [
+    {
+      "name": "schema_version",
+      "type": "Int"
+    },
+    {
+      "name": "mechanics_version",
+      "type": "Int"
+    },
+    {
+      "name": "universe_version",
+      "type": "Int"
+    },
+    {
+      "name": "source_body_identifier",
+      "type": "Raw"
+    },
+    {
+      "name": "source_pool_before",
+      "type": "Int"
+    },
+    {
+      "name": "revealed",
+      "type": "Int"
+    },
+    {
+      "name": "destination_code",
+      "type": "Int"
+    },
+    {
+      "name": "destination_epoch",
+      "type": "Int"
+    },
+    {
+      "name": "uses_remaining",
+      "type": "Int"
+    },
+    {
+      "name": "key",
+      "type": "Raw"
+    },
+    {
+      "name": "stable_identifier",
+      "type": "Raw"
+    }
+  ],
+  "source_candidate": 11
+}

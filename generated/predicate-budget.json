@@ -1,0 +1,9 @@
+{
+  "action_predicates": 1650,
+  "class_bridges": 5890,
+  "class_predicates": 20,
+  "compiled_predicates": null,
+  "hard_limit": 65536,
+  "named_pre_split_baseline": 7560,
+  "split_predicates": null
+}

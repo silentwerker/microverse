@@ -1,0 +1,986 @@
+{
+  "schema_version": 2,
+  "catalog_name": "microverse-component-tree-v2",
+  "title": "Microverse Component Tree v2",
+  "description": "Append-only catalog of fixed-arity manufactured components. Every recipe consumes three exact whole Resource stacks, spends one unit from one terminal catalyst, and consumes one active root-skill use from a Ship.",
+  "code_range": {
+    "start": 390,
+    "end": 434,
+    "count": 45,
+    "allocation": "append-only after production Resource code 389"
+  },
+  "counts": {
+    "components": 45,
+    "component_actions": 90,
+    "reusable_catalyst_actions": 45,
+    "final_catalyst_actions": 45,
+    "material_input_rows": 135,
+    "catalyst_rows": 45,
+    "distinct_material_resource_types": 68,
+    "distinct_terminal_catalysts": 27,
+    "tier_1_components": 15,
+    "tier_2_components": 15,
+    "tier_3_components": 15
+  },
+  "object_semantics": {
+    "output_class": "MicroverseResource",
+    "output_amount": 1,
+    "material_input_class": "MicroverseResource",
+    "material_inputs_per_component": 3,
+    "material_consumption": "Each material is an input object constrained to the listed resource code and exact amount; the complete stack is consumed.",
+    "catalyst_class": "MicroverseResource",
+    "catalyst_units_per_craft": 1,
+    "reusable_catalyst_mode": "Require catalyst amount greater than 1, mutate amount to amount minus 1, rotate its key, and return the successor catalyst.",
+    "final_catalyst_mode": "Require catalyst amount exactly 1 and consume the catalyst input without a successor.",
+    "ship_skill_gate": "Require the listed active root skill on the input MicroverseShip, emit its replacement Ship with active_skill_type reset to 0, and increment action_serial.",
+    "branching": "None. Reusable and final catalyst cases are separate fixed actions."
+  },
+  "vdf_tiers": {
+    "solid": {
+      "iterations": 8,
+      "component_tier": 1,
+      "label": "Foundational fabrication"
+    },
+    "advanced": {
+      "iterations": 12,
+      "component_tier": 2,
+      "label": "Advanced fabrication"
+    },
+    "artifact": {
+      "iterations": 32,
+      "component_tier": 3,
+      "label": "Exotic and civilization-scale fabrication"
+    }
+  },
+  "tier_labels": {
+    "1": "Foundational Systems",
+    "2": "Advanced Systems",
+    "3": "Exotic Systems"
+  },
+  "skill_gate_counts": {
+    "1": { "name": "Industrial Fabrication", "component_gates": 1, "allocation": "thematic" },
+    "2": { "name": "Electronics", "component_gates": 4, "allocation": "documented deficit" },
+    "3": { "name": "Chemical Engineering", "component_gates": 1, "allocation": "thematic" },
+    "4": { "name": "Nuclear Engineering", "component_gates": 1, "allocation": "thematic" },
+    "5": { "name": "Genetic Engineering", "component_gates": 0, "allocation": "none required" },
+    "6": { "name": "Planetary Infrastructure", "component_gates": 4, "allocation": "documented deficit" },
+    "7": { "name": "Metamaterial Engineering", "component_gates": 0, "allocation": "none required" },
+    "8": { "name": "Stellar Energy Systems", "component_gates": 0, "allocation": "none required" },
+    "9": { "name": "Synthetic Intelligence", "component_gates": 8, "allocation": "documented deficit" },
+    "10": { "name": "Molecular Fabrication", "component_gates": 4, "allocation": "documented deficit" },
+    "11": { "name": "Interstellar Navigation", "component_gates": 6, "allocation": "documented deficit" },
+    "12": { "name": "Biosphere Engineering", "component_gates": 0, "allocation": "none required" },
+    "13": { "name": "Exotic Matter Engineering", "component_gates": 1, "allocation": "thematic" },
+    "14": { "name": "Spacetime Engineering", "component_gates": 0, "allocation": "none required" },
+    "15": { "name": "Galactic Intelligence Architecture", "component_gates": 4, "allocation": "documented deficit" },
+    "16": { "name": "Stellar Engineering", "component_gates": 0, "allocation": "none required" },
+    "17": { "name": "World Seeding", "component_gates": 4, "allocation": "documented deficit" },
+    "18": { "name": "Civilization Engineering", "component_gates": 7, "allocation": "documented deficit" }
+  },
+  "record_schema": {
+    "component_required_fields": [
+      "code",
+      "name",
+      "slug",
+      "description",
+      "tier",
+      "skill_code",
+      "skill_name",
+      "output_amount",
+      "vdf_tier",
+      "vdf_iterations",
+      "materials",
+      "catalyst",
+      "actions"
+    ],
+    "material_required_fields": [
+      "slot",
+      "resource_code",
+      "name",
+      "amount",
+      "possible_source_bodies"
+    ],
+    "catalyst_required_fields": [
+      "resource_code",
+      "name",
+      "units_per_craft",
+      "modes",
+      "possible_source_bodies"
+    ]
+  },
+  "validation_contract": {
+    "component_codes": "Exactly the contiguous integers 390 through 434 with no collisions.",
+    "fixed_arity": "Exactly three ordered material rows and exactly one catalyst per component.",
+    "whole_stack_reachability": "Every material resource code and amount must be emitted together by at least one fixed refinement action.",
+    "terminal_catalysts": "Every catalyst must be a tier-1 terminal, non-composite Resource.",
+    "cross_body_materials": "The intersection of the three materials' possible_source_bodies sets must be empty, so no single body can supply the full recipe.",
+    "skill_gate": "Exactly one existing root skill code is active for each component.",
+    "vdf": "Tier 1 uses solid/8, tier 2 uses advanced/12, and tier 3 uses artifact/32.",
+    "sdk_constraints": "Static literal wrappers only; no loops, runtime branching, modulo, or dynamic action routing."
+  },
+  "ui": {
+    "material_column_label": "Exact material stacks",
+    "catalyst_column_label": "One-unit catalyst charge",
+    "skill_column_label": "Active root skill",
+    "reusable_action_label": "Fabricate (catalyst remains)",
+    "final_action_label": "Fabricate (last catalyst charge)",
+    "quantity_note": "Material quantities are whole-object amounts, not deductions from a larger stack."
+  },
+  "components": [
+    {
+      "code": 390,
+      "name": "Structural Alloy",
+      "slug": "StructuralAlloy",
+      "description": "High-strength structural feedstock for hulls, frames, and load-bearing machinery.",
+      "tier": 1,
+      "skill_code": 1,
+      "skill_name": "Industrial Fabrication",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 211, "name": "Steel", "amount": 6, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 196, "name": "Aluminum", "amount": 3, "possible_source_bodies": ["Barren Planet", "Megastructure"] },
+        { "slot": 3, "resource_code": 159, "name": "Chromium", "amount": 2, "possible_source_bodies": ["Rocky Planet"] }
+      ],
+      "catalyst": { "resource_code": 257, "name": "Molecular Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Gas Cluster"] },
+      "actions": { "reusable": "FabricateStructuralAlloyReusable", "final": "FabricateStructuralAlloyFinal" }
+    },
+    {
+      "code": 391,
+      "name": "Ceramic Plating",
+      "slug": "CeramicPlating",
+      "description": "Thermal and impact-resistant layered protection for vehicles, stations, and habitats.",
+      "tier": 1,
+      "skill_code": 6,
+      "skill_name": "Planetary Infrastructure",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 213, "name": "Ceramic", "amount": 40, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 215, "name": "Silicon Carbide", "amount": 5, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 3, "resource_code": 354, "name": "Corundum", "amount": 35, "possible_source_bodies": ["Red Dwarf"] }
+      ],
+      "catalyst": { "resource_code": 233, "name": "Geothermal Energy", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Rocky Planet"] },
+      "actions": { "reusable": "FabricateCeramicPlatingReusable", "final": "FabricateCeramicPlatingFinal" }
+    },
+    {
+      "code": 392,
+      "name": "Circuit Substrate",
+      "slug": "CircuitSubstrate",
+      "description": "Insulating base material for dense electronic, control, and sensor circuits.",
+      "tier": 1,
+      "skill_code": 2,
+      "skill_name": "Electronics",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 164, "name": "Silicon", "amount": 5, "possible_source_bodies": ["Megastructure", "Rocky Planet"] },
+        { "slot": 2, "resource_code": 161, "name": "Copper", "amount": 7, "possible_source_bodies": ["Megastructure", "Rocky Planet"] },
+        { "slot": 3, "resource_code": 354, "name": "Corundum", "amount": 35, "possible_source_bodies": ["Red Dwarf"] }
+      ],
+      "catalyst": { "resource_code": 147, "name": "Field Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateCircuitSubstrateReusable", "final": "FabricateCircuitSubstrateFinal" }
+    },
+    {
+      "code": 393,
+      "name": "Pressure Vessel",
+      "slug": "PressureVessel",
+      "description": "Sealed structural chamber for high-pressure fluids, gases, and reaction systems.",
+      "tier": 1,
+      "skill_code": 6,
+      "skill_name": "Planetary Infrastructure",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 385, "name": "Tool Steel", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 159, "name": "Chromium", "amount": 2, "possible_source_bodies": ["Rocky Planet"] },
+        { "slot": 3, "resource_code": 319, "name": "Thermoset Resin", "amount": 1, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 240, "name": "Storm Field Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Gas Giant"] },
+      "actions": { "reusable": "FabricatePressureVesselReusable", "final": "FabricatePressureVesselFinal" }
+    },
+    {
+      "code": 394,
+      "name": "Fuel Slurry",
+      "slug": "FuelSlurry",
+      "description": "Stabilized liquid fuel blend for engines, reactors, and industrial burners.",
+      "tier": 1,
+      "skill_code": 3,
+      "skill_name": "Chemical Engineering",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 216, "name": "Methanol", "amount": 5, "possible_source_bodies": ["Gas Cluster"] },
+        { "slot": 2, "resource_code": 218, "name": "Benzene", "amount": 2, "possible_source_bodies": ["Gas Cluster"] },
+        { "slot": 3, "resource_code": 386, "name": "Industrial Lubricant", "amount": 1, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 257, "name": "Molecular Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Gas Cluster"] },
+      "actions": { "reusable": "FabricateFuelSlurryReusable", "final": "FabricateFuelSlurryFinal" }
+    },
+    {
+      "code": 395,
+      "name": "Abrasive Compound",
+      "slug": "AbrasiveCompound",
+      "description": "Precision cutting and polishing medium for hard alloys, crystals, and ceramics.",
+      "tier": 1,
+      "skill_code": 10,
+      "skill_name": "Molecular Fabrication",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 207, "name": "Diamond", "amount": 1, "possible_source_bodies": ["Barren Planet", "Stellar Remnant"] },
+        { "slot": 2, "resource_code": 354, "name": "Corundum", "amount": 35, "possible_source_bodies": ["Red Dwarf"] },
+        { "slot": 3, "resource_code": 327, "name": "Silicate Dust", "amount": 6, "possible_source_bodies": ["Gas Cluster"] }
+      ],
+      "catalyst": { "resource_code": 243, "name": "High-Pressure Phase Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Ice Giant"] },
+      "actions": { "reusable": "FabricateAbrasiveCompoundReusable", "final": "FabricateAbrasiveCompoundFinal" }
+    },
+    {
+      "code": 396,
+      "name": "Magnetic Core",
+      "slug": "MagneticCore",
+      "description": "High-flux magnetic core for motors, field coils, transformers, and actuators.",
+      "tier": 1,
+      "skill_code": 2,
+      "skill_name": "Electronics",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 264, "name": "Ferrite Dust", "amount": 35, "possible_source_bodies": ["Red Dwarf"] },
+        { "slot": 2, "resource_code": 266, "name": "Cobalt Ferrite", "amount": 5, "possible_source_bodies": ["Red Dwarf"] },
+        { "slot": 3, "resource_code": 222, "name": "Neodymium", "amount": 5, "possible_source_bodies": ["Barren Planet"] }
+      ],
+      "catalyst": { "resource_code": 251, "name": "Magnetic Observation", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateMagneticCoreReusable", "final": "FabricateMagneticCoreFinal" }
+    },
+    {
+      "code": 397,
+      "name": "Sealant Resin",
+      "slug": "SealantResin",
+      "description": "Flexible molecular sealant for vacuum joints, pressure systems, and habitat shells.",
+      "tier": 1,
+      "skill_code": 10,
+      "skill_name": "Molecular Fabrication",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 318, "name": "Thermoplastic", "amount": 8, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 189, "name": "Natural Rubber", "amount": 2, "possible_source_bodies": ["Garden Planet"] },
+        { "slot": 3, "resource_code": 371, "name": "Lignin", "amount": 1, "possible_source_bodies": ["Garden Planet"] }
+      ],
+      "catalyst": { "resource_code": 257, "name": "Molecular Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Gas Cluster"] },
+      "actions": { "reusable": "FabricateSealantResinReusable", "final": "FabricateSealantResinFinal" }
+    },
+    {
+      "code": 398,
+      "name": "Fusion Cell",
+      "slug": "FusionCell",
+      "description": "Contained fusion-fuel assembly for compact high-output power and propulsion systems.",
+      "tier": 2,
+      "skill_code": 4,
+      "skill_name": "Nuclear Engineering",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 155, "name": "Deuterium", "amount": 1, "possible_source_bodies": ["Gas Cluster", "Gas Giant", "Giant Star", "Ice Giant", "Main Sequence Star", "Red Dwarf"] },
+        { "slot": 2, "resource_code": 273, "name": "Helium-3", "amount": 25, "possible_source_bodies": ["Giant Star"] },
+        { "slot": 3, "resource_code": 357, "name": "Lithium-7", "amount": 30, "possible_source_bodies": ["Main Sequence Star"] }
+      ],
+      "catalyst": { "resource_code": 228, "name": "Stellar Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Main Sequence Star"] },
+      "actions": { "reusable": "FabricateFusionCellReusable", "final": "FabricateFusionCellFinal" }
+    },
+    {
+      "code": 399,
+      "name": "Radiation Shielding",
+      "slug": "RadiationShielding",
+      "description": "Layered attenuation material for crew spaces, reactors, and high-radiation instruments.",
+      "tier": 2,
+      "skill_code": 6,
+      "skill_name": "Planetary Infrastructure",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 219, "name": "Lead", "amount": 45, "possible_source_bodies": ["Barren Planet"] },
+        { "slot": 2, "resource_code": 368, "name": "Boron", "amount": 1, "possible_source_bodies": ["Ocean Planet"] },
+        { "slot": 3, "resource_code": 193, "name": "Water Ice", "amount": 45, "possible_source_bodies": ["Ice Giant"] }
+      ],
+      "catalyst": { "resource_code": 353, "name": "Decay Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Stellar Remnant"] },
+      "actions": { "reusable": "FabricateRadiationShieldingReusable", "final": "FabricateRadiationShieldingFinal" }
+    },
+    {
+      "code": 400,
+      "name": "Photonic Array",
+      "slug": "PhotonicArray",
+      "description": "Integrated light-routing array for sensing, communications, computation, and beam control.",
+      "tier": 2,
+      "skill_code": 2,
+      "skill_name": "Electronics",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 322, "name": "Photonic Crystal", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 222, "name": "Neodymium", "amount": 5, "possible_source_bodies": ["Barren Planet"] },
+        { "slot": 3, "resource_code": 321, "name": "Optical Glass", "amount": 8, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 147, "name": "Field Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricatePhotonicArrayReusable", "final": "FabricatePhotonicArrayFinal" }
+    },
+    {
+      "code": 401,
+      "name": "Superconductor",
+      "slug": "Superconductor",
+      "description": "Low-loss current carrier for compact magnets, energy grids, and precision instruments.",
+      "tier": 2,
+      "skill_code": 2,
+      "skill_name": "Electronics",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 222, "name": "Neodymium", "amount": 5, "possible_source_bodies": ["Barren Planet"] },
+        { "slot": 2, "resource_code": 161, "name": "Copper", "amount": 7, "possible_source_bodies": ["Megastructure", "Rocky Planet"] },
+        { "slot": 3, "resource_code": 273, "name": "Helium-3", "amount": 25, "possible_source_bodies": ["Giant Star"] }
+      ],
+      "catalyst": { "resource_code": 251, "name": "Magnetic Observation", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateSuperconductorReusable", "final": "FabricateSuperconductorFinal" }
+    },
+    {
+      "code": 402,
+      "name": "Life-Support Membrane",
+      "slug": "LifeSupportMembrane",
+      "description": "Selective biological membrane for atmosphere recycling, filtration, and closed habitats.",
+      "tier": 2,
+      "skill_code": 17,
+      "skill_name": "World Seeding",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 182, "name": "Enzyme", "amount": 3, "possible_source_bodies": ["Garden Planet"] },
+        { "slot": 2, "resource_code": 175, "name": "Cellulose", "amount": 5, "possible_source_bodies": ["Garden Planet"] },
+        { "slot": 3, "resource_code": 320, "name": "Elastomer", "amount": 1, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 126, "name": "Water", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Ocean Planet"] },
+      "actions": { "reusable": "FabricateLifeSupportMembraneReusable", "final": "FabricateLifeSupportMembraneFinal" }
+    },
+    {
+      "code": 403,
+      "name": "Cryogenic Line",
+      "slug": "CryogenicLine",
+      "description": "Insulated transfer line for deeply chilled propellants, coolants, and volatile samples.",
+      "tier": 2,
+      "skill_code": 10,
+      "skill_name": "Molecular Fabrication",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 297, "name": "Liquid Methane", "amount": 35, "possible_source_bodies": ["Ice Giant"] },
+        { "slot": 2, "resource_code": 300, "name": "High-Pressure Ice", "amount": 30, "possible_source_bodies": ["Ice Giant"] },
+        { "slot": 3, "resource_code": 320, "name": "Elastomer", "amount": 1, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 343, "name": "Cryosphere Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Ice Giant"] },
+      "actions": { "reusable": "FabricateCryogenicLineReusable", "final": "FabricateCryogenicLineFinal" }
+    },
+    {
+      "code": 404,
+      "name": "Catalytic Bed",
+      "slug": "CatalyticBed",
+      "description": "High-surface reaction bed for refining fuels, gases, and industrial chemical streams.",
+      "tier": 2,
+      "skill_code": 10,
+      "skill_name": "Molecular Fabrication",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 201, "name": "Platinum", "amount": 1, "possible_source_bodies": ["Barren Planet"] },
+        { "slot": 2, "resource_code": 220, "name": "Cerium", "amount": 45, "possible_source_bodies": ["Barren Planet"] },
+        { "slot": 3, "resource_code": 361, "name": "Zirconium", "amount": 15, "possible_source_bodies": ["Giant Star"] }
+      ],
+      "catalyst": { "resource_code": 257, "name": "Molecular Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Gas Cluster"] },
+      "actions": { "reusable": "FabricateCatalyticBedReusable", "final": "FabricateCatalyticBedFinal" }
+    },
+    {
+      "code": 405,
+      "name": "Bioreactor Culture",
+      "slug": "BioreactorCulture",
+      "description": "Engineered mixed culture for controlled food, medicine, and biomaterial production.",
+      "tier": 2,
+      "skill_code": 17,
+      "skill_name": "World Seeding",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 184, "name": "Bacterial Culture", "amount": 5, "possible_source_bodies": ["Garden Planet"] },
+        { "slot": 2, "resource_code": 181, "name": "Amino Acid", "amount": 5, "possible_source_bodies": ["Garden Planet"] },
+        { "slot": 3, "resource_code": 286, "name": "Marine Protein", "amount": 3, "possible_source_bodies": ["Ocean Planet"] }
+      ],
+      "catalyst": { "resource_code": 126, "name": "Water", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Ocean Planet"] },
+      "actions": { "reusable": "FabricateBioreactorCultureReusable", "final": "FabricateBioreactorCultureFinal" }
+    },
+    {
+      "code": 406,
+      "name": "Laser Assembly",
+      "slug": "LaserAssembly",
+      "description": "Aligned coherent-light assembly for ranging, communications, fabrication, and defense.",
+      "tier": 2,
+      "skill_code": 11,
+      "skill_name": "Interstellar Navigation",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 323, "name": "Laser Crystal", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 222, "name": "Neodymium", "amount": 5, "possible_source_bodies": ["Barren Planet"] },
+        { "slot": 3, "resource_code": 321, "name": "Optical Glass", "amount": 8, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 225, "name": "Flare Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Red Dwarf"] },
+      "actions": { "reusable": "FabricateLaserAssemblyReusable", "final": "FabricateLaserAssemblyFinal" }
+    },
+    {
+      "code": 407,
+      "name": "Isotope Battery",
+      "slug": "IsotopeBattery",
+      "description": "Long-duration radioisotope power source for unattended systems and deep-space missions.",
+      "tier": 2,
+      "skill_code": 18,
+      "skill_name": "Civilization Engineering",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 335, "name": "Strontium-90", "amount": 5, "possible_source_bodies": ["Stellar Remnant"] },
+        { "slot": 2, "resource_code": 334, "name": "Cesium-137", "amount": 15, "possible_source_bodies": ["Stellar Remnant"] },
+        { "slot": 3, "resource_code": 219, "name": "Lead", "amount": 45, "possible_source_bodies": ["Barren Planet"] }
+      ],
+      "catalyst": { "resource_code": 353, "name": "Decay Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Stellar Remnant"] },
+      "actions": { "reusable": "FabricateIsotopeBatteryReusable", "final": "FabricateIsotopeBatteryFinal" }
+    },
+    {
+      "code": 408,
+      "name": "Neutron Armour",
+      "slug": "NeutronArmour",
+      "description": "Dense layered armor engineered for neutron flux, impact, and extreme radiation fields.",
+      "tier": 3,
+      "skill_code": 18,
+      "skill_name": "Civilization Engineering",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 307, "name": "Neutron-Rich Alloy", "amount": 20, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 2, "resource_code": 303, "name": "Osmium", "amount": 225, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 3, "resource_code": 385, "name": "Tool Steel", "amount": 1, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 346, "name": "Pulsar Timing Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Neutron Star"] },
+      "actions": { "reusable": "FabricateNeutronArmourReusable", "final": "FabricateNeutronArmourFinal" }
+    },
+    {
+      "code": 409,
+      "name": "Degenerate Lattice",
+      "slug": "DegenerateLattice",
+      "description": "Ordered ultra-dense lattice for compact fields, inertial systems, and extreme structures.",
+      "tier": 3,
+      "skill_code": 18,
+      "skill_name": "Civilization Engineering",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 306, "name": "Nuclear Pasta", "amount": 225, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 2, "resource_code": 304, "name": "Iridium", "amount": 20, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 3, "resource_code": 316, "name": "Phase-Locked Crystal", "amount": 20, "possible_source_bodies": ["Anomaly"] }
+      ],
+      "catalyst": { "resource_code": 246, "name": "Pulsar Emission Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Neutron Star"] },
+      "actions": { "reusable": "FabricateDegenerateLatticeReusable", "final": "FabricateDegenerateLatticeFinal" }
+    },
+    {
+      "code": 410,
+      "name": "Event-Horizon Coil",
+      "slug": "EventHorizonCoil",
+      "description": "Extreme-field winding for controlling relativistic plasma near horizon-scale gradients.",
+      "tier": 3,
+      "skill_code": 13,
+      "skill_name": "Exotic Matter Engineering",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 308, "name": "Superdense Carbon", "amount": 5, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 2, "resource_code": 310, "name": "Carbon Plasma", "amount": 20, "possible_source_bodies": ["Black Hole"] },
+        { "slot": 3, "resource_code": 305, "name": "Rhenium", "amount": 5, "possible_source_bodies": ["Neutron Star"] }
+      ],
+      "catalyst": { "resource_code": 348, "name": "Hawking Radiation Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Black Hole"] },
+      "actions": { "reusable": "FabricateEventHorizonCoilReusable", "final": "FabricateEventHorizonCoilFinal" }
+    },
+    {
+      "code": 411,
+      "name": "Gravitic Lens",
+      "slug": "GraviticLens",
+      "description": "Precision field optic that shapes intense gravitational gradients for sensing and transit.",
+      "tier": 3,
+      "skill_code": 11,
+      "skill_name": "Interstellar Navigation",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 308, "name": "Superdense Carbon", "amount": 5, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 2, "resource_code": 321, "name": "Optical Glass", "amount": 8, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 3, "resource_code": 201, "name": "Platinum", "amount": 1, "possible_source_bodies": ["Barren Planet"] }
+      ],
+      "catalyst": { "resource_code": 249, "name": "Lensing Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Black Hole"] },
+      "actions": { "reusable": "FabricateGraviticLensReusable", "final": "FabricateGraviticLensFinal" }
+    },
+    {
+      "code": 412,
+      "name": "Phase Stabiliser",
+      "slug": "PhaseStabiliser",
+      "description": "Coherence-control assembly that holds exotic matter and fields in a selected phase.",
+      "tier": 3,
+      "skill_code": 11,
+      "skill_name": "Interstellar Navigation",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 316, "name": "Phase-Locked Crystal", "amount": 20, "possible_source_bodies": ["Anomaly"] },
+        { "slot": 2, "resource_code": 315, "name": "Metastable Isotope", "amount": 225, "possible_source_bodies": ["Anomaly"] },
+        { "slot": 3, "resource_code": 304, "name": "Iridium", "amount": 20, "possible_source_bodies": ["Neutron Star"] }
+      ],
+      "catalyst": { "resource_code": 349, "name": "Polarization Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricatePhaseStabiliserReusable", "final": "FabricatePhaseStabiliserFinal" }
+    },
+    {
+      "code": 413,
+      "name": "Warp Coil",
+      "slug": "WarpCoil",
+      "description": "Metric-engineering coil that establishes and shapes a controlled spatial displacement field.",
+      "tier": 3,
+      "skill_code": 11,
+      "skill_name": "Interstellar Navigation",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 317, "name": "Vacuum-Polarized Matter", "amount": 5, "possible_source_bodies": ["Anomaly"] },
+        { "slot": 2, "resource_code": 316, "name": "Phase-Locked Crystal", "amount": 20, "possible_source_bodies": ["Anomaly"] },
+        { "slot": 3, "resource_code": 308, "name": "Superdense Carbon", "amount": 5, "possible_source_bodies": ["Neutron Star"] }
+      ],
+      "catalyst": { "resource_code": 146, "name": "Temporal Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateWarpCoilReusable", "final": "FabricateWarpCoilFinal" }
+    },
+    {
+      "code": 414,
+      "name": "Thermal Exchanger",
+      "slug": "ThermalExchanger",
+      "description": "Rugged heat-transfer core for habitat climate systems, reactors, and propulsion loops.",
+      "tier": 1,
+      "skill_code": 6,
+      "skill_name": "Planetary Infrastructure",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 161, "name": "Copper", "amount": 7, "possible_source_bodies": ["Megastructure", "Rocky Planet"] },
+        { "slot": 2, "resource_code": 159, "name": "Chromium", "amount": 2, "possible_source_bodies": ["Rocky Planet"] },
+        { "slot": 3, "resource_code": 213, "name": "Ceramic", "amount": 40, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 233, "name": "Geothermal Energy", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Rocky Planet"] },
+      "actions": { "reusable": "FabricateThermalExchangerReusable", "final": "FabricateThermalExchangerFinal" }
+    },
+    {
+      "code": 415,
+      "name": "Sensor Package",
+      "slug": "SensorPackage",
+      "description": "Integrated multimodal sensor head for autonomous survey, control, and diagnostics.",
+      "tier": 1,
+      "skill_code": 9,
+      "skill_name": "Synthetic Intelligence",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 164, "name": "Silicon", "amount": 5, "possible_source_bodies": ["Megastructure", "Rocky Planet"] },
+        { "slot": 2, "resource_code": 321, "name": "Optical Glass", "amount": 8, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 3, "resource_code": 264, "name": "Ferrite Dust", "amount": 35, "possible_source_bodies": ["Red Dwarf"] }
+      ],
+      "catalyst": { "resource_code": 147, "name": "Field Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateSensorPackageReusable", "final": "FabricateSensorPackageFinal" }
+    },
+    {
+      "code": 416,
+      "name": "Servo Assembly",
+      "slug": "ServoAssembly",
+      "description": "Precision actuator and bearing assembly for robotics, control surfaces, and machinery.",
+      "tier": 1,
+      "skill_code": 9,
+      "skill_name": "Synthetic Intelligence",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 384, "name": "Bearing Steel", "amount": 8, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 158, "name": "Cobalt", "amount": 5, "possible_source_bodies": ["Barren Planet", "Giant Star", "Main Sequence Star", "Neutron Star", "Red Dwarf", "Stellar Remnant"] },
+        { "slot": 3, "resource_code": 386, "name": "Industrial Lubricant", "amount": 1, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 251, "name": "Magnetic Observation", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateServoAssemblyReusable", "final": "FabricateServoAssemblyFinal" }
+    },
+    {
+      "code": 417,
+      "name": "Data Storage Matrix",
+      "slug": "DataStorageMatrix",
+      "description": "Durable high-density storage medium for autonomous systems and scientific archives.",
+      "tier": 1,
+      "skill_code": 9,
+      "skill_name": "Synthetic Intelligence",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 164, "name": "Silicon", "amount": 5, "possible_source_bodies": ["Megastructure", "Rocky Planet"] },
+        { "slot": 2, "resource_code": 214, "name": "Glass", "amount": 5, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 3, "resource_code": 354, "name": "Corundum", "amount": 35, "possible_source_bodies": ["Red Dwarf"] }
+      ],
+      "catalyst": { "resource_code": 151, "name": "Archive Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Megastructure"] },
+      "actions": { "reusable": "FabricateDataStorageMatrixReusable", "final": "FabricateDataStorageMatrixFinal" }
+    },
+    {
+      "code": 418,
+      "name": "Atmospheric Scrubber",
+      "slug": "AtmosphericScrubber",
+      "description": "Regenerable filtration module that removes contaminants from sealed biospheres.",
+      "tier": 1,
+      "skill_code": 17,
+      "skill_name": "World Seeding",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 212, "name": "Carbon Composite", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 213, "name": "Ceramic", "amount": 40, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 3, "resource_code": 210, "name": "Potash", "amount": 1, "possible_source_bodies": ["Barren Planet"] }
+      ],
+      "catalyst": { "resource_code": 240, "name": "Storm Field Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Gas Giant"] },
+      "actions": { "reusable": "FabricateAtmosphericScrubberReusable", "final": "FabricateAtmosphericScrubberFinal" }
+    },
+    {
+      "code": 419,
+      "name": "Navigation Optics",
+      "slug": "NavigationOptics",
+      "description": "Calibrated optical train for astrometry, ranging, target acquisition, and star tracking.",
+      "tier": 1,
+      "skill_code": 11,
+      "skill_name": "Interstellar Navigation",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 321, "name": "Optical Glass", "amount": 8, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 200, "name": "Gold", "amount": 1, "possible_source_bodies": ["Barren Planet", "Megastructure"] },
+        { "slot": 3, "resource_code": 166, "name": "Quartz", "amount": 1, "possible_source_bodies": ["Rocky Planet"] }
+      ],
+      "catalyst": { "resource_code": 249, "name": "Lensing Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Black Hole"] },
+      "actions": { "reusable": "FabricateNavigationOpticsReusable", "final": "FabricateNavigationOpticsFinal" }
+    },
+    {
+      "code": 420,
+      "name": "Civic Utility Module",
+      "slug": "CivicUtilityModule",
+      "description": "Standardized infrastructure block for power distribution, transport, and public machinery.",
+      "tier": 1,
+      "skill_code": 18,
+      "skill_name": "Civilization Engineering",
+      "output_amount": 1,
+      "vdf_tier": "solid",
+      "vdf_iterations": 8,
+      "materials": [
+        { "slot": 1, "resource_code": 211, "name": "Steel", "amount": 6, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 161, "name": "Copper", "amount": 7, "possible_source_bodies": ["Megastructure", "Rocky Planet"] },
+        { "slot": 3, "resource_code": 159, "name": "Chromium", "amount": 2, "possible_source_bodies": ["Rocky Planet"] }
+      ],
+      "catalyst": { "resource_code": 121, "name": "Radiant Energy", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Giant Star", "Main Sequence Star", "Red Dwarf"] },
+      "actions": { "reusable": "FabricateCivicUtilityModuleReusable", "final": "FabricateCivicUtilityModuleFinal" }
+    },
+    {
+      "code": 421,
+      "name": "Quantum Processor",
+      "slug": "QuantumProcessor",
+      "description": "Coherent computation core for high-dimensional inference, control, and simulation.",
+      "tier": 2,
+      "skill_code": 9,
+      "skill_name": "Synthetic Intelligence",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 164, "name": "Silicon", "amount": 5, "possible_source_bodies": ["Megastructure", "Rocky Planet"] },
+        { "slot": 2, "resource_code": 322, "name": "Photonic Crystal", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 3, "resource_code": 222, "name": "Neodymium", "amount": 5, "possible_source_bodies": ["Barren Planet"] }
+      ],
+      "catalyst": { "resource_code": 350, "name": "Vacuum Fluctuation Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateQuantumProcessorReusable", "final": "FabricateQuantumProcessorFinal" }
+    },
+    {
+      "code": 422,
+      "name": "Autonomous Fabricator",
+      "slug": "AutonomousFabricator",
+      "description": "Self-regulating production module for unattended precision manufacturing and repair.",
+      "tier": 2,
+      "skill_code": 9,
+      "skill_name": "Synthetic Intelligence",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 385, "name": "Tool Steel", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 215, "name": "Silicon Carbide", "amount": 5, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 3, "resource_code": 222, "name": "Neodymium", "amount": 5, "possible_source_bodies": ["Barren Planet"] }
+      ],
+      "catalyst": { "resource_code": 151, "name": "Archive Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Megastructure"] },
+      "actions": { "reusable": "FabricateAutonomousFabricatorReusable", "final": "FabricateAutonomousFabricatorFinal" }
+    },
+    {
+      "code": 423,
+      "name": "Long-Range Transceiver",
+      "slug": "LongRangeTransceiver",
+      "description": "High-gain coherent transceiver for interstellar telemetry and distributed coordination.",
+      "tier": 2,
+      "skill_code": 15,
+      "skill_name": "Galactic Intelligence Architecture",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 323, "name": "Laser Crystal", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 266, "name": "Cobalt Ferrite", "amount": 5, "possible_source_bodies": ["Red Dwarf"] },
+        { "slot": 3, "resource_code": 200, "name": "Gold", "amount": 1, "possible_source_bodies": ["Barren Planet", "Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 346, "name": "Pulsar Timing Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Neutron Star"] },
+      "actions": { "reusable": "FabricateLongRangeTransceiverReusable", "final": "FabricateLongRangeTransceiverFinal" }
+    },
+    {
+      "code": 424,
+      "name": "Ecological Seeder",
+      "slug": "EcologicalSeeder",
+      "description": "Controlled dispersal system for bootstrapping resilient microbial and plant ecologies.",
+      "tier": 2,
+      "skill_code": 17,
+      "skill_name": "World Seeding",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 178, "name": "DNA", "amount": 5, "possible_source_bodies": ["Garden Planet"] },
+        { "slot": 2, "resource_code": 285, "name": "Algal Fiber", "amount": 5, "possible_source_bodies": ["Ocean Planet"] },
+        { "slot": 3, "resource_code": 208, "name": "Phosphate", "amount": 8, "possible_source_bodies": ["Barren Planet"] }
+      ],
+      "catalyst": { "resource_code": 236, "name": "Tidal Energy", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Ocean Planet"] },
+      "actions": { "reusable": "FabricateEcologicalSeederReusable", "final": "FabricateEcologicalSeederFinal" }
+    },
+    {
+      "code": 425,
+      "name": "Inertial Compensator",
+      "slug": "InertialCompensator",
+      "description": "Active field-control module that moderates acceleration loads and structural stress.",
+      "tier": 2,
+      "skill_code": 11,
+      "skill_name": "Interstellar Navigation",
+      "output_amount": 1,
+      "vdf_tier": "advanced",
+      "vdf_iterations": 12,
+      "materials": [
+        { "slot": 1, "resource_code": 222, "name": "Neodymium", "amount": 5, "possible_source_bodies": ["Barren Planet"] },
+        { "slot": 2, "resource_code": 212, "name": "Carbon Composite", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 3, "resource_code": 266, "name": "Cobalt Ferrite", "amount": 5, "possible_source_bodies": ["Red Dwarf"] }
+      ],
+      "catalyst": { "resource_code": 144, "name": "Gravitational Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly", "Black Hole", "Neutron Star"] },
+      "actions": { "reusable": "FabricateInertialCompensatorReusable", "final": "FabricateInertialCompensatorFinal" }
+    },
+    {
+      "code": 426,
+      "name": "Causal Mapper",
+      "slug": "CausalMapper",
+      "description": "Distributed instrument that resolves causal order across relativistic and anomalous domains.",
+      "tier": 3,
+      "skill_code": 15,
+      "skill_name": "Galactic Intelligence Architecture",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 316, "name": "Phase-Locked Crystal", "amount": 20, "possible_source_bodies": ["Anomaly"] },
+        { "slot": 2, "resource_code": 313, "name": "Synchrotron Plasma", "amount": 20, "possible_source_bodies": ["Black Hole"] },
+        { "slot": 3, "resource_code": 323, "name": "Laser Crystal", "amount": 1, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 146, "name": "Temporal Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateCausalMapperReusable", "final": "FabricateCausalMapperFinal" }
+    },
+    {
+      "code": 427,
+      "name": "Gravitational Anchor",
+      "slug": "GravitationalAnchor",
+      "description": "Civilization-scale reference mass and field lock for stations, gates, and megastructures.",
+      "tier": 3,
+      "skill_code": 18,
+      "skill_name": "Civilization Engineering",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 308, "name": "Superdense Carbon", "amount": 5, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 2, "resource_code": 303, "name": "Osmium", "amount": 225, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 3, "resource_code": 316, "name": "Phase-Locked Crystal", "amount": 20, "possible_source_bodies": ["Anomaly"] }
+      ],
+      "catalyst": { "resource_code": 143, "name": "High-Energy Radiation", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Black Hole", "Neutron Star"] },
+      "actions": { "reusable": "FabricateGravitationalAnchorReusable", "final": "FabricateGravitationalAnchorFinal" }
+    },
+    {
+      "code": 428,
+      "name": "Temporal Regulator",
+      "slug": "TemporalRegulator",
+      "description": "Precision timing field that holds distributed systems to a shared relativistic reference.",
+      "tier": 3,
+      "skill_code": 15,
+      "skill_name": "Galactic Intelligence Architecture",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 315, "name": "Metastable Isotope", "amount": 225, "possible_source_bodies": ["Anomaly"] },
+        { "slot": 2, "resource_code": 305, "name": "Rhenium", "amount": 5, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 3, "resource_code": 322, "name": "Photonic Crystal", "amount": 1, "possible_source_bodies": ["Megastructure"] }
+      ],
+      "catalyst": { "resource_code": 252, "name": "Radiation Observation", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateTemporalRegulatorReusable", "final": "FabricateTemporalRegulatorFinal" }
+    },
+    {
+      "code": 429,
+      "name": "Stellar Forge Core",
+      "slug": "StellarForgeCore",
+      "description": "Extreme-energy fabrication heart for civilization-scale synthesis and structural production.",
+      "tier": 3,
+      "skill_code": 18,
+      "skill_name": "Civilization Engineering",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 309, "name": "Ionized Iron", "amount": 225, "possible_source_bodies": ["Black Hole"] },
+        { "slot": 2, "resource_code": 306, "name": "Nuclear Pasta", "amount": 225, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 3, "resource_code": 316, "name": "Phase-Locked Crystal", "amount": 20, "possible_source_bodies": ["Anomaly"] }
+      ],
+      "catalyst": { "resource_code": 260, "name": "Shockwave Spectrum Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Stellar Remnant"] },
+      "actions": { "reusable": "FabricateStellarForgeCoreReusable", "final": "FabricateStellarForgeCoreFinal" }
+    },
+    {
+      "code": 430,
+      "name": "Biosphere Genesis Matrix",
+      "slug": "BiosphereGenesisMatrix",
+      "description": "Synthetic-intelligence control matrix for coordinating a planet-scale living system.",
+      "tier": 3,
+      "skill_code": 9,
+      "skill_name": "Synthetic Intelligence",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 178, "name": "DNA", "amount": 5, "possible_source_bodies": ["Garden Planet"] },
+        { "slot": 2, "resource_code": 286, "name": "Marine Protein", "amount": 3, "possible_source_bodies": ["Ocean Planet"] },
+        { "slot": 3, "resource_code": 317, "name": "Vacuum-Polarized Matter", "amount": 5, "possible_source_bodies": ["Anomaly"] }
+      ],
+      "catalyst": { "resource_code": 151, "name": "Archive Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Megastructure"] },
+      "actions": { "reusable": "FabricateBiosphereGenesisMatrixReusable", "final": "FabricateBiosphereGenesisMatrixFinal" }
+    },
+    {
+      "code": 431,
+      "name": "Galactic Cognition Node",
+      "slug": "GalacticCognitionNode",
+      "description": "Autonomous cognition node for inference and coordination across interstellar distances.",
+      "tier": 3,
+      "skill_code": 9,
+      "skill_name": "Synthetic Intelligence",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 322, "name": "Photonic Crystal", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 2, "resource_code": 378, "name": "Positron Plasma", "amount": 225, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 3, "resource_code": 316, "name": "Phase-Locked Crystal", "amount": 20, "possible_source_bodies": ["Anomaly"] }
+      ],
+      "catalyst": { "resource_code": 231, "name": "Neutrino Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Giant Star"] },
+      "actions": { "reusable": "FabricateGalacticCognitionNodeReusable", "final": "FabricateGalacticCognitionNodeFinal" }
+    },
+    {
+      "code": 432,
+      "name": "Wormhole Aperture Ring",
+      "slug": "WormholeApertureRing",
+      "description": "Field ring that defines and stabilizes the traversable boundary of a wormhole aperture.",
+      "tier": 3,
+      "skill_code": 15,
+      "skill_name": "Galactic Intelligence Architecture",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 317, "name": "Vacuum-Polarized Matter", "amount": 5, "possible_source_bodies": ["Anomaly"] },
+        { "slot": 2, "resource_code": 308, "name": "Superdense Carbon", "amount": 5, "possible_source_bodies": ["Neutron Star"] },
+        { "slot": 3, "resource_code": 311, "name": "Silicate Plasma", "amount": 5, "possible_source_bodies": ["Black Hole"] }
+      ],
+      "catalyst": { "resource_code": 145, "name": "Accretion Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Black Hole"] },
+      "actions": { "reusable": "FabricateWormholeApertureRingReusable", "final": "FabricateWormholeApertureRingFinal" }
+    },
+    {
+      "code": 433,
+      "name": "Civilization Archive Seed",
+      "slug": "CivilizationArchiveSeed",
+      "description": "Hardened cultural, technical, and biological archive for founding a distant civilization.",
+      "tier": 3,
+      "skill_code": 18,
+      "skill_name": "Civilization Engineering",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 316, "name": "Phase-Locked Crystal", "amount": 20, "possible_source_bodies": ["Anomaly"] },
+        { "slot": 2, "resource_code": 323, "name": "Laser Crystal", "amount": 1, "possible_source_bodies": ["Megastructure"] },
+        { "slot": 3, "resource_code": 178, "name": "DNA", "amount": 5, "possible_source_bodies": ["Garden Planet"] }
+      ],
+      "catalyst": { "resource_code": 151, "name": "Archive Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Megastructure"] },
+      "actions": { "reusable": "FabricateCivilizationArchiveSeedReusable", "final": "FabricateCivilizationArchiveSeedFinal" }
+    },
+    {
+      "code": 434,
+      "name": "Vacuum Energy Tap",
+      "slug": "VacuumEnergyTap",
+      "description": "Synthetic-intelligence-regulated interface for extracting controlled energy from vacuum fluctuations.",
+      "tier": 3,
+      "skill_code": 9,
+      "skill_name": "Synthetic Intelligence",
+      "output_amount": 1,
+      "vdf_tier": "artifact",
+      "vdf_iterations": 32,
+      "materials": [
+        { "slot": 1, "resource_code": 317, "name": "Vacuum-Polarized Matter", "amount": 5, "possible_source_bodies": ["Anomaly"] },
+        { "slot": 2, "resource_code": 312, "name": "Pair Plasma", "amount": 225, "possible_source_bodies": ["Black Hole"] },
+        { "slot": 3, "resource_code": 307, "name": "Neutron-Rich Alloy", "amount": 20, "possible_source_bodies": ["Neutron Star"] }
+      ],
+      "catalyst": { "resource_code": 350, "name": "Vacuum Fluctuation Data", "units_per_craft": 1, "modes": ["reusable", "final"], "possible_source_bodies": ["Anomaly"] },
+      "actions": { "reusable": "FabricateVacuumEnergyTapReusable", "final": "FabricateVacuumEnergyTapFinal" }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+
+# Reproducible build, compiler, and test output.
+target/
+tools/commitment-wasm/target/
