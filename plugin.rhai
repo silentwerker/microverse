@@ -1973,7 +1973,7 @@ let body_selector_lower=action.top_limb_u256(7976970408395495922);
 action.intro_lt_eq_u256(body_selector_lower,signal);
 let body_selector_upper=action.top_limb_u256(-8475531063215181714);
 action.intro_lt_eq_u256(signal,body_selector_upper);
-scan_body_core(action,body,signal,ship,1,4,1,1,14000,3000,14000,3000,2);
+scan_body_core(action,body,signal,ship,1,4,1,0,14000,3000,14000,3000,2);
 }
 fn ScanCelestialBody_05_GardenPlanet(action){
 var body=action.output("MicroverseCelestialBody");
@@ -1983,7 +1983,7 @@ let body_selector_lower=action.top_limb_u256(-8475531063215181713);
 action.intro_lt_eq_u256(body_selector_lower,signal);
 let body_selector_upper=action.top_limb_u256(-7976970412690463219);
 action.intro_lt_eq_u256(signal,body_selector_upper);
-scan_body_core(action,body,signal,ship,1,5,1,1,17000,9000,6000,6000,1);
+scan_body_core(action,body,signal,ship,1,5,1,0,17000,9000,6000,6000,1);
 }
 fn ScanCelestialBody_06_GasGiant(action){
 var body=action.output("MicroverseCelestialBody");
@@ -6223,8 +6223,12 @@ next_ship.set([
 ["civilization_scan_serial",next_scan_serial],
 ["ship_id",ship_id]
 ]);
+let life_selector_lower=action.top_limb_u256(8974091709444932912);
+action.intro_lt_eq_u256(life_selector_lower,body.source_signal_identifier);
+let life_selector_upper=action.top_limb_u256(-8226250737952822467);
+action.intro_lt_eq_u256(body.source_signal_identifier,life_selector_upper);
 action.st_sum(body.body_type,0,1);
-action.st_gt(body.life_stat,0);
+action.st_sum(body.life_stat,0,0);
 action.st_sum(body.civilization_discovered,0,0);
 var source_body_identifier=action.random();
 var_assign(source_body_identifier,body.stable_identifier);
@@ -6242,6 +6246,7 @@ life_signal.set([
 ]);
 let zero=action.top_limb_u256(0);
 life_signal.update("key",zero);
+body.update("life_stat",1);
 body.update("civilization_discovered",1);
 var next_body_key=action.random();
 rotate_key(body,next_body_key);

@@ -26569,11 +26569,25 @@
     },
     {
       "candidate_code": null,
+      "candidate_codes": [
+        4,
+        5
+      ],
       "description": "detect_intelligent_life",
       "family": "detect_intelligent_life",
       "hidden": false,
+      "initial_life_stat": 0,
       "intro_contract": {
-        "deterministic_selector": null,
+        "deterministic_selector": {
+          "band": {
+            "lower_top_limb": 8974091709444932912,
+            "upper_top_limb": 10220493335756729149
+          },
+          "comparison": "inclusive fixed lower/upper LtEqU256",
+          "owner": "action",
+          "selection_mode": "stable_identifier_band_v1",
+          "subject": "body.source_signal_identifier"
+        },
         "explicit_action_identity": null,
         "vdf": null,
         "whole_object_threshold": null
@@ -26596,7 +26610,14 @@
           "class": "MicroverseCelestialBody",
           "mode": "mutate"
         }
-      ]
+      ],
+      "selected_life_stat": 1,
+      "selection_mode": "stable_identifier_band_v1",
+      "selector_band": {
+        "lower_top_limb": 8974091709444932912,
+        "upper_top_limb": 10220493335756729149
+      },
+      "selector_subject": "body.source_signal_identifier"
     },
     {
       "candidate_code": null,

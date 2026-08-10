@@ -8,11 +8,13 @@
   "checks": {
     "advanced_resource_partitions_exact": true,
     "all_detect_aliases_emit_generic_category_signals": true,
+    "all_scanned_bodies_start_without_life": true,
     "all_selector_routes_exact": true,
     "body_partitions_exact": true,
     "civilization_partition_exact": true,
-    "legacy_positive_life_values_remain_eligible": true,
-    "life_candidates_exact": true,
+    "life_action_metadata_exact": true,
+    "life_action_requires_zero_then_updates_one": true,
+    "life_band_intersects_only_ocean_and_garden": true,
     "life_stat_is_boolean": true,
     "root_skill_partitions_exact": true,
     "scan_core_owns_no_selector": true,
@@ -206,9 +208,20 @@
       "status": "pass"
     }
   },
-  "plugin_sha256": "8f6cfd1d2419694d01695514cfac57b9312b78198ce5909c0c1f262be8d53637",
-  "route_count": 400,
+  "plugin_sha256": "d96fc8c22480f88375b49752cee2de86b7723c413719be6b00fa6d3b38b65236",
+  "route_count": 401,
   "routes": {
+    "DetectIntelligentLife": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "life_presence",
+      "status": "pass"
+    },
     "DevelopTypeIChemicalEngineeringSkill": {
       "checks": {
         "comparison_count_exact": true,

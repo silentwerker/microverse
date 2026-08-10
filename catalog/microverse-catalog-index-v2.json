@@ -2138,6 +2138,7 @@
         -8475531063215181714,
         1,
         4,
+        0,
         14000,
         3000,
         2
@@ -2181,6 +2182,7 @@
         -7976970412690463219,
         1,
         5,
+        0,
         17000,
         9000,
         6000
@@ -31276,7 +31278,20 @@
     },
     {
       "family": "detect_intelligent_life",
-      "fixed_literals": {},
+      "fixed_literals": {
+        "candidate_codes": [
+          4,
+          5
+        ],
+        "initial_life_stat": 0,
+        "selected_life_stat": 1,
+        "selection_mode": "stable_identifier_band_v1",
+        "selector_band": {
+          "lower_top_limb": 8974091709444932912,
+          "upper_top_limb": 10220493335756729149
+        },
+        "selector_subject": "body.source_signal_identifier"
+      },
       "helpers": [
         "prove_fixed_versions",
         "bind_ship_id",
@@ -31325,6 +31340,8 @@
         "satellite_serial",
         "civilization_scan_serial",
         "ship_id",
+        8974091709444932912,
+        -8226250737952822467,
         "stable_identifier",
         "civilization_version",
         "source_body_identifier",
@@ -31333,6 +31350,7 @@
         "sector_z",
         "origin_epoch",
         "key",
+        "life_stat",
         "civilization_discovered"
       ]
     },
