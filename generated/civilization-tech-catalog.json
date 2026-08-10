@@ -282,7 +282,7 @@
           "mode": "mutate"
         }
       ],
-      "selection_mode": "explicit_action_identity",
+      "selection_mode": "stable_identifier_band_v1",
       "slug": "TypeI"
     },
     {
@@ -305,7 +305,7 @@
           "mode": "mutate"
         }
       ],
-      "selection_mode": "explicit_action_identity",
+      "selection_mode": "stable_identifier_band_v1",
       "slug": "TypeII"
     },
     {
@@ -328,7 +328,7 @@
           "mode": "mutate"
         }
       ],
-      "selection_mode": "explicit_action_identity",
+      "selection_mode": "stable_identifier_band_v1",
       "slug": "TypeIII"
     }
   ],

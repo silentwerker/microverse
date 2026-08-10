@@ -55,6 +55,78 @@ COORD_UPPER_BOUND = 2_000_000_000_000
 EPOCH_UPPER_BOUND = 1_000_000_000_000
 EPOCH_RENDER_YEARS = 1_000
 EXPLICIT_SELECTION_MODE = "explicit_action_identity"
+DETERMINISTIC_SELECTOR_MODE = "stable_identifier_band_v1"
+UNRESOLVED_CANDIDATE_CODE = -1
+GOLDILOCKS_TOP_LIMB_MODULUS = 0xFFFFFFFF00000001
+
+
+def _signed_u64(value: int) -> int:
+    if not 0 <= value < 2**64:
+        raise ValueError(f"top-limb value is outside u64: {value}")
+    return value if value < 2**63 else value - 2**64
+
+
+def deterministic_selector_bands(
+    rows: list[dict[str, Any]],
+    *,
+    key: str,
+    weights: list[int] | None = None,
+) -> dict[Any, dict[str, int | None]]:
+    """Partition the canonical stable-ID top limb into fixed action bands.
+
+    LtEqU256 is inclusive. Adjacent bounds therefore leave only the exact
+    lower-limb boundary interval between ``upper`` and ``lower`` instead of
+    allowing two actions to accept the same object. The excluded probability
+    is one top-limb boundary per split (less than 1 / 2^64 each).
+    """
+    if not rows:
+        return {}
+    selected_weights = weights or [1] * len(rows)
+    if len(selected_weights) != len(rows) or any(
+        not isinstance(weight, int) or weight <= 0
+        for weight in selected_weights
+    ):
+        raise ValueError("deterministic selector weights must be positive")
+    total = sum(selected_weights)
+    cuts = [0]
+    cumulative = 0
+    for weight in selected_weights[:-1]:
+        cumulative += weight
+        cuts.append((cumulative * GOLDILOCKS_TOP_LIMB_MODULUS) // total)
+    cuts.append(GOLDILOCKS_TOP_LIMB_MODULUS)
+    result: dict[Any, dict[str, int | None]] = {}
+    for index, row in enumerate(rows):
+        lower = cuts[index] if index > 0 else None
+        upper = cuts[index + 1] - 1 if index + 1 < len(rows) else None
+        result[row[key]] = {"lower_top_limb": lower, "upper_top_limb": upper}
+    return result
+
+
+def selector_constraints_source(
+    selector: str,
+    band: dict[str, int | None],
+    *,
+    prefix: str,
+    indent: str = "    ",
+) -> str:
+    statements: list[str] = []
+    lower = band["lower_top_limb"]
+    upper = band["upper_top_limb"]
+    if lower is not None:
+        statements.extend(
+            [
+                f"{indent}let {prefix}_lower = action.top_limb_u256({_signed_u64(lower)});",
+                f"{indent}action.intro_lt_eq_u256({prefix}_lower, {selector});",
+            ]
+        )
+    if upper is not None:
+        statements.extend(
+            [
+                f"{indent}let {prefix}_upper = action.top_limb_u256({_signed_u64(upper)});",
+                f"{indent}action.intro_lt_eq_u256({selector}, {prefix}_upper);",
+            ]
+        )
+    return "\n".join(statements)
 
 SHIP = "MicroverseShip"
 SECTOR = "MicroverseSector"
@@ -370,13 +442,13 @@ for _category in CELESTIAL_CATEGORIES:
     _category["remaining_field"] = f"{_stem}_remaining"
     _category["serial_field"] = f"next_{_stem}_serial"
 
-# Each positive-only Survey action selects one exact Sector profile.
+# Each Survey action proves the claimed Sector stable ID falls in its profile band.
 SURVEY_PROFILES: list[dict[str, Any]] = [
     {
         "code": 1,
         "name": "Sparse",
         "slug": "Sparse",
-        "selection_mode": EXPLICIT_SELECTION_MODE,
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
         "minimum_claim_serial": 4,
         "counts": {
             "planet_remaining": 1,
@@ -387,7 +459,7 @@ SURVEY_PROFILES: list[dict[str, Any]] = [
         "code": 2,
         "name": "Standard",
         "slug": "Standard",
-        "selection_mode": EXPLICIT_SELECTION_MODE,
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
         "minimum_claim_serial": 8,
         "counts": {
             "planet_remaining": 3,
@@ -402,7 +474,7 @@ SURVEY_PROFILES: list[dict[str, Any]] = [
         "code": 3,
         "name": "Rich",
         "slug": "Rich",
-        "selection_mode": EXPLICIT_SELECTION_MODE,
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
         "minimum_claim_serial": 32,
         "counts": {
             "planet_remaining": 6,
@@ -419,7 +491,7 @@ SURVEY_PROFILES: list[dict[str, Any]] = [
         "code": 4,
         "name": "Ancient",
         "slug": "Ancient",
-        "selection_mode": EXPLICIT_SELECTION_MODE,
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
         "minimum_claim_serial": 128,
         "counts": {
             "planet_remaining": 3,
@@ -436,7 +508,7 @@ SURVEY_PROFILES: list[dict[str, Any]] = [
         "code": 5,
         "name": "Anomalous",
         "slug": "Anomalous",
-        "selection_mode": EXPLICIT_SELECTION_MODE,
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
         "minimum_claim_serial": 256,
         "counts": {
             "planet_remaining": 3,
@@ -1843,7 +1915,7 @@ CIVILIZATION_TYPES: list[dict[str, Any]] = [
         "name": "Type I Civilization",
         "slug": "TypeI",
         "action": "MaterializeCivilizationTypeI",
-        "selection_mode": EXPLICIT_SELECTION_MODE,
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
         "minimum_civilization_scan_serial": 64,
     },
     {
@@ -1851,7 +1923,7 @@ CIVILIZATION_TYPES: list[dict[str, Any]] = [
         "name": "Type II Civilization",
         "slug": "TypeII",
         "action": "MaterializeCivilizationTypeII",
-        "selection_mode": EXPLICIT_SELECTION_MODE,
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
         "minimum_civilization_scan_serial": 1_024,
     },
     {
@@ -1859,7 +1931,7 @@ CIVILIZATION_TYPES: list[dict[str, Any]] = [
         "name": "Type III Civilization",
         "slug": "TypeIII",
         "action": "MaterializeCivilizationTypeIII",
-        "selection_mode": EXPLICIT_SELECTION_MODE,
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
         "minimum_civilization_scan_serial": 16_384,
     },
 ]
@@ -1867,7 +1939,7 @@ CIVILIZATION_TYPES: list[dict[str, Any]] = [
 EXPLICIT_COUNTER_GATES: dict[str, dict[str, Any]] = {
     **{
         f"SurveySector_{profile['code']:02d}_{profile['slug']}": {
-            "selection_mode": EXPLICIT_SELECTION_MODE,
+            "selection_mode": DETERMINISTIC_SELECTOR_MODE,
             "selection_kind": "survey_profile",
             "selected_code": profile["code"],
             "counter_field": "claim_serial",
@@ -1877,7 +1949,7 @@ EXPLICIT_COUNTER_GATES: dict[str, dict[str, Any]] = {
     },
     **{
         civilization_type["action"]: {
-            "selection_mode": EXPLICIT_SELECTION_MODE,
+            "selection_mode": DETERMINISTIC_SELECTOR_MODE,
             "selection_kind": "civilization_type",
             "selected_code": civilization_type["code"],
             "counter_field": "civilization_scan_serial",
@@ -2839,10 +2911,10 @@ def configure_resource_catalog(catalog: dict[str, Any]) -> None:
     if not isinstance(new_bodies, list):
         raise ValueError("resource catalog bodies must be a list")
     if catalog.get("rules", {}).get("scan_threshold_note") != (
-        "The exponent is a deterministic whole-object eligibility threshold "
-        "for a named Scan action, not a stable-identifier selector or output "
-        "lottery. Global availability also depends on the explicitly selected "
-        "Survey profile and its category-slot counts."
+        "The exponent weights a deterministic, non-overlapping stable-identifier "
+        "band within the Signal category. A named Scan succeeds only for its "
+        "assigned band; Survey profile, civilization type, root skill, and "
+        "advanced resource yields use the same immutable hierarchy."
     ):
         raise ValueError("resource catalog Scan threshold semantics changed")
     for body_row in new_bodies:
@@ -2853,14 +2925,14 @@ def configure_resource_catalog(catalog: dict[str, Any]) -> None:
         exponent = body_row["occurrence_exponent"]
         if (
             body_row.get("scan_threshold_subject")
-            != "complete MicroverseCelestialSignal object"
+            != "MicroverseCelestialSignal stable identifier"
             or body_row.get("scan_acceptance_comparison")
-            != "whole_object <= fixed target_top_limb"
-            or "scan_selector" in body_row
-            or "scan_comparison" in body_row
+            != "fixed lower <= stable_identifier <= fixed upper"
+            or body_row.get("scan_selector")
+            != DETERMINISTIC_SELECTOR_MODE
         ):
             raise ValueError(
-                f"body Scan must use the complete-object threshold: {code}"
+                f"body Scan must use its deterministic stable-ID band: {code}"
             )
         if denominator != 2**exponent:
             raise ValueError(f"body denominator/exponent mismatch: {code}")
@@ -4122,6 +4194,97 @@ def celestial_category(candidate: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def body_selector_bands(
+    bank: list[dict[str, Any]],
+) -> dict[int, dict[str, int | None]]:
+    result: dict[int, dict[str, int | None]] = {}
+    for category in CELESTIAL_CATEGORIES:
+        rows = sorted(
+            (
+                candidate
+                for candidate in bank
+                if candidate["body_type"] == category["body_type"]
+            ),
+            key=lambda candidate: candidate["code"],
+        )
+        if not rows:
+            continue
+        maximum_denominator = max(
+            candidate["nominal_denominator"] for candidate in rows
+        )
+        weights = [
+            maximum_denominator // candidate["nominal_denominator"]
+            for candidate in rows
+        ]
+        result.update(
+            deterministic_selector_bands(rows, key="code", weights=weights)
+        )
+    return result
+
+
+def survey_selector_bands() -> dict[int, dict[str, int | None]]:
+    maximum = max(
+        profile["minimum_claim_serial"] for profile in SURVEY_PROFILES
+    )
+    return deterministic_selector_bands(
+        SURVEY_PROFILES,
+        key="code",
+        weights=[
+            maximum // profile["minimum_claim_serial"]
+            for profile in SURVEY_PROFILES
+        ],
+    )
+
+
+def civilization_selector_bands() -> dict[int, dict[str, int | None]]:
+    maximum = max(
+        row["minimum_civilization_scan_serial"]
+        for row in CIVILIZATION_TYPES
+    )
+    return deterministic_selector_bands(
+        CIVILIZATION_TYPES,
+        key="code",
+        weights=[
+            maximum // row["minimum_civilization_scan_serial"]
+            for row in CIVILIZATION_TYPES
+        ],
+    )
+
+
+def technology_skill_selector_bands() -> dict[int, dict[str, int | None]]:
+    result: dict[int, dict[str, int | None]] = {}
+    for civilization_type in sorted(
+        {skill["civilization_type"] for skill in TECHNOLOGY_SKILLS}
+    ):
+        rows = [
+            skill
+            for skill in TECHNOLOGY_SKILLS
+            if skill["civilization_type"] == civilization_type
+        ]
+        result.update(deterministic_selector_bands(rows, key="code"))
+    return result
+
+
+def resource_selector_bands() -> dict[str, dict[str, int | None]]:
+    """Return one immutable-lineage band per logical advanced-resource route."""
+    grouped: dict[tuple[int, int, str], list[dict[str, Any]]] = defaultdict(list)
+    for resource in CIVILIZATION_TECH_RESOURCES:
+        grouped[
+            (
+                resource["candidate_code"],
+                resource["skill_code"],
+                resource["remaining_field"],
+            )
+        ].append(resource)
+    result: dict[str, dict[str, int | None]] = {}
+    for rows in grouped.values():
+        ordered = sorted(rows, key=lambda resource: resource["code"])
+        result.update(
+            deterministic_selector_bands(ordered, key="action")
+        )
+    return result
+
+
 def action_record(
     name: str,
     family: str,
@@ -4238,16 +4401,7 @@ def apply_intro_contracts(actions: list[dict[str, Any]]) -> None:
                 or phase6_owner
                 or vdf_helper_owners.get(family, "action")
             )
-        threshold = (
-            {
-                "count": 1,
-                "owner": "scan_body_core",
-                "argument_role": "complete input object",
-                "direction": "object_le_fixed_upper",
-            }
-            if family == "scan_body"
-            else None
-        )
+        threshold = None
         action["intro_contract"] = {
             "vdf": (
                 {
@@ -4268,6 +4422,18 @@ def apply_intro_contracts(actions: list[dict[str, Any]]) -> None:
                 }
                 if action.get("selection_mode")
                 == EXPLICIT_SELECTION_MODE
+                else None
+            ),
+            "deterministic_selector": (
+                {
+                    "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+                    "owner": "action",
+                    "subject": action["selector_subject"],
+                    "band": action["selector_band"],
+                    "comparison": "inclusive fixed lower/upper LtEqU256",
+                }
+                if action.get("selection_mode")
+                == DETERMINISTIC_SELECTOR_MODE
                 else None
             ),
         }
@@ -4319,7 +4485,7 @@ def build_actions(bank: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "survey_sector",
             [("output", SHIP), ("input", SHIP), ("mutate", SECTOR)],
             description=(
-                "survey an EMPTY Sector into the action-selected "
+                "survey an EMPTY Sector into its stable-ID-selected "
                 f"{profile['name']} CELESTIAL allocation profile; requires "
                 f"Ship claim_serial >= {profile['minimum_claim_serial']}"
             ),
@@ -4327,14 +4493,15 @@ def build_actions(bank: list[dict[str, Any]]) -> list[dict[str, Any]]:
         action.update(
             {
                 "selection_mode": gate["selection_mode"],
+                "selector_subject": "sector.stable_identifier",
+                "selector_band": survey_selector_bands()[profile["code"]],
                 "survey_profile": gate["selected_code"],
                 "minimum_claim_serial": gate["minimum_inclusive"],
             }
         )
         actions.append(action)
     for candidate in bank:
-        actions.append(
-            action_record(
+        action = action_record(
                 f"DetectCelestialSignal_{candidate['code']:02d}_{candidate['slug']}",
                 "detect_signal",
                 [
@@ -4345,16 +4512,30 @@ def build_actions(bank: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 ],
                 candidate_code=candidate["code"],
             )
+        action.update(
+            {
+                "signal_category_code": celestial_category(candidate)["code"],
+                "output_candidate_code": UNRESOLVED_CANDIDATE_CODE,
+                "selection_mode": "category_slot_only",
+            }
         )
+        actions.append(action)
     for candidate in bank:
-        actions.append(
-            action_record(
+        action = action_record(
                 f"ScanCelestialBody_{candidate['code']:02d}_{candidate['slug']}",
                 "scan_body",
                 [("output", BODY), ("input", SIGNAL), ("mutate", SHIP)],
                 candidate_code=candidate["code"],
             )
+        action.update(
+            {
+                "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+                "selector_subject": "signal.stable_identifier",
+                "selector_band": body_selector_bands(bank)[candidate["code"]],
+                "required_signal_candidate_code": UNRESOLVED_CANDIDATE_CODE,
+            }
         )
+        actions.append(action)
     actions.append(
         action_record(
             "ExtractAnomalyWarpCoordinate",
@@ -4788,7 +4969,7 @@ def build_actions(bank: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 ("mutate", SHIP),
             ],
             description=(
-                "materialize the action-selected "
+                "materialize the stable-ID-selected "
                 f"{civilization_type['name']}; requires Ship "
                 "civilization_scan_serial >= "
                 f"{civilization_type['minimum_civilization_scan_serial']}"
@@ -4797,6 +4978,10 @@ def build_actions(bank: list[dict[str, Any]]) -> list[dict[str, Any]]:
         action.update(
             {
                 "selection_mode": gate["selection_mode"],
+                "selector_subject": "life_signal.stable_identifier",
+                "selector_band": civilization_selector_bands()[
+                    civilization_type["code"]
+                ],
                 "civilization_type": gate["selected_code"],
                 "minimum_civilization_scan_serial": gate[
                     "minimum_inclusive"
@@ -4828,6 +5013,11 @@ def build_actions(bank: list[dict[str, Any]]) -> list[dict[str, Any]]:
             )
             action["base_extraction_action"] = resource["action"]
             action["extraction_ship_tier"] = tier["name"]
+            action["selection_mode"] = DETERMINISTIC_SELECTOR_MODE
+            action["selector_subject"] = "body.source_signal_identifier"
+            action["selector_band"] = resource_selector_bands()[
+                resource["action"]
+            ]
             actions.append(action)
     resource_code_by_name = {
         resource["name"]: resource["code"]
@@ -4886,8 +5076,7 @@ def build_actions(bank: list[dict[str, Any]]) -> list[dict[str, Any]]:
             action["catalyst_mode"] = mode
             actions.append(action)
     for skill in TECHNOLOGY_SKILLS:
-        actions.append(
-            action_record(
+        action = action_record(
                 skill["action"],
                 "develop_technology_skill",
                 [
@@ -4898,7 +5087,19 @@ def build_actions(bank: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 ],
                 description=f"develop reusable {skill['name']}",
             )
+        action.update(
+            {
+                "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+                "selector_subject": (
+                    "civilization.source_life_signal_identifier"
+                ),
+                "selector_band": technology_skill_selector_bands()[
+                    skill["code"]
+                ],
+                "skill_code": skill["code"],
+            }
         )
+        actions.append(action)
     for skill in DERIVED_SKILLS:
         action = action_record(
             skill["action"],
@@ -5905,7 +6106,6 @@ fn scan_body_core(
     ship,
     category_code,
     candidate_code,
-    target_top_limb,
     body_type,
     life_stat,
     matter_remaining,
@@ -5918,8 +6118,7 @@ fn scan_body_core(
     prove_fixed_versions(action, ship);
     action.st_sum(signal.body_bank_version, 0, {VERSIONS['body_bank_version']});
     action.st_sum(signal.category_code, 0, category_code);
-    action.st_sum(signal.candidate_code, 0, candidate_code);
-    let target = action.top_limb_u256(target_top_limb);
+    action.st_sum(signal.candidate_code, 0, {UNRESOLVED_CANDIDATE_CODE});
 
     action.st_gt(signal.slot_serial, -1);
 
@@ -5942,7 +6141,6 @@ fn scan_body_core(
     var next_action_serial = unsafe {{ ship.action_serial - (0 - 1) }};
     action.st_sum(ship.action_serial, 1, next_action_serial);
 
-    action.intro_lt_eq_u256(signal, target);
     body.set([
         ["schema_version", {VERSIONS['schema_version']}],
         ["mechanics_version", {VERSIONS['mechanics_version']}],
@@ -6660,11 +6858,17 @@ def survey_source(profile: dict[str, Any]) -> str:
             if profile["counts"].get(category["remaining_field"], 0) != 0
         ]
     )
+    selector_constraints = selector_constraints_source(
+        "sector",
+        survey_selector_bands()[profile["code"]],
+        prefix="survey_selector",
+    )
     return f"""
 fn {name}(action) {{
     var next_ship = action.output("{SHIP}");
     var ship = action.input("{SHIP}");
     var sector = action.mutate("{SECTOR}");
+{selector_constraints}
     survey_replacement_ship_core(action, next_ship, ship, sector);
     action.st_gt(ship.claim_serial, {profile['minimum_claim_serial'] - 1});
 
@@ -6694,20 +6898,31 @@ fn {name}(action) {{
     var signal = action.output("{SIGNAL}");
     var ship = action.input("{SHIP}");
     var sector = action.mutate("{SECTOR}");
-detect_signal_core(action, next_ship, signal, ship, sector, {category['code']}, {candidate['code']}, "{remaining_field}", "{serial_field}");
+detect_signal_core(action, next_ship, signal, ship, sector, {category['code']}, {UNRESOLVED_CANDIDATE_CODE}, "{remaining_field}", "{serial_field}");
 }}
 """
 
 
-def scan_source(candidate: dict[str, Any]) -> str:
+def scan_source(
+    candidate: dict[str, Any],
+    bank: list[dict[str, Any]] | None = None,
+) -> str:
     name = f"ScanCelestialBody_{candidate['code']:02d}_{candidate['slug']}"
     category = celestial_category(candidate)
+    selector_constraints = selector_constraints_source(
+        "signal",
+        body_selector_bands(BODY_BANK if bank is None else bank)[
+            candidate["code"]
+        ],
+        prefix="body_selector",
+    )
     return f"""
 fn {name}(action) {{
     var body = action.output("{BODY}");
     var signal = action.input("{SIGNAL}");
     var ship = action.mutate("{SHIP}");
-    scan_body_core(action, body, signal, ship, {category['code']}, {candidate['code']}, {candidate['target_top_limb']}, {candidate['body_type']}, {candidate['life_stat']}, {candidate['matter']}, {candidate['crystal']}, {candidate['gas']}, {candidate['energy']}, {candidate['satellites']});
+{selector_constraints}
+    scan_body_core(action, body, signal, ship, {category['code']}, {candidate['code']}, {candidate['body_type']}, {candidate['life_stat']}, {candidate['matter']}, {candidate['crystal']}, {candidate['gas']}, {candidate['energy']}, {candidate['satellites']});
 }}
 """
 
@@ -6761,6 +6976,7 @@ def extract_source(
     vdf_iterations: int | None,
     *,
     action_name: str | None = None,
+    selector_route_action: str | None = None,
     candidate: dict[str, Any] | None = None,
     child_allocations: list[dict[str, Any]] | None = None,
     skill_code: int | None = None,
@@ -6775,11 +6991,21 @@ def extract_source(
     extraction_amount_literal = selected_tier["extraction_amount"]
     rare_amount_literal = selected_tier["rare_extraction_amount"]
     candidate_gate = ""
+    selector_constraints = ""
     if candidate is not None:
         candidate_gate = (
             f"    action.st_sum(body.candidate_code, 0, "
             f"{candidate['code']});\n"
         )
+        selector_constraints = selector_constraints_source(
+            "body.source_signal_identifier",
+            resource_selector_bands()[
+                selector_route_action or rendered_action_name
+            ],
+            prefix="resource_selector",
+        )
+        if selector_constraints:
+            selector_constraints += "\n"
     active_skill_literal = skill_code if skill_code is not None else 0
     skill_gate = (
         f"    action.st_sum(ship.active_skill_type,0,"
@@ -6875,7 +7101,7 @@ fn {rendered_action_name}(action) {{
     var {output_var} = action.output("{output_class}");
     var ship = action.input("{SHIP}");
     var body = action.mutate("{BODY}");
-{candidate_gate}{skill_gate}{core_call}{wrapper_vdf}
+{selector_constraints}{candidate_gate}{skill_gate}{core_call}{wrapper_vdf}
 }}
 """
 
@@ -7064,11 +7290,17 @@ fn DetectIntelligentLife(action) {{
 def materialize_civilization_source(
     civilization_type: dict[str, Any],
 ) -> str:
+    selector_constraints = selector_constraints_source(
+        "life_signal",
+        civilization_selector_bands()[civilization_type["code"]],
+        prefix="civilization_selector",
+    )
     return f"""
 fn {civilization_type['action']}(action) {{
     var civilization = action.output("{CIVILIZATION}");
     var life_signal = action.input("{LIFE_SIGNAL}");
     var ship = action.mutate("{SHIP}");
+{selector_constraints}
     prove_fixed_versions(action, life_signal);
     prove_fixed_versions(action, ship);
     action.st_sum(life_signal.civilization_version, 0, {VERSIONS['civilization_version']});
@@ -7124,12 +7356,18 @@ fn {civilization_type['action']}(action) {{
 
 
 def develop_technology_skill_source(skill: dict[str, Any]) -> str:
+    selector_constraints = selector_constraints_source(
+        "civilization.source_life_signal_identifier",
+        technology_skill_selector_bands()[skill["code"]],
+        prefix="skill_selector",
+    )
     return f"""
 fn {skill['action']}(action) {{
     var next_ship = action.output("{SHIP}");
     var technology_skill = action.output("{TECHNOLOGY_SKILL}");
     var ship = action.input("{SHIP}");
     var civilization = action.mutate("{CIVILIZATION}");
+{selector_constraints}
     develop_technology_skill_core(
         action,
         next_ship,
@@ -8026,7 +8264,7 @@ def sources_for_bank(bank: list[dict[str, Any]]) -> dict[str, str]:
     for item in bank:
         result[
             f"ScanCelestialBody_{item['code']:02d}_{item['slug']}"
-        ] = scan_source(item)
+        ] = scan_source(item, bank)
     result["ExtractAnomalyWarpCoordinate"] = extract_coordinate_source(
         time_only=False
     )
@@ -8148,6 +8386,7 @@ def sources_for_bank(bank: list[dict[str, Any]]) -> dict[str, str]:
                 resource["remaining_field"],
                 resource["vdf_iterations"],
                 action_name=action_name,
+                selector_route_action=resource["action"],
                 candidate=candidates_by_code[resource["candidate_code"]],
                 child_allocations=resource["child_allocations"],
                 skill_code=resource["skill_code"],
@@ -8464,6 +8703,8 @@ def phase6_simple_adapter_helpers(
     routes: dict[str, str] = {}
     for action in actions:
         action_name = action["name"]
+        if action["family"] == "extract_civilization_tech_resource":
+            continue
         helper_name = phase5_helper_for(action_name)
         if helper_name is None:
             kind = phase4_kind_for_action(action)
@@ -9157,6 +9398,11 @@ def expansion_catalog_index(
         "destination_code",
         "uses",
         "selection_mode",
+        "selector_subject",
+        "selector_band",
+        "signal_category_code",
+        "output_candidate_code",
+        "required_signal_candidate_code",
         "survey_profile",
         "minimum_claim_serial",
         "civilization_type",
@@ -10835,9 +11081,9 @@ def generate_package(
                 for profile in SURVEY_PROFILES
             ],
             "selection_progression_policy": {
-                "selection_mode": EXPLICIT_SELECTION_MODE,
-                "outcome_source": "action name",
-                "stable_identifier_used": False,
+                "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+                "outcome_source": "immutable stable-ID hierarchy",
+                "stable_identifier_used": True,
                 "unlock_scope": "current compatible Ship",
                 "transfer_policy": (
                     "Any compatible co-located Ship that meets the milestone "
@@ -10860,7 +11106,7 @@ def generate_package(
                         ]
                         for profile in SURVEY_PROFILES
                     },
-                    "highest_choices_remain_unlocked": True,
+                    "selected_profile_is_unique": True,
                 },
                 "civilization": {
                     "counter_field": "civilization_scan_serial",
@@ -10874,7 +11120,19 @@ def generate_package(
                         ]
                         for civilization_type in CIVILIZATION_TYPES
                     },
-                    "highest_choices_remain_unlocked": True,
+                    "selected_type_is_unique": True,
+                },
+                "root_skill": {
+                    "selector_field": (
+                        "civilization.source_life_signal_identifier"
+                    ),
+                    "band_count_per_civilization_type": 6,
+                },
+                "advanced_resource": {
+                    "selector_field": "body.source_signal_identifier",
+                    "partition_scope": (
+                        "candidate_code + required skill + reserve pool"
+                    ),
                 },
             },
             "body_bank": bank,
@@ -17822,6 +18080,262 @@ def skill_catalog_audit(
         "status": "pass" if all(checks.values()) else "fail",
         "checks": checks,
         "details": details,
+    }
+
+
+def deterministic_hierarchy_audit(
+    plugin: str,
+    actions: list[dict[str, Any]],
+    bank: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Validate the PEXE-only immutable selector hierarchy."""
+    actions_by_name = {action["name"]: action for action in actions}
+
+    def partition_exact(
+        ordered_rows: list[dict[str, Any]],
+        bands: dict[Any, dict[str, int | None]],
+        key: str,
+    ) -> bool:
+        ordered = [bands[row[key]] for row in ordered_rows]
+        return bool(ordered) and all(
+            (
+                band["lower_top_limb"] is None
+                if index == 0
+                else band["lower_top_limb"]
+                == ordered[index - 1]["upper_top_limb"] + 1
+            )
+            and (
+                band["upper_top_limb"] is None
+                if index == len(ordered) - 1
+                else isinstance(band["upper_top_limb"], int)
+            )
+            for index, band in enumerate(ordered)
+        )
+
+    body_partitions_exact = all(
+        partition_exact(
+            sorted(
+                [
+                    row
+                    for row in bank
+                    if row["body_type"] == category["body_type"]
+                ],
+                key=lambda row: row["code"],
+            ),
+            body_selector_bands(bank),
+            "code",
+        )
+        for category in CELESTIAL_CATEGORIES
+        if any(
+            row["body_type"] == category["body_type"] for row in bank
+        )
+    )
+    resource_partitions_exact = all(
+        partition_exact(
+            sorted(rows, key=lambda row: row["code"]),
+            resource_selector_bands(),
+            "action",
+        )
+        for rows in (
+            [
+                resource
+                for resource in CIVILIZATION_TECH_RESOURCES
+                if (
+                    resource["candidate_code"],
+                    resource["skill_code"],
+                    resource["remaining_field"],
+                )
+                == group
+            ]
+            for group in {
+                (
+                    resource["candidate_code"],
+                    resource["skill_code"],
+                    resource["remaining_field"],
+                )
+                for resource in CIVILIZATION_TECH_RESOURCES
+            }
+        )
+    )
+    survey_partition_exact = partition_exact(
+        SURVEY_PROFILES, survey_selector_bands(), "code"
+    )
+    civilization_partition_exact = partition_exact(
+        CIVILIZATION_TYPES, civilization_selector_bands(), "code"
+    )
+    skill_partitions_exact = all(
+        partition_exact(
+            [
+                skill
+                for skill in TECHNOLOGY_SKILLS
+                if skill["civilization_type"] == civilization_type
+            ],
+            technology_skill_selector_bands(),
+            "code",
+        )
+        for civilization_type in (1, 2, 3)
+    )
+
+    selector_specs: dict[str, tuple[str, str, str]] = {}
+    selector_specs.update(
+        {
+            f"SurveySector_{row['code']:02d}_{row['slug']}": (
+                "sector",
+                "survey_selector",
+                "survey_profile",
+            )
+            for row in SURVEY_PROFILES
+        }
+    )
+    selector_specs.update(
+        {
+            f"ScanCelestialBody_{row['code']:02d}_{row['slug']}": (
+                "signal",
+                "body_selector",
+                "body_candidate",
+            )
+            for row in bank
+        }
+    )
+    selector_specs.update(
+        {
+            row["action"]: (
+                "life_signal",
+                "civilization_selector",
+                "civilization_type",
+            )
+            for row in CIVILIZATION_TYPES
+        }
+    )
+    selector_specs.update(
+        {
+            row["action"]: (
+                "civilization.source_life_signal_identifier",
+                "skill_selector",
+                "root_skill",
+            )
+            for row in TECHNOLOGY_SKILLS
+        }
+    )
+    selector_specs.update(
+        {
+            action["name"]: (
+                "body.source_signal_identifier",
+                "resource_selector",
+                "advanced_resource",
+            )
+            for action in actions
+            if action["family"] == "extract_civilization_tech_resource"
+        }
+    )
+    route_details: dict[str, Any] = {}
+    for name, (selector, prefix, hierarchy_level) in selector_specs.items():
+        action = actions_by_name[name]
+        source = action_function_source(plugin, name)
+        band = action["selector_band"]
+        expected = selector_constraints_source(
+            selector, band, prefix=prefix
+        )
+        intro_calls = [
+            call
+            for call in rhai_method_statement_calls(
+                source, "intro_lt_eq_u256"
+            )
+            if call[0] == "action"
+        ]
+        expected_call_count = sum(
+            band[field] is not None
+            for field in ("lower_top_limb", "upper_top_limb")
+        )
+        route_checks = {
+            "mode_exact": (
+                action.get("selection_mode")
+                == DETERMINISTIC_SELECTOR_MODE
+            ),
+            "selector_subject_exact": (
+                action.get("selector_subject")
+                in (selector, f"{selector}.stable_identifier")
+            ),
+            "constraints_exact": (
+                not expected or rhai_contains(source, expected)
+            ),
+            "comparison_count_exact": (
+                len(intro_calls) == expected_call_count
+            ),
+            "roles_unchanged": (
+                source_action_object_roles(source)
+                == action_object_roles(action)
+            ),
+        }
+        route_details[name] = {
+            "status": "pass" if all(route_checks.values()) else "fail",
+            "hierarchy_level": hierarchy_level,
+            "checks": route_checks,
+        }
+
+    detect_details: dict[str, Any] = {}
+    for candidate in bank:
+        name = (
+            f"DetectCelestialSignal_{candidate['code']:02d}_"
+            f"{candidate['slug']}"
+        )
+        source = action_function_source(plugin, name)
+        calls = rhai_call_arguments(source, "detect_signal_core")
+        category = celestial_category(candidate)
+        detect_checks = {
+            "one_core_call": len(calls) == 1,
+            "category_only": (
+                len(calls) == 1
+                and calls[0][5] == str(category["code"])
+                and calls[0][6] == str(UNRESOLVED_CANDIDATE_CODE)
+            ),
+            "no_selector_comparison": not rhai_method_statement_calls(
+                source, "intro_lt_eq_u256"
+            ),
+        }
+        detect_details[name] = {
+            "status": "pass" if all(detect_checks.values()) else "fail",
+            "checks": detect_checks,
+        }
+
+    scan_core = named_function_source(plugin, "scan_body_core")
+    checks = {
+        "survey_partition_exact": survey_partition_exact,
+        "body_partitions_exact": body_partitions_exact,
+        "civilization_partition_exact": civilization_partition_exact,
+        "root_skill_partitions_exact": skill_partitions_exact,
+        "advanced_resource_partitions_exact": resource_partitions_exact,
+        "all_selector_routes_exact": all(
+            detail["status"] == "pass"
+            for detail in route_details.values()
+        ),
+        "all_detect_aliases_emit_generic_category_signals": all(
+            detail["status"] == "pass"
+            for detail in detect_details.values()
+        ),
+        "scan_core_requires_unresolved_signal": rhai_contains(
+            scan_core,
+            f"action.st_sum(signal.candidate_code,0,{UNRESOLVED_CANDIDATE_CODE});",
+        ),
+        "scan_core_owns_no_selector": not rhai_method_statement_calls(
+            scan_core, "intro_lt_eq_u256"
+        ),
+    }
+    return {
+        "status": "pass" if all(checks.values()) else "fail",
+        "plugin_sha256": hashlib.sha256(plugin.encode("utf-8")).hexdigest(),
+        "action_count": len(actions),
+        "selection_mode": DETERMINISTIC_SELECTOR_MODE,
+        "boundary_policy": {
+            "overlap": False,
+            "excluded_values_per_split": str(2**192 - 1),
+            "maximum_excluded_probability_per_split": "less than 1 / 2^64",
+        },
+        "checks": checks,
+        "route_count": len(route_details),
+        "detect_alias_count": len(detect_details),
+        "routes": route_details,
+        "detect_aliases": detect_details,
     }
 
 

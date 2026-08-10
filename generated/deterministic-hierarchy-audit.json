@@ -1,0 +1,4612 @@
+{
+  "action_count": 1650,
+  "boundary_policy": {
+    "excluded_values_per_split": "6277101735386680763835789423207666416102355444464034512895",
+    "maximum_excluded_probability_per_split": "less than 1 / 2^64",
+    "overlap": false
+  },
+  "checks": {
+    "advanced_resource_partitions_exact": true,
+    "all_detect_aliases_emit_generic_category_signals": true,
+    "all_selector_routes_exact": true,
+    "body_partitions_exact": true,
+    "civilization_partition_exact": true,
+    "root_skill_partitions_exact": true,
+    "scan_core_owns_no_selector": true,
+    "scan_core_requires_unresolved_signal": true,
+    "survey_partition_exact": true
+  },
+  "detect_alias_count": 23,
+  "detect_aliases": {
+    "DetectCelestialSignal_00_RedDwarf": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_01_MainSequenceStar": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_02_GiantStar": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_03_RockyPlanet": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_04_OceanPlanet": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_05_GardenPlanet": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_06_GasGiant": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_07_IceGiant": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_08_BarrenPlanet": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_09_NeutronStar": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_10_BlackHole": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_11_Anomaly": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_12_Megastructure": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_13_GasCluster": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_14_StellarRemnant": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_15_AsteroidBelt": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_16_VolcanicPlanet": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_17_Nebula": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_18_CometCluster": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_19_BrownDwarf": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_20_WhiteDwarf": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_21_Magnetar": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    },
+    "DetectCelestialSignal_22_WormholeMouth": {
+      "checks": {
+        "category_only": true,
+        "no_selector_comparison": true,
+        "one_core_call": true
+      },
+      "status": "pass"
+    }
+  },
+  "plugin_sha256": "9ca4088581f0fd9503b0d1ae59a43c297de67a6d443b86668ffe24fe77e19e9b",
+  "route_count": 400,
+  "routes": {
+    "DevelopTypeIChemicalEngineeringSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIElectronicsSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIGeneticEngineeringSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIBiosphereEngineeringSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIICivilizationEngineeringSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIIExoticMatterEngineeringSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIIGalacticIntelligenceArchitectureSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIISpacetimeEngineeringSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIIStellarEngineeringSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIIWorldSeedingSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIInterstellarNavigationSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIMetamaterialEngineeringSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIMolecularFabricationSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIStellarEnergySystemsSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIISyntheticIntelligenceSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIIndustrialFabricationSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeINuclearEngineeringSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "DevelopTypeIPlanetaryInfrastructureSkill": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "root_skill",
+      "status": "pass"
+    },
+    "ExtractAnomalyFieldData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAnomalyGravitationalData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAnomalyMagneticObservation": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAnomalyPhaseShiftedMatter": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAnomalyPolarizationData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAnomalyRadiationObservation": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAnomalyTemporalData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAnomalyVacuumFluctuationData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltCarbonaceousRegolith": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltCarbonaceousRegolithLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltCarbonaceousRegolithMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltHydratedMineralAggregate": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltHydratedMineralAggregateLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltHydratedMineralAggregateMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltImpactGlassBreccia": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltImpactGlassBrecciaLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltImpactGlassBrecciaMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltNickelIronMatrix": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltNickelIronMatrixLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltNickelIronMatrixMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltOrbitalSurveyData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltOrbitalSurveyDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltOrbitalSurveyDataMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltPlatinumGroupVein": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltPlatinumGroupVeinLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltSilicateRubble": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltSilicateRubbleLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractAsteroidBeltSilicateRubbleMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetAlkaliMineralOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetAlkaliMineralOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetAlkaliMineralOreMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetCarbonaceousDeposit": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetCarbonaceousDepositLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetCarbonaceousDepositMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetDenseMetalOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetDenseMetalOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetFertilizerMineral": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetFertilizerMineralLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetFertilizerMineralMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetLightMetalOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetLightMetalOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetLightMetalOreMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetNuclearOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetNuclearOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetPreciousMetalOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetPreciousMetalOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetPreciousMetalOreMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetRareEarthOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBarrenPlanetRareEarthOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBlackHoleAccretionAerosol": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBlackHoleAccretionData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBlackHoleAccretionDiskMatter": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBlackHoleGravitationalData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBlackHoleHawkingRadiationData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBlackHoleHighEnergyRadiation": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBlackHoleLensingData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBlackHoleRelativisticPlasma": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfAlkaliCloudDeck": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfAlkaliCloudDeckLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfCarbonChemistryMixture": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfCarbonChemistryMixtureLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfDeuteriumBurnAsh": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfDeuteriumBurnAshLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfInfraredWeatherMap": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfInfraredWeatherMapLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfMetallicHydrogenLayer": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfMetallicHydrogenLayerLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfSilicateCloudLayer": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfSilicateCloudLayerLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfSubstellarRotationData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractBrownDwarfSubstellarRotationDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterCometaryOrbitSolution": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterCometaryOrbitSolutionLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterCometaryOrbitSolutionMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterComplexOrganicMantle": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterComplexOrganicMantleLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterComplexOrganicMantleMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterCryovolcanicPlume": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterCryovolcanicPlumeLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterCryovolcanicPlumeMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterIrradiatedIceCrust": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterIrradiatedIceCrustLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterIrradiatedIceCrustMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterPresolarGrainAggregate": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterPresolarGrainAggregateLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterPrimitiveIceMatrix": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterPrimitiveIceMatrixLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterPrimitiveIceMatrixMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterRefractoryCometDust": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterRefractoryCometDustLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractCometClusterRefractoryCometDustMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetBiochemicalMixture": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetBiochemicalMixtureLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetBiochemicalMixtureMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetBiomass": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetBiomassLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetBiomassMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetGeneticMaterial": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetGeneticMaterialLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetGeneticMaterialMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetLivingSoil": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetLivingSoilLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetLivingSoilMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetMicrobialCulture": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetMicrobialCultureLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetMicrobialCultureMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetNaturalMaterial": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetNaturalMaterialLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetNaturalMaterialMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetPlantExtract": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetPlantExtractLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGardenPlanetPlantExtractMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterFusionGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterFusionGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterFusionGasMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterInterstellarDust": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterInterstellarDustLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterInterstellarDustMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterMolecularCloudGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterMolecularCloudGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterMolecularCloudGasMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterMolecularSpectrumData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterMolecularSpectrumDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterMolecularSpectrumDataMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterNobleGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterNobleGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterNobleGasMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterOrganicOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterOrganicOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterOrganicOreMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterPrebioticMoleculeMixture": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterPrebioticMoleculeMixtureLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasClusterPrebioticMoleculeMixtureMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantAtmosphericGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantAtmosphericGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantDeepAtmosphereGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantDeepAtmosphereGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantFusionGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantFusionGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantHydrocarbonCloud": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantHydrocarbonCloudLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantNobleGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantNobleGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantStormFieldData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantStormFieldDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantSulfurCloud": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGasGiantSulfurCloudLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarFusionGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarFusionGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarHeavyElementCondensate": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarHeavyElementCondensateLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarHeliumCarbonEjecta": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarHeliumCarbonEjectaLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarMetalRichOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarMetalRichOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarNeutrinoData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarNeutrinoDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarRadiantEnergy": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarRadiantEnergyLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarSProcessEjecta": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractGiantStarSProcessEjectaLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantCryogenicVolatile": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantCryogenicVolatileLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantCryosphereSpectrumData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantCryosphereSpectrumDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantFusionGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantFusionGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantHighPressurePhaseData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantHighPressurePhaseDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantIceMantleMaterial": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantIceMantleMaterialLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantNobleGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantNobleGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantVolatileIce": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractIceGiantVolatileIceLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMagnetarDenseNuclearCondensate": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMagnetarGiantFlareLightCurve": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMagnetarMagneticTopologyMap": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMagnetarMagnetizedCrustalLattice": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMagnetarQEDVacuumDeposit": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMagnetarStarquakeEjecta": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMagnetarTwistedMagnetospherePlasma": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMagnetarUltraStrongFieldCondensate": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarFusionGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarFusionGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarMetalRichOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarMetalRichOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarPhotosphericMineral": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarPhotosphericMineralLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarPhotosphericPlasma": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarPhotosphericPlasmaLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarRadiantEnergy": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarRadiantEnergyLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarSolarWindCondensate": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarSolarWindCondensateLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarStellarSpectrumData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMainSequenceStarStellarSpectrumDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureArchiveData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureCeramicSalvage": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureCeramicSalvageLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureElectronicSalvage": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureElectronicSalvageLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureMechanicalSalvage": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureMechanicalSalvageLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureMechanicalSalvageMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureOpticalSalvage": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureOpticalSalvageLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureOpticalSalvageMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructurePolymerSalvage": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructurePolymerSalvageLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructurePolymerSalvageMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureStructuralSalvage": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureStructuralSalvageLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractMegastructureStructuralSalvageMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaEmissionLineMap": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaEmissionLineMapLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaIonizedHydrogenCloud": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaIonizedHydrogenCloudLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaMolecularIceMantle": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaMolecularIceMantleLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaPolycyclicAromaticMixture": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaPolycyclicAromaticMixtureLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaProtostarCensusData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaProtostarCensusDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaShockedNebularGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaShockedNebularGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaStellarNurseryDust": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNebulaStellarNurseryDustLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNeutronStarDegenerateCrustMaterial": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNeutronStarGravitationalData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNeutronStarHighEnergyRadiation": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNeutronStarMagnetosphericParticleFlux": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNeutronStarMetalRichOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNeutronStarPulsarEmissionData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNeutronStarPulsarTimingData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractNeutronStarRProcessEjecta": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetAtmosphericGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetAtmosphericGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetAtmosphericGasMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetDissolvedTraceMinerals": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetDissolvedTraceMineralsLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetDissolvedTraceMineralsMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetMarineBiomass": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetMarineBiomassLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetMarineBiomassMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetSeafloorSulfideOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetSeafloorSulfideOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetSeafloorSulfideOreMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetSeawaterMinerals": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetSeawaterMineralsLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetSeawaterMineralsMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetTidalEnergy": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetTidalEnergyLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetTidalEnergyMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetWater": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetWaterLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractOceanPlanetWaterMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfFlareSpectrumData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfFlareSpectrumDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfFusionGas": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfFusionGasLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfMagneticStellarCondensate": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfMagneticStellarCondensateLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfMetalRichOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfMetalRichOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfRadiantEnergy": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfRadiantEnergyLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfRedDwarfPlasma": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfRedDwarfPlasmaLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfStellarRefractoryDust": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRedDwarfStellarRefractoryDustLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetBaseMetalOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetBaseMetalOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetBaseMetalOreMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetFerrousOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetFerrousOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetFerrousOreMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetGeothermalEnergy": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetGeothermalEnergyLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetGeothermalEnergyMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetIgneousRock": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetIgneousRockLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetIgneousRockMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetIndustrialMineral": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetIndustrialMineralLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetIndustrialMineralMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetSedimentaryRock": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetSedimentaryRockLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetSedimentaryRockMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetSilicateMineral": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetSilicateMineralLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractRockyPlanetSilicateMineralMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantCarbonaceousDeposit": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantCarbonaceousDepositLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantDecaySpectrumData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantDecaySpectrumDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantMetalRichOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantMetalRichOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantNuclearOre": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantNuclearOreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantRadioisotopeDeposit": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantRadioisotopeDepositLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantShockwaveSpectrumData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantShockwaveSpectrumDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantSupernovaEjecta": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractStellarRemnantSupernovaEjectaLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetFumaroleCondensate": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetFumaroleCondensateLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetFumaroleCondensateMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetGeothermalBrine": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetGeothermalBrineLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetGeothermalBrineMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetMantleXenolith": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetMantleXenolithLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetMantleXenolithMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetSeismicTomographyData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetSeismicTomographyDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetSeismicTomographyDataMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetSulfideMagma": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetSulfideMagmaLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetSulfideMagmaMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetUltramaficMagma": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetUltramaficMagmaLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetUltramaficMagmaMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetVolcanicAshDeposit": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetVolcanicAshDepositLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractVolcanicPlanetVolcanicAshDepositMedium": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfAsteroseismicModeData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfAsteroseismicModeDataLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfCoolingAgeCalibration": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfCoolingAgeCalibrationLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfCrystallizedCarbonOxygenCore": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfCrystallizedCarbonOxygenCoreLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfDegenerateHeliumEnvelope": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfDegenerateHeliumEnvelopeLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfElectronDegenerateMatter": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfElectronDegenerateMatterLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfMetalPollutedAtmosphere": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfMetalPollutedAtmosphereLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfNovaAshDeposit": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfNovaAshDepositLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfTidalDebrisDisk": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWhiteDwarfTidalDebrisDiskLarge": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWormholeMouthCausalConnectivityMap": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWormholeMouthChronologyResidue": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWormholeMouthExoticThroatMatter": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWormholeMouthThroatGeometrySolution": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWormholeMouthTidalShearCondensate": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWormholeMouthTransitPhaseData": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWormholeMouthTraversabilityFieldMatrix": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "ExtractWormholeMouthVacuumBoundaryLayer": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "advanced_resource",
+      "status": "pass"
+    },
+    "MaterializeCivilizationTypeI": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "civilization_type",
+      "status": "pass"
+    },
+    "MaterializeCivilizationTypeII": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "civilization_type",
+      "status": "pass"
+    },
+    "MaterializeCivilizationTypeIII": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "civilization_type",
+      "status": "pass"
+    },
+    "ScanCelestialBody_00_RedDwarf": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_01_MainSequenceStar": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_02_GiantStar": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_03_RockyPlanet": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_04_OceanPlanet": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_05_GardenPlanet": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_06_GasGiant": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_07_IceGiant": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_08_BarrenPlanet": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_09_NeutronStar": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_10_BlackHole": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_11_Anomaly": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_12_Megastructure": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_13_GasCluster": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_14_StellarRemnant": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_15_AsteroidBelt": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_16_VolcanicPlanet": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_17_Nebula": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_18_CometCluster": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_19_BrownDwarf": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_20_WhiteDwarf": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_21_Magnetar": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "ScanCelestialBody_22_WormholeMouth": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "body_candidate",
+      "status": "pass"
+    },
+    "SurveySector_01_Sparse": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "survey_profile",
+      "status": "pass"
+    },
+    "SurveySector_02_Standard": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "survey_profile",
+      "status": "pass"
+    },
+    "SurveySector_03_Rich": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "survey_profile",
+      "status": "pass"
+    },
+    "SurveySector_04_Ancient": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "survey_profile",
+      "status": "pass"
+    },
+    "SurveySector_05_Anomalous": {
+      "checks": {
+        "comparison_count_exact": true,
+        "constraints_exact": true,
+        "mode_exact": true,
+        "roles_unchanged": true,
+        "selector_subject_exact": true
+      },
+      "hierarchy_level": "survey_profile",
+      "status": "pass"
+    }
+  },
+  "selection_mode": "stable_identifier_band_v1",
+  "status": "pass"
+}

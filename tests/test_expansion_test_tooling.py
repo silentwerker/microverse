@@ -3681,6 +3681,59 @@ description = \"omitted\"
             <= resource_required
         )
 
+    def test_deterministic_hierarchy_is_pexe_owned_and_fail_closed(self) -> None:
+        actions, plugin = self.production_audit_inputs()
+        bank = production_generator.candidate_bank(
+            len(production_generator.BODY_BANK)
+        )
+        audit = production_generator.deterministic_hierarchy_audit(
+            plugin, actions, bank
+        )
+        self.assertEqual("pass", audit["status"])
+        self.assertEqual(400, audit["route_count"])
+        self.assertEqual(23, audit["detect_alias_count"])
+
+        rocky = production_generator.action_function_source(
+            plugin, "ScanCelestialBody_03_RockyPlanet"
+        )
+        selector_calls = production_generator.rhai_method_statement_calls(
+            rocky, "intro_lt_eq_u256"
+        )
+        self.assertTrue(selector_calls)
+        selector_statement = (
+            "action.intro_lt_eq_u256(signal,body_selector_upper);"
+        )
+        self.assertIn(selector_statement, rocky)
+        forged = plugin.replace(selector_statement, "", 1)
+        self.assertEqual(
+            "fail",
+            production_generator.deterministic_hierarchy_audit(
+                forged, actions, bank
+            )["status"],
+        )
+
+        detect = production_generator.action_function_source(
+            plugin, "DetectCelestialSignal_03_RockyPlanet"
+        )
+        self.assertIn(
+            str(production_generator.UNRESOLVED_CANDIDATE_CODE), detect
+        )
+        forged_detect = plugin.replace(
+            detect,
+            detect.replace(
+                str(production_generator.UNRESOLVED_CANDIDATE_CODE),
+                "3",
+                1,
+            ),
+            1,
+        )
+        self.assertEqual(
+            "fail",
+            production_generator.deterministic_hierarchy_audit(
+                forged_detect, actions, bank
+            )["status"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

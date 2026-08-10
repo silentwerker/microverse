@@ -62,10 +62,11 @@
     "runtime_modulo": false,
     "reserve_regeneration": false,
     "reserve_curve": "matter + crystal + gas + energy = 24000 + 2000 * occurrence_exponent",
-    "scan_threshold": "target_top_limb = 2^(64-occurrence_exponent)",
-    "identity_chain": "Ship x/y/z/epoch -> zero-key Sector -> counted zero-key CelestialSignal -> source_signal_identifier-bound zero-key CelestialBody",
+    "scan_weight": "within each category, relative band weight = max(nominal_denominator) / nominal_denominator",
+    "selector_hierarchy": "Sector stable ID -> Survey profile; generic category Signal stable ID -> body candidate; LifeSignal stable ID -> civilization type; source LifeSignal lineage -> root skill; source Signal lineage -> advanced resource yield",
+    "identity_chain": "Ship x/y/z/epoch -> stable-ID-selected Sector profile -> counted zero-key generic-category CelestialSignal -> stable-ID-selected source_signal_identifier-bound zero-key CelestialBody",
     "stable_identifier_caveat": "This catalogs the honest canonical state path; SDK-level rejection of additional initial object entries remains an external requirement.",
-    "scan_threshold_note": "The exponent is a deterministic whole-object eligibility threshold for a named Scan action, not a stable-identifier selector or output lottery. Global availability also depends on the explicitly selected Survey profile and its category-slot counts."
+    "scan_threshold_note": "The exponent weights a deterministic, non-overlapping stable-identifier band within the Signal category. A named Scan succeeds only for its assigned band; Survey profile, civilization type, root skill, and advanced resource yields use the same immutable hierarchy."
   },
   "skills": [
     {
@@ -1169,8 +1170,9 @@
         440,
         441
       ],
-      "scan_threshold_subject": "complete MicroverseCelestialSignal object",
-      "scan_acceptance_comparison": "whole_object <= fixed target_top_limb"
+      "scan_threshold_subject": "MicroverseCelestialSignal stable identifier",
+      "scan_acceptance_comparison": "fixed lower <= stable_identifier <= fixed upper",
+      "scan_selector": "stable_identifier_band_v1"
     },
     {
       "body_id": 16,
@@ -1204,8 +1206,9 @@
         447,
         448
       ],
-      "scan_threshold_subject": "complete MicroverseCelestialSignal object",
-      "scan_acceptance_comparison": "whole_object <= fixed target_top_limb"
+      "scan_threshold_subject": "MicroverseCelestialSignal stable identifier",
+      "scan_acceptance_comparison": "fixed lower <= stable_identifier <= fixed upper",
+      "scan_selector": "stable_identifier_band_v1"
     },
     {
       "body_id": 17,
@@ -1239,8 +1242,9 @@
         454,
         455
       ],
-      "scan_threshold_subject": "complete MicroverseCelestialSignal object",
-      "scan_acceptance_comparison": "whole_object <= fixed target_top_limb"
+      "scan_threshold_subject": "MicroverseCelestialSignal stable identifier",
+      "scan_acceptance_comparison": "fixed lower <= stable_identifier <= fixed upper",
+      "scan_selector": "stable_identifier_band_v1"
     },
     {
       "body_id": 18,
@@ -1274,8 +1278,9 @@
         461,
         462
       ],
-      "scan_threshold_subject": "complete MicroverseCelestialSignal object",
-      "scan_acceptance_comparison": "whole_object <= fixed target_top_limb"
+      "scan_threshold_subject": "MicroverseCelestialSignal stable identifier",
+      "scan_acceptance_comparison": "fixed lower <= stable_identifier <= fixed upper",
+      "scan_selector": "stable_identifier_band_v1"
     },
     {
       "body_id": 19,
@@ -1309,8 +1314,9 @@
         468,
         469
       ],
-      "scan_threshold_subject": "complete MicroverseCelestialSignal object",
-      "scan_acceptance_comparison": "whole_object <= fixed target_top_limb"
+      "scan_threshold_subject": "MicroverseCelestialSignal stable identifier",
+      "scan_acceptance_comparison": "fixed lower <= stable_identifier <= fixed upper",
+      "scan_selector": "stable_identifier_band_v1"
     },
     {
       "body_id": 20,
@@ -1345,8 +1351,9 @@
         476,
         477
       ],
-      "scan_threshold_subject": "complete MicroverseCelestialSignal object",
-      "scan_acceptance_comparison": "whole_object <= fixed target_top_limb"
+      "scan_threshold_subject": "MicroverseCelestialSignal stable identifier",
+      "scan_acceptance_comparison": "fixed lower <= stable_identifier <= fixed upper",
+      "scan_selector": "stable_identifier_band_v1"
     },
     {
       "body_id": 21,
@@ -1381,8 +1388,9 @@
         484,
         485
       ],
-      "scan_threshold_subject": "complete MicroverseCelestialSignal object",
-      "scan_acceptance_comparison": "whole_object <= fixed target_top_limb"
+      "scan_threshold_subject": "MicroverseCelestialSignal stable identifier",
+      "scan_acceptance_comparison": "fixed lower <= stable_identifier <= fixed upper",
+      "scan_selector": "stable_identifier_band_v1"
     },
     {
       "body_id": 22,
@@ -1417,8 +1425,9 @@
         492,
         493
       ],
-      "scan_threshold_subject": "complete MicroverseCelestialSignal object",
-      "scan_acceptance_comparison": "whole_object <= fixed target_top_limb"
+      "scan_threshold_subject": "MicroverseCelestialSignal stable identifier",
+      "scan_acceptance_comparison": "fixed lower <= stable_identifier <= fixed upper",
+      "scan_selector": "stable_identifier_band_v1"
     }
   ],
   "new_parent_split_distribution": {

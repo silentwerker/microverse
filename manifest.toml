@@ -1,7 +1,7 @@
 [plugin]
 name = "microverse-celestial-prototype"
 version = "0.1.0"
-module_hash = "dc9a7eeac0ce15b8e6dd0305daa3fab84c2cfda992838222924269590522c0d4"
+module_hash = "30f1cd42dfa82f1a802df3fcec870876a4ec97260a97aa577b2ac0db5c491eae"
 
 [[classes]]
 name = "MicroverseShip"
@@ -256,31 +256,31 @@ hidden = false
 [[actions]]
 name = "SurveySector_01_Sparse"
 emoji = "MV"
-description = "survey an EMPTY Sector into the action-selected Sparse CELESTIAL allocation profile; requires Ship claim_serial >= 4."
+description = "survey an EMPTY Sector into its stable-ID-selected Sparse CELESTIAL allocation profile; requires Ship claim_serial >= 4."
 hidden = false
 
 [[actions]]
 name = "SurveySector_02_Standard"
 emoji = "MV"
-description = "survey an EMPTY Sector into the action-selected Standard CELESTIAL allocation profile; requires Ship claim_serial >= 8."
+description = "survey an EMPTY Sector into its stable-ID-selected Standard CELESTIAL allocation profile; requires Ship claim_serial >= 8."
 hidden = false
 
 [[actions]]
 name = "SurveySector_03_Rich"
 emoji = "MV"
-description = "survey an EMPTY Sector into the action-selected Rich CELESTIAL allocation profile; requires Ship claim_serial >= 32."
+description = "survey an EMPTY Sector into its stable-ID-selected Rich CELESTIAL allocation profile; requires Ship claim_serial >= 32."
 hidden = false
 
 [[actions]]
 name = "SurveySector_04_Ancient"
 emoji = "MV"
-description = "survey an EMPTY Sector into the action-selected Ancient CELESTIAL allocation profile; requires Ship claim_serial >= 128."
+description = "survey an EMPTY Sector into its stable-ID-selected Ancient CELESTIAL allocation profile; requires Ship claim_serial >= 128."
 hidden = false
 
 [[actions]]
 name = "SurveySector_05_Anomalous"
 emoji = "MV"
-description = "survey an EMPTY Sector into the action-selected Anomalous CELESTIAL allocation profile; requires Ship claim_serial >= 256."
+description = "survey an EMPTY Sector into its stable-ID-selected Anomalous CELESTIAL allocation profile; requires Ship claim_serial >= 256."
 hidden = false
 
 [[actions]]
@@ -4378,19 +4378,19 @@ hidden = false
 [[actions]]
 name = "MaterializeCivilizationTypeI"
 emoji = "MV"
-description = "materialize the action-selected Type I Civilization; requires Ship civilization_scan_serial >= 64."
+description = "materialize the stable-ID-selected Type I Civilization; requires Ship civilization_scan_serial >= 64."
 hidden = false
 
 [[actions]]
 name = "MaterializeCivilizationTypeII"
 emoji = "MV"
-description = "materialize the action-selected Type II Civilization; requires Ship civilization_scan_serial >= 1024."
+description = "materialize the stable-ID-selected Type II Civilization; requires Ship civilization_scan_serial >= 1024."
 hidden = false
 
 [[actions]]
 name = "MaterializeCivilizationTypeIII"
 emoji = "MV"
-description = "materialize the action-selected Type III Civilization; requires Ship civilization_scan_serial >= 16384."
+description = "materialize the stable-ID-selected Type III Civilization; requires Ship civilization_scan_serial >= 16384."
 hidden = false
 
 [[actions]]
