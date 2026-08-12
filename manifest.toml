@@ -1,7 +1,7 @@
 [plugin]
 name = "microverse"
 version = "0.1.0"
-module_hash = "92b83e13252fff2cd258d6de0b36b922e7e064185b6bc698fdd923496e48e02f"
+module_hash = "92c4d677f16c161a9520fed0d1bf715dadf253eda8a3874ea40089146efef676"
 
 [[classes]]
 name = "microverse__ship"
@@ -256,31 +256,31 @@ hidden = false
 [[actions]]
 name = "SurveySector_01_Sparse"
 emoji = "MV"
-description = "survey an EMPTY Sector into its stable-ID-selected Sparse CELESTIAL allocation profile; requires Ship claim_serial >= 4."
+description = "survey a non-empty claimed Sector into its stable-ID-selected Sparse CELESTIAL allocation profile."
 hidden = false
 
 [[actions]]
 name = "SurveySector_02_Standard"
 emoji = "MV"
-description = "survey an EMPTY Sector into its stable-ID-selected Standard CELESTIAL allocation profile; requires Ship claim_serial >= 8."
+description = "survey a non-empty claimed Sector into its stable-ID-selected Standard CELESTIAL allocation profile."
 hidden = false
 
 [[actions]]
 name = "SurveySector_03_Rich"
 emoji = "MV"
-description = "survey an EMPTY Sector into its stable-ID-selected Rich CELESTIAL allocation profile; requires Ship claim_serial >= 32."
+description = "survey a non-empty claimed Sector into its stable-ID-selected Rich CELESTIAL allocation profile."
 hidden = false
 
 [[actions]]
 name = "SurveySector_04_Ancient"
 emoji = "MV"
-description = "survey an EMPTY Sector into its stable-ID-selected Ancient CELESTIAL allocation profile; requires Ship claim_serial >= 128."
+description = "survey a non-empty claimed Sector into its stable-ID-selected Ancient CELESTIAL allocation profile."
 hidden = false
 
 [[actions]]
 name = "SurveySector_05_Anomalous"
 emoji = "MV"
-description = "survey an EMPTY Sector into its stable-ID-selected Anomalous CELESTIAL allocation profile; requires Ship claim_serial >= 256."
+description = "survey a non-empty claimed Sector into its stable-ID-selected Anomalous CELESTIAL allocation profile."
 hidden = false
 
 [[actions]]
