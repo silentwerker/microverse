@@ -26,7 +26,6 @@ var x=unsafe{destination_x-0};
 var y=unsafe{destination_y-0};
 var z=unsafe{destination_z-0};
 var epoch=unsafe{destination_epoch-0};
-var claim_serial=unsafe{ship.claim_serial-0};
 var discovery_serial=unsafe{ship.discovery_serial-0};
 var satellite_serial=unsafe{ship.satellite_serial-0};
 var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
@@ -37,7 +36,6 @@ action.st_sum(destination_x,0,x);
 action.st_sum(destination_y,0,y);
 action.st_sum(destination_z,0,z);
 action.st_sum(destination_epoch,0,epoch);
-action.st_sum(ship.claim_serial,0,claim_serial);
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 action.st_sum(ship.satellite_serial,0,satellite_serial);
 action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
@@ -54,7 +52,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -139,13 +136,11 @@ action.st_sum(ship.z,0,z);
 action.st_sum(body.sector_z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(body.sector_epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
 var discovery_serial=unsafe{ship.discovery_serial-0};
 var satellite_serial=unsafe{ship.satellite_serial-0};
 var civilization_scan_serial=unsafe{
 ship.civilization_scan_serial-0
 };
-action.st_sum(ship.claim_serial,0,claim_serial);
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 action.st_sum(ship.satellite_serial,0,satellite_serial);
 action.st_sum(
@@ -169,7 +164,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -227,13 +221,11 @@ action.st_sum(ship.z,0,z);
 action.st_sum(body.sector_z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(body.sector_epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
 var discovery_serial=unsafe{ship.discovery_serial-0};
 var satellite_serial=unsafe{ship.satellite_serial-0};
 var civilization_scan_serial=unsafe{
 ship.civilization_scan_serial-0
 };
-action.st_sum(ship.claim_serial,0,claim_serial);
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 action.st_sum(ship.satellite_serial,0,satellite_serial);
 action.st_sum(
@@ -257,7 +249,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -319,8 +310,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(parent.sector_z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(parent.origin_epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -341,7 +330,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -399,8 +387,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(civilization.sector_z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(civilization.origin_epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -421,7 +407,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -463,8 +448,6 @@ action.st_sum(ship.x,0,x);
 action.st_sum(ship.y,0,y);
 action.st_sum(ship.z,0,z);
 action.st_sum(ship.epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -485,7 +468,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -541,8 +523,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(body.sector_z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(body.sector_epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -563,7 +543,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -690,8 +669,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(permit.z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(permit.epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -712,7 +689,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -863,8 +839,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(sector.z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(sector.epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -885,7 +859,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -904,8 +877,6 @@ y,
 z,
 epoch
 ){
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
 action.st_sum(ship.satellite_serial,0,satellite_serial);
 var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
@@ -926,7 +897,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",next_discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -1337,7 +1307,6 @@ ship.set([
 ["epoch",0],
 ["active_skill_type",0],
 ["action_serial",0],
-["claim_serial",0],
 ["discovery_serial",0],
 ["satellite_serial",0],
 ["civilization_scan_serial",0],
@@ -1385,7 +1354,6 @@ ship.set([
 ["epoch",0],
 ["active_skill_type",0],
 ["action_serial",0],
-["claim_serial",0],
 ["discovery_serial",0],
 ["satellite_serial",0],
 ["civilization_scan_serial",0],
@@ -1453,7 +1421,6 @@ ship.set([
 ["epoch",build_epoch],
 ["active_skill_type",0],
 ["action_serial",0],
-["claim_serial",0],
 ["discovery_serial",0],
 ["satellite_serial",0],
 ["civilization_scan_serial",0],
@@ -1629,12 +1596,9 @@ sector.set([
 let zero=action.top_limb_u256(0);
 sector.update("key",zero);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
-var next_claim_serial=unsafe{ship.claim_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-action.st_sum(ship.claim_serial,1,next_claim_serial);
 ship.update("active_skill_type",0);
 ship.update("action_serial",next_action_serial);
-ship.update("claim_serial",next_claim_serial);
 var next_ship_key=action.random();
 ship.update("key",next_ship_key);
 }
@@ -1642,10 +1606,12 @@ fn SurveySector_01_Sparse(action){
 var next_ship=action.output("microverse__ship");
 var ship=action.input("microverse__ship");
 var sector=action.mutate("microverse__sector");
-let survey_selector_upper=action.top_limb_u256(-7413177527517650715);
-action.intro_lt_eq_u256(sector,survey_selector_upper);
+var sector_selector=action.random();
+var_assign(sector_selector,sector.stable_identifier);
+sector.update("stable_identifier",sector_selector);
+let survey_selector_upper=action.top_limb_u256(7723496582334330630);
+action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,next_ship,ship,sector);
-action.st_gt(ship.claim_serial,3);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -1662,12 +1628,14 @@ fn SurveySector_02_Standard(action){
 var next_ship=action.output("microverse__ship");
 var ship=action.input("microverse__ship");
 var sector=action.mutate("microverse__sector");
-let survey_selector_lower=action.top_limb_u256(-7413177527517650714);
-action.intro_lt_eq_u256(survey_selector_lower,sector);
-let survey_selector_upper=action.top_limb_u256(-1896394254421700264);
-action.intro_lt_eq_u256(sector,survey_selector_upper);
+var sector_selector=action.random();
+var_assign(sector_selector,sector.stable_identifier);
+sector.update("stable_identifier",sector_selector);
+let survey_selector_lower=action.top_limb_u256(7723496582334330631);
+action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
+let survey_selector_upper=action.top_limb_u256(-6861499200208055670);
+action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,next_ship,ship,sector);
-action.st_gt(ship.claim_serial,7);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -1688,12 +1656,14 @@ fn SurveySector_03_Rich(action){
 var next_ship=action.output("microverse__ship");
 var ship=action.input("microverse__ship");
 var sector=action.mutate("microverse__sector");
-let survey_selector_lower=action.top_limb_u256(-1896394254421700263);
-action.intro_lt_eq_u256(survey_selector_lower,sector);
-let survey_selector_upper=action.top_limb_u256(-517198436147712651);
-action.intro_lt_eq_u256(sector,survey_selector_upper);
+var sector_selector=action.random();
+var_assign(sector_selector,sector.stable_identifier);
+sector.update("stable_identifier",sector_selector);
+let survey_selector_lower=action.top_limb_u256(-6861499200208055669);
+action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
+let survey_selector_upper=action.top_limb_u256(-5896062127416264341);
+action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,next_ship,ship,sector);
-action.st_gt(ship.claim_serial,31);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -1716,12 +1686,14 @@ fn SurveySector_04_Ancient(action){
 var next_ship=action.output("microverse__ship");
 var ship=action.input("microverse__ship");
 var sector=action.mutate("microverse__sector");
-let survey_selector_lower=action.top_limb_u256(-517198436147712650);
-action.intro_lt_eq_u256(survey_selector_lower,sector);
-let survey_selector_upper=action.top_limb_u256(-172399481579215748);
-action.intro_lt_eq_u256(sector,survey_selector_upper);
+var sector_selector=action.random();
+var_assign(sector_selector,sector.stable_identifier);
+sector.update("stable_identifier",sector_selector);
+let survey_selector_lower=action.top_limb_u256(-5896062127416264340);
+action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
+let survey_selector_upper=action.top_limb_u256(-5654702859218316509);
+action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,next_ship,ship,sector);
-action.st_gt(ship.claim_serial,127);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -1744,10 +1716,14 @@ fn SurveySector_05_Anomalous(action){
 var next_ship=action.output("microverse__ship");
 var ship=action.input("microverse__ship");
 var sector=action.mutate("microverse__sector");
-let survey_selector_lower=action.top_limb_u256(-172399481579215747);
-action.intro_lt_eq_u256(survey_selector_lower,sector);
+var sector_selector=action.random();
+var_assign(sector_selector,sector.stable_identifier);
+sector.update("stable_identifier",sector_selector);
+let survey_selector_lower=action.top_limb_u256(-5654702859218316508);
+action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
+let survey_selector_upper=action.top_limb_u256(-5534023225119342593);
+action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,next_ship,ship,sector);
-action.st_gt(ship.claim_serial,255);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -2140,8 +2116,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(body.sector_z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(body.sector_epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -2162,7 +2136,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -2225,8 +2198,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(body.sector_z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(body.sector_epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -2247,7 +2218,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -6116,8 +6086,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(body.sector_z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(body.sector_epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
@@ -6138,7 +6106,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",next_ship_satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -6195,8 +6162,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(body.sector_z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 action.st_sum(body.sector_epoch,0,epoch);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -6217,7 +6182,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",0],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",next_scan_serial],
@@ -14877,8 +14841,6 @@ action.st_sum(ship.z,0,z);
 action.st_sum(ship.epoch,0,epoch);
 var active_skill_type=unsafe{technology_skill.skill_type-0};
 action.st_sum(technology_skill.skill_type,0,active_skill_type);
-var claim_serial=unsafe{ship.claim_serial-0};
-action.st_sum(ship.claim_serial,0,claim_serial);
 var discovery_serial=unsafe{ship.discovery_serial-0};
 action.st_sum(ship.discovery_serial,0,discovery_serial);
 var satellite_serial=unsafe{ship.satellite_serial-0};
@@ -14899,7 +14861,6 @@ next_ship.set([
 ["epoch",epoch],
 ["active_skill_type",active_skill_type],
 ["action_serial",next_action_serial],
-["claim_serial",claim_serial],
 ["discovery_serial",discovery_serial],
 ["satellite_serial",satellite_serial],
 ["civilization_scan_serial",civilization_scan_serial],
@@ -15055,7 +15016,6 @@ child_ship.set([
 ["epoch",build_epoch],
 ["active_skill_type",0],
 ["action_serial",0],
-["claim_serial",0],
 ["discovery_serial",0],
 ["satellite_serial",0],
 ["civilization_scan_serial",0],
@@ -15114,7 +15074,6 @@ child_ship.set([
 ["epoch",build_epoch],
 ["active_skill_type",0],
 ["action_serial",0],
-["claim_serial",0],
 ["discovery_serial",0],
 ["satellite_serial",0],
 ["civilization_scan_serial",0],
