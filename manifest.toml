@@ -1,7 +1,7 @@
 [plugin]
 name = "microverse"
 version = "0.1.0"
-module_hash = "92c4d677f16c161a9520fed0d1bf715dadf253eda8a3874ea40089146efef676"
+module_hash = "5ef813152c1a5ddbfbdd54862341c3382507e0fa1ce0bd8ea50a9cade0cc4c07"
 
 [[classes]]
 name = "microverse__ship"
