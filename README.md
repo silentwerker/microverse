@@ -1,4 +1,4 @@
-# Microverse release
+# Microverse
 
 Microverse is a proof-powered universe where you pilot a ship across space and time, survey unknown sectors, harvest distant worlds, and turn each discovery into technology, artifacts, and civilization, one branch at a time.
 
