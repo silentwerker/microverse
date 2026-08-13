@@ -12,7 +12,6 @@ bound_ship_id
 }
 fn warp_ship_core(
 action,
-next_ship,
 ship,
 destination_x,
 destination_y,
@@ -20,44 +19,26 @@ destination_z,
 destination_epoch
 ){
 prove_fixed_versions(action,ship);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
 var x=unsafe{destination_x-0};
 var y=unsafe{destination_y-0};
 var z=unsafe{destination_z-0};
 var epoch=unsafe{destination_epoch-0};
-var discovery_serial=unsafe{ship.discovery_serial-0};
-var satellite_serial=unsafe{ship.satellite_serial-0};
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
 action.st_sum(destination_x,0,x);
 action.st_sum(destination_y,0,y);
 action.st_sum(destination_z,0,z);
 action.st_sum(destination_epoch,0,epoch);
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
 action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
+ship.update("x",x);
+ship.update("y",y);
+ship.update("z",z);
+ship.update("epoch",epoch);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 }
 fn rotate_key(object,next_key){
 object.update("key",next_key);
@@ -110,7 +91,6 @@ rotate_key(coordinate,next_key);
 }
 fn extract_direct_resource_core(
 action,
-next_ship,
 resource,
 ship,
 body,
@@ -119,57 +99,15 @@ resource_type,
 extraction_amount,
 rare_extraction_amount
 ){
-var ship_id=bind_ship_id(action,ship);
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
 action.st_sum(ship.extraction_amount,0,extraction_amount);
 action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(body.sector_x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(body.sector_y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(body.sector_z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(body.sector_epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-var satellite_serial=unsafe{ship.satellite_serial-0};
-var civilization_scan_serial=unsafe{
-ship.civilization_scan_serial-0
-};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-action.st_sum(
-ship.civilization_scan_serial,
-0,
-civilization_scan_serial
-);
-var next_action_serial=unsafe{
-ship.action_serial-(0-1)
-};
-action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
+action.st_sum(ship.x,0,body.sector_x);
+action.st_sum(ship.y,0,body.sector_y);
+action.st_sum(ship.z,0,body.sector_z);
+action.st_sum(ship.epoch,0,body.sector_epoch);
 var next_remaining=unsafe{
 body[remaining_field]-extraction_amount
 };
@@ -186,13 +124,22 @@ resource.set([
 ["resource_type",resource_type],
 ["amount",extraction_amount]
 ]);
+var next_action_serial=unsafe{
+ship.action_serial-(0-1)
+};
+action.st_sum(ship.action_serial,1,next_action_serial);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 body.update(remaining_field,next_remaining);
 var next_body_key=action.random();
 rotate_key(body,next_body_key);
 }
 fn extract_composite_resource_core(
 action,
-next_ship,
 composite_resource,
 ship,
 body,
@@ -204,57 +151,15 @@ child_1_amount,
 child_2_amount,
 child_3_amount
 ){
-var ship_id=bind_ship_id(action,ship);
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
 action.st_sum(ship.extraction_amount,0,extraction_amount);
 action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(body.sector_x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(body.sector_y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(body.sector_z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(body.sector_epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-var satellite_serial=unsafe{ship.satellite_serial-0};
-var civilization_scan_serial=unsafe{
-ship.civilization_scan_serial-0
-};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-action.st_sum(
-ship.civilization_scan_serial,
-0,
-civilization_scan_serial
-);
-var next_action_serial=unsafe{
-ship.action_serial-(0-1)
-};
-action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
+action.st_sum(ship.x,0,body.sector_x);
+action.st_sum(ship.y,0,body.sector_y);
+action.st_sum(ship.z,0,body.sector_z);
+action.st_sum(ship.epoch,0,body.sector_epoch);
 var next_remaining=unsafe{
 body[remaining_field]-extraction_amount
 };
@@ -269,21 +174,30 @@ composite_resource.set([
 ["mechanics_version",2],
 ["universe_version",2],
 ["resource_type",resource_type],
-["sector_x",x],
-["sector_y",y],
-["sector_z",z],
-["origin_epoch",epoch],
+["sector_x",ship.x],
+["sector_y",ship.y],
+["sector_z",ship.z],
+["origin_epoch",ship.epoch],
 ["child_1_remaining",child_1_amount],
 ["child_2_remaining",child_2_amount],
 ["child_3_remaining",child_3_amount]
 ]);
+var next_action_serial=unsafe{
+ship.action_serial-(0-1)
+};
+action.st_sum(ship.action_serial,1,next_action_serial);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 body.update(remaining_field,next_remaining);
 var next_body_key=action.random();
 rotate_key(body,next_body_key);
 }
 fn refine_resource_core(
 action,
-next_ship,
 resource,
 ship,
 parent,
@@ -294,73 +208,34 @@ output_resource_type
 ){
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,parent);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(parent.sector_x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(parent.sector_y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(parent.sector_z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(parent.origin_epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
-var next_action_serial=unsafe{ship.action_serial-(0-1)};
-action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
+action.st_sum(ship.x,0,parent.sector_x);
+action.st_sum(ship.y,0,parent.sector_y);
+action.st_sum(ship.z,0,parent.sector_z);
+action.st_sum(ship.epoch,0,parent.origin_epoch);
 action.st_sum(ship.active_skill_type,0,skill_type);
 action.st_sum(parent.resource_type,0,parent_resource_type);
 action.st_gt(parent[child_remaining_field],0);
-var refinement_amount=unsafe{
-parent[child_remaining_field]-0
-};
-action.st_sum(
-parent[child_remaining_field],
-0,
-refinement_amount
-);
 resource.set([
 ["schema_version",2],
 ["mechanics_version",2],
 ["universe_version",2],
 ["resource_type",output_resource_type],
-["amount",refinement_amount]
+["amount",parent[child_remaining_field]]
 ]);
+var next_action_serial=unsafe{ship.action_serial-(0-1)};
+action.st_sum(ship.action_serial,1,next_action_serial);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 parent.update(child_remaining_field,0);
 var next_parent_key=action.random();
 rotate_key(parent,next_parent_key);
 }
 fn develop_technology_skill_core(
 action,
-next_ship,
 technology_skill,
 ship,
 civilization,
@@ -371,48 +246,18 @@ reusable
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,civilization);
 action.st_sum(civilization.civilization_version,0,2);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(civilization.sector_x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(civilization.sector_y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(civilization.sector_z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(civilization.origin_epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
+action.st_sum(ship.x,0,civilization.sector_x);
+action.st_sum(ship.y,0,civilization.sector_y);
+action.st_sum(ship.z,0,civilization.sector_z);
+action.st_sum(ship.epoch,0,civilization.origin_epoch);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 action.st_sum(
 civilization.civilization_type,
 0,
@@ -431,51 +276,33 @@ rotate_key(civilization,next_civilization_key);
 }
 fn consume_prepared_ship_core(
 action,
-next_ship,
 ship,
 required_skill_type
 ){
 prove_fixed_versions(action,ship);
 var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 ship_id
+}
+fn consume_prepared_ship_mutation_core(action,ship,required_skill_type){
+prove_fixed_versions(action,ship);
+action.st_sum(ship.active_skill_type,0,required_skill_type);
+var next_action_serial=unsafe{ship.action_serial-(0-1)};
+action.st_sum(ship.action_serial,1,next_action_serial);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 }
 fn prove_resource_stack_core(action,resource,resource_type,amount){
 prove_fixed_versions(action,resource);
@@ -499,59 +326,19 @@ action.st_sum(object.uses_remaining,0,1);
 }
 fn extract_v2_chart_core(
 action,
-next_ship,
 ship,
 body,
 skill_type
 ){
-prove_fixed_versions(action,ship);
+consume_prepared_ship_mutation_core(action,ship,skill_type);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(body.sector_x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(body.sector_y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(body.sector_z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(body.sector_epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
-var next_action_serial=unsafe{ship.action_serial-(0-1)};
-action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
 action.st_sum(ship.extraction_amount,0,250);
 action.st_sum(ship.rare_extraction_amount,0,25);
-action.st_sum(ship.active_skill_type,0,skill_type);
+action.st_sum(ship.x,0,body.sector_x);
+action.st_sum(ship.y,0,body.sector_y);
+action.st_sum(ship.z,0,body.sector_z);
+action.st_sum(ship.epoch,0,body.sector_epoch);
 action.st_sum(body.candidate_code,0,22);
 action.st_sum(body.body_type,0,7);
 var next_energy=unsafe{body.energy_remaining-9000};
@@ -562,10 +349,10 @@ var next_body_key=action.random();
 rotate_key(body,next_body_key);
 }
 fn reveal_chart_p(
-action,next_ship,ship,chart,code,x,y,z,uses,
+action,ship,chart,code,x,y,z,uses,
 minimum_source_pool_exclusive
 ){
-consume_prepared_ship_core(action,next_ship,ship,50);
+consume_prepared_ship_mutation_core(action,ship,50);
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,0);
 action.st_gt(chart.source_pool_before,minimum_source_pool_exclusive);
@@ -581,10 +368,10 @@ var work=action.intro_vdf(20,chart);
 chart.update("work",work);
 }
 fn reveal_chart_t(
-action,next_ship,ship,chart,code,epoch,uses,
+action,ship,chart,code,epoch,uses,
 minimum_source_pool_exclusive
 ){
-consume_prepared_ship_core(action,next_ship,ship,58);
+consume_prepared_ship_mutation_core(action,ship,58);
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,0);
 action.st_gt(chart.source_pool_before,minimum_source_pool_exclusive);
@@ -606,31 +393,23 @@ var c=action.mutate("microverse__time_coordinate");
 reveal_t(action,c,code,epoch,uses,minimum_source_pool_exclusive);
 }
 fn reveal_warp_chart_action(action,code,x,y,z,uses,minimum_source_pool_exclusive){
-var n=action.output("microverse__ship");
-var s=action.input("microverse__ship");
+var s=action.mutate("microverse__ship");
 var c=action.mutate("microverse__warp_chart");
-reveal_chart_p(action,n,s,c,code,x,y,z,uses,minimum_source_pool_exclusive);
+reveal_chart_p(action,s,c,code,x,y,z,uses,minimum_source_pool_exclusive);
 }
 fn reveal_epoch_chart_action(action,code,epoch,uses,minimum_source_pool_exclusive){
-var n=action.output("microverse__ship");
-var s=action.input("microverse__ship");
+var s=action.mutate("microverse__ship");
 var c=action.mutate("microverse__epoch_chart");
-reveal_chart_t(action,n,s,c,code,epoch,uses,minimum_source_pool_exclusive);
+reveal_chart_t(action,s,c,code,epoch,uses,minimum_source_pool_exclusive);
 }
 fn develop_derived_skill_core(
 action,
-next_ship,
 technology_skill,
 ship,
 parent_skill_type,
 output_skill_type
 ){
-consume_prepared_ship_core(
-action,
-next_ship,
-ship,
-parent_skill_type
-);
+consume_prepared_ship_mutation_core(action,ship,parent_skill_type);
 technology_skill.set([
 ["schema_version",2],
 ["mechanics_version",2],
@@ -642,19 +421,13 @@ technology_skill.set([
 }
 fn produce_capability_artifact_core(
 action,
-next_ship,
 artifact,
 ship,
 required_skill_type,
 output_resource_type,
 output_amount
 ){
-consume_prepared_ship_core(
-action,
-next_ship,
-ship,
-required_skill_type
-);
+consume_prepared_ship_mutation_core(action,ship,required_skill_type);
 artifact.set([
 ["schema_version",2],
 ["mechanics_version",2],
@@ -665,7 +438,6 @@ artifact.set([
 }
 fn authorize_large_ship_permit_core(
 action,
-next_ship,
 ship,
 permit,
 skill_type,
@@ -673,49 +445,19 @@ authorization_field
 ){
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,permit);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(permit.x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(permit.y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(permit.z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(permit.epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
+action.st_sum(ship.x,0,permit.x);
+action.st_sum(ship.y,0,permit.y);
+action.st_sum(ship.z,0,permit.z);
+action.st_sum(ship.epoch,0,permit.epoch);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
 action.st_sum(ship.active_skill_type,0,skill_type);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 action.st_sum(permit.permit_type,0,1);
 action.st_sum(permit[authorization_field],0,0);
 permit.update(authorization_field,1);
@@ -724,7 +466,6 @@ rotate_key(permit,next_permit_key);
 }
 fn fabricate_component_core(
 action,
-next_ship,
 component,
 ship,
 material_1,
@@ -742,11 +483,11 @@ catalyst_type,
 component_type,
 component_amount
 ){
-consume_prepared_ship_core(action,next_ship,ship,skill_type);
 prove_fixed_versions(action,material_1);
 prove_fixed_versions(action,material_2);
 prove_fixed_versions(action,material_3);
 prove_fixed_versions(action,catalyst);
+consume_prepared_ship_mutation_core(action,ship,skill_type);
 action.st_sum(material_1.resource_type,0,material_1_type);
 action.st_sum(material_1.amount,0,material_1_amount);
 action.st_sum(material_2.resource_type,0,material_2_type);
@@ -806,33 +547,30 @@ action.intro_lt_eq_u256(signal,body_selector_upper);
 scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 }
 fn develop_initial_skill_upper_action(action,upper_limb,civilization_type,skill_type,reusable){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var technology_skill=action.output("microverse__technology_skill");
-var ship=action.input("microverse__ship");
 var civilization=action.mutate("microverse__civilization");
 let skill_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
-develop_technology_skill_core(action,next_ship,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
+develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 }
 fn develop_initial_skill_lower_action(action,lower_limb,civilization_type,skill_type,reusable){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var technology_skill=action.output("microverse__technology_skill");
-var ship=action.input("microverse__ship");
 var civilization=action.mutate("microverse__civilization");
 let skill_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
-develop_technology_skill_core(action,next_ship,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
+develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 }
 fn develop_initial_skill_range_action(action,lower_limb,upper_limb,civilization_type,skill_type,reusable){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var technology_skill=action.output("microverse__technology_skill");
-var ship=action.input("microverse__ship");
 var civilization=action.mutate("microverse__civilization");
 let skill_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
 let skill_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
-develop_technology_skill_core(action,next_ship,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
+develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 }
 fn scan_body_core(
 action,
@@ -900,113 +638,45 @@ ship.update("action_serial",next_action_serial);
 var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
 }
-fn survey_replacement_ship_core(action,next_ship,ship,sector){
+fn survey_replacement_ship_core(action,ship,sector){
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,sector);
 action.st_sum(sector.body_bank_version,0,2);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(sector.x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(sector.y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(sector.z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(sector.epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
+action.st_sum(ship.x,0,sector.x);
+action.st_sum(ship.y,0,sector.y);
+action.st_sum(ship.z,0,sector.z);
+action.st_sum(ship.epoch,0,sector.epoch);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 }
-fn finish_detect_replacement_ship_core(
-action,
-next_ship,
-ship,
-ship_id,
-extraction_amount,
-rare_extraction_amount,
-x,
-y,
-z,
-epoch
-){
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
+fn finish_detect_replacement_ship_core(action,ship){
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
 var next_discovery_serial=unsafe{ship.discovery_serial-(0-1)};
 action.st_sum(ship.discovery_serial,1,next_discovery_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",next_discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+ship.update("discovery_serial",next_discovery_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 }
-fn detect_signal_core(action,next_ship,signal,ship,sector,category_code,candidate_code,remaining_field,serial_field){
+fn detect_signal_core(action,signal,ship,sector,category_code,candidate_code,remaining_field,serial_field){
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,sector);
 action.st_sum(sector.body_bank_version,0,2);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(sector.x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(sector.y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(sector.z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(sector.epoch,0,epoch);
-finish_detect_replacement_ship_core(action,next_ship,ship,ship_id,extraction_amount,rare_extraction_amount,x,y,z,epoch);
+action.st_sum(ship.x,0,sector.x);
+action.st_sum(ship.y,0,sector.y);
+action.st_sum(ship.z,0,sector.z);
+action.st_sum(ship.epoch,0,sector.epoch);
+finish_detect_replacement_ship_core(action,ship);
 action.st_sum(sector.sector_type,0,1);
 action.st_gt(sector.survey_profile,0);
 action.st_gt(sector[remaining_field],0);
@@ -1019,10 +689,10 @@ signal.set([
 ["mechanics_version",2],
 ["universe_version",2],
 ["body_bank_version",2],
-["sector_x",x],
-["sector_y",y],
-["sector_z",z],
-["sector_epoch",epoch],
+["sector_x",ship.x],
+["sector_y",ship.y],
+["sector_z",ship.z],
+["sector_epoch",ship.epoch],
 ["category_code",category_code],
 ["candidate_code",candidate_code],
 ["slot_serial",slot_serial]
@@ -1062,56 +732,51 @@ action.st_sum(sector.next_stellar_remnant_serial,0,0);
 action.st_sum(sector.next_minor_body_field_serial,0,0);
 }
 fn extract_base_action(action,vdf_iterations,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var resource=action.output("microverse__resource");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 action.st_sum(ship.active_skill_type,0,required_skill_type);
-extract_direct_resource_core(action,next_ship,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_direct_ungated_action(action,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var resource=action.output("microverse__resource");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
-extract_direct_resource_core(action,next_ship,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_direct_upper_action(action,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var resource=action.output("microverse__resource");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 let resource_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
-extract_direct_resource_core(action,next_ship,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_direct_lower_action(action,lower_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var resource=action.output("microverse__resource");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 let resource_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
-extract_direct_resource_core(action,next_ship,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_direct_range_action(action,lower_limb,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var resource=action.output("microverse__resource");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 let resource_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
@@ -1119,51 +784,47 @@ let resource_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
-extract_direct_resource_core(action,next_ship,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_composite_ungated_action(action,vdf_iterations,candidate_code,required_skill_type,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var composite_resource=action.output("microverse__composite_resource");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
-extract_composite_resource_core(action,next_ship,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
+extract_composite_resource_core(action,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_composite_upper_action(action,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var composite_resource=action.output("microverse__composite_resource");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 let resource_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
-extract_composite_resource_core(action,next_ship,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
+extract_composite_resource_core(action,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_composite_lower_action(action,lower_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var composite_resource=action.output("microverse__composite_resource");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 let resource_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
-extract_composite_resource_core(action,next_ship,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
+extract_composite_resource_core(action,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_composite_range_action(action,lower_limb,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var composite_resource=action.output("microverse__composite_resource");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 let resource_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
@@ -1171,65 +832,60 @@ let resource_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
-extract_composite_resource_core(action,next_ship,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
+extract_composite_resource_core(action,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn refine_resource_action(action,required_skill_type,parent_resource_type,child_remaining_field,output_resource_type,vdf_iterations){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var resource=action.output("microverse__resource");
-var ship=action.input("microverse__ship");
 var parent=action.mutate("microverse__composite_resource");
-refine_resource_core(action,next_ship,resource,ship,parent,required_skill_type,parent_resource_type,child_remaining_field,output_resource_type);
+refine_resource_core(action,resource,ship,parent,required_skill_type,parent_resource_type,child_remaining_field,output_resource_type);
 var work=action.intro_vdf(vdf_iterations,parent);
 parent.update("work",work);
 }
 fn fabricate_component_reusable_action(action,vdf_iterations,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount){
-var n=action.output("microverse__ship");
+var s=action.mutate("microverse__ship");
 var c=action.output("microverse__resource");
-var s=action.input("microverse__ship");
 var a=action.input("microverse__resource");
 var b=action.input("microverse__resource");
 var d=action.input("microverse__resource");
 var k=action.mutate("microverse__resource");
-fabricate_component_core(action,n,c,s,a,b,d,k,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount);
+fabricate_component_core(action,c,s,a,b,d,k,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount);
 consume_component_catalyst_reusable_core(action,k);
 var work=action.intro_vdf(vdf_iterations,c);
 c.update("work",work);
 }
 fn fabricate_component_final_action(action,vdf_iterations,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount){
-var n=action.output("microverse__ship");
+var s=action.mutate("microverse__ship");
 var c=action.output("microverse__resource");
-var s=action.input("microverse__ship");
 var a=action.input("microverse__resource");
 var b=action.input("microverse__resource");
 var d=action.input("microverse__resource");
 var k=action.input("microverse__resource");
-fabricate_component_core(action,n,c,s,a,b,d,k,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount);
+fabricate_component_core(action,c,s,a,b,d,k,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount);
 consume_component_catalyst_final_core(action,k);
 var work=action.intro_vdf(vdf_iterations,c);
 c.update("work",work);
 }
 fn develop_derived_skill_2_evidence_action(action,vdf_iterations,parent_skill_type,output_skill_type,evidence_1_type,evidence_1_amount,evidence_2_type,evidence_2_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var technology_skill=action.output("microverse__technology_skill");
-var ship=action.input("microverse__ship");
 var evidence_1=action.input("microverse__resource");
 var evidence_2=action.input("microverse__resource");
-develop_derived_skill_core(action,next_ship,technology_skill,ship,parent_skill_type,output_skill_type);
+develop_derived_skill_core(action,technology_skill,ship,parent_skill_type,output_skill_type);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 prove_resource_stack_core(action,evidence_2,evidence_2_type,evidence_2_amount);
 var work=action.intro_vdf(vdf_iterations,technology_skill);
 technology_skill.update("work",work);
 }
 fn develop_derived_skill_3_evidence_action(action,vdf_iterations,parent_skill_type,output_skill_type,evidence_1_type,evidence_1_amount,evidence_2_type,evidence_2_amount,evidence_3_type,evidence_3_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var technology_skill=action.output("microverse__technology_skill");
-var ship=action.input("microverse__ship");
 var evidence_1=action.input("microverse__resource");
 var evidence_2=action.input("microverse__resource");
 var evidence_3=action.input("microverse__resource");
-develop_derived_skill_core(action,next_ship,technology_skill,ship,parent_skill_type,output_skill_type);
+develop_derived_skill_core(action,technology_skill,ship,parent_skill_type,output_skill_type);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 prove_resource_stack_core(action,evidence_2,evidence_2_type,evidence_2_amount);
 prove_resource_stack_core(action,evidence_3,evidence_3_type,evidence_3_amount);
@@ -1237,35 +893,32 @@ var work=action.intro_vdf(vdf_iterations,technology_skill);
 technology_skill.update("work",work);
 }
 fn produce_capability_artifact_1_evidence_action(action,vdf_iterations,required_skill_type,output_resource_type,output_amount,evidence_1_type,evidence_1_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var artifact=action.output("microverse__resource");
-var ship=action.input("microverse__ship");
 var evidence_1=action.input("microverse__resource");
-produce_capability_artifact_core(action,next_ship,artifact,ship,required_skill_type,output_resource_type,output_amount);
+produce_capability_artifact_core(action,artifact,ship,required_skill_type,output_resource_type,output_amount);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 var work=action.intro_vdf(vdf_iterations,artifact);
 artifact.update("work",work);
 }
 fn produce_capability_artifact_2_evidence_action(action,vdf_iterations,required_skill_type,output_resource_type,output_amount,evidence_1_type,evidence_1_amount,evidence_2_type,evidence_2_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var artifact=action.output("microverse__resource");
-var ship=action.input("microverse__ship");
 var evidence_1=action.input("microverse__resource");
 var evidence_2=action.input("microverse__resource");
-produce_capability_artifact_core(action,next_ship,artifact,ship,required_skill_type,output_resource_type,output_amount);
+produce_capability_artifact_core(action,artifact,ship,required_skill_type,output_resource_type,output_amount);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 prove_resource_stack_core(action,evidence_2,evidence_2_type,evidence_2_amount);
 var work=action.intro_vdf(vdf_iterations,artifact);
 artifact.update("work",work);
 }
 fn produce_capability_artifact_3_evidence_action(action,vdf_iterations,required_skill_type,output_resource_type,output_amount,evidence_1_type,evidence_1_amount,evidence_2_type,evidence_2_amount,evidence_3_type,evidence_3_amount){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var artifact=action.output("microverse__resource");
-var ship=action.input("microverse__ship");
 var evidence_1=action.input("microverse__resource");
 var evidence_2=action.input("microverse__resource");
 var evidence_3=action.input("microverse__resource");
-produce_capability_artifact_core(action,next_ship,artifact,ship,required_skill_type,output_resource_type,output_amount);
+produce_capability_artifact_core(action,artifact,ship,required_skill_type,output_resource_type,output_amount);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 prove_resource_stack_core(action,evidence_2,evidence_2_type,evidence_2_amount);
 prove_resource_stack_core(action,evidence_3,evidence_3_type,evidence_3_amount);
@@ -1313,11 +966,10 @@ var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
 }
 fn detect_celestial_signal_action(action,category_code,candidate_code,remaining_field,serial_field){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var signal=action.output("microverse__celestial_signal");
-var ship=action.input("microverse__ship");
 var sector=action.mutate("microverse__sector");
-detect_signal_core(action,next_ship,signal,ship,sector,category_code,candidate_code,remaining_field,serial_field);
+detect_signal_core(action,signal,ship,sector,category_code,candidate_code,remaining_field,serial_field);
 }
 fn move_positive_x_action(action,step,extraction_amount,rare_extraction_amount,vdf_iterations){
 var ship=action.mutate("microverse__ship");
@@ -1366,10 +1018,9 @@ var work=action.intro_vdf(vdf_iterations,ship);
 ship.update("work",work);
 }
 fn authorize_large_ship_action(action,skill_type,authorization_field){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var permit=action.mutate("microverse__shipyard_permit");
-authorize_large_ship_permit_core(action,next_ship,ship,permit,skill_type,authorization_field);
+authorize_large_ship_permit_core(action,ship,permit,skill_type,authorization_field);
 }
 // Ships and navigation
 fn BuildShipSmall(action){
@@ -1588,15 +1239,14 @@ var next_ship_key=action.random();
 ship.update("key",next_ship_key);
 }
 fn SurveySector_01_Sparse(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var sector=action.mutate("microverse__sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
 sector.update("stable_identifier",sector_selector);
 let survey_selector_upper=action.top_limb_u256(7723496582334330630);
 action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
-survey_replacement_ship_core(action,next_ship,ship,sector);
+survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -1610,8 +1260,7 @@ var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
 }
 fn SurveySector_02_Standard(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var sector=action.mutate("microverse__sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
@@ -1620,7 +1269,7 @@ let survey_selector_lower=action.top_limb_u256(7723496582334330631);
 action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
 let survey_selector_upper=action.top_limb_u256(-6861499200208055670);
 action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
-survey_replacement_ship_core(action,next_ship,ship,sector);
+survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -1638,8 +1287,7 @@ var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
 }
 fn SurveySector_03_Rich(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var sector=action.mutate("microverse__sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
@@ -1648,7 +1296,7 @@ let survey_selector_lower=action.top_limb_u256(-6861499200208055669);
 action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
 let survey_selector_upper=action.top_limb_u256(-5896062127416264341);
 action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
-survey_replacement_ship_core(action,next_ship,ship,sector);
+survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -1668,8 +1316,7 @@ var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
 }
 fn SurveySector_04_Ancient(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var sector=action.mutate("microverse__sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
@@ -1678,7 +1325,7 @@ let survey_selector_lower=action.top_limb_u256(-5896062127416264340);
 action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
 let survey_selector_upper=action.top_limb_u256(-5654702859218316509);
 action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
-survey_replacement_ship_core(action,next_ship,ship,sector);
+survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -1698,8 +1345,7 @@ var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
 }
 fn SurveySector_05_Anomalous(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var sector=action.mutate("microverse__sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
@@ -1708,7 +1354,7 @@ let survey_selector_lower=action.top_limb_u256(-5654702859218316508);
 action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
 let survey_selector_upper=action.top_limb_u256(-5534023225119342593);
 action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
-survey_replacement_ship_core(action,next_ship,ship,sector);
+survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
 action.st_sum(sector.revision,1,next_sector_revision);
@@ -1778,58 +1424,18 @@ fn ScanCelestialBody_21_Magnetar(action){scan_celestial_body_lower_action(action
 fn ScanCelestialBody_22_WormholeMouth(action){scan_celestial_body_lower_action(action,6148914689804861440,7,22,7,0,6000,6000,0,40000,0);}
 // Coordinates, charts, and traversal
 fn ExtractAnomalyWarpCoordinate(action){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var coordinate=action.output("microverse__warp_coordinate");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
-prove_fixed_versions(action,ship);
+consume_prepared_ship_mutation_core(action,ship,14);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(body.sector_x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(body.sector_y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(body.sector_z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(body.sector_epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
-var next_action_serial=unsafe{ship.action_serial-(0-1)};
-action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
 action.st_sum(ship.extraction_amount,0,250);
 action.st_sum(ship.rare_extraction_amount,0,25);
-action.st_sum(ship.active_skill_type,0,14);
+action.st_sum(ship.x,0,body.sector_x);
+action.st_sum(ship.y,0,body.sector_y);
+action.st_sum(ship.z,0,body.sector_z);
+action.st_sum(ship.epoch,0,body.sector_epoch);
 action.st_sum(body.candidate_code,0,11);
 action.st_sum(body.body_type,0,7);
 var source_body_identifier=action.random();
@@ -1860,58 +1466,18 @@ var next_body_key=action.random();
 rotate_key(body,next_body_key);
 }
 fn ExtractAnomalyTimeCoordinate(action){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var coordinate=action.output("microverse__time_coordinate");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
-prove_fixed_versions(action,ship);
+consume_prepared_ship_mutation_core(action,ship,14);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(body.sector_x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(body.sector_y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(body.sector_z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(body.sector_epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
-var next_action_serial=unsafe{ship.action_serial-(0-1)};
-action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
 action.st_sum(ship.extraction_amount,0,250);
 action.st_sum(ship.rare_extraction_amount,0,25);
-action.st_sum(ship.active_skill_type,0,14);
+action.st_sum(ship.x,0,body.sector_x);
+action.st_sum(ship.y,0,body.sector_y);
+action.st_sum(ship.z,0,body.sector_z);
+action.st_sum(ship.epoch,0,body.sector_epoch);
 action.st_sum(body.candidate_code,0,11);
 action.st_sum(body.body_type,0,7);
 var source_body_identifier=action.random();
@@ -2151,8 +1717,7 @@ fn RevealTimeCoordinate84(action){reveal_time_coordinate_action(action,84,909152
 fn RevealTimeCoordinate85(action){reveal_time_coordinate_action(action,85,953765132126,1,8999);}
 fn RevealTimeCoordinate86(action){reveal_time_coordinate_action(action,86,999999999999,1,8999);}
 fn WarpToCoordinateReusable(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var coordinate=action.mutate("microverse__warp_coordinate");
 prove_fixed_versions(action,coordinate);
 action.st_sum(coordinate.revealed,0,1);
@@ -2165,14 +1730,13 @@ action.st_gt(coordinate.destination_y,0);
 action.st_gt(2000000000000,coordinate.destination_y);
 action.st_gt(coordinate.destination_z,0);
 action.st_gt(2000000000000,coordinate.destination_z);
-warp_ship_core(action,next_ship,ship,coordinate.destination_x,coordinate.destination_y,coordinate.destination_z,ship.epoch);
+warp_ship_core(action,ship,coordinate.destination_x,coordinate.destination_y,coordinate.destination_z,ship.epoch);
 coordinate.update("uses_remaining",next_uses);
 var next_coordinate_key=action.random();
 rotate_key(coordinate,next_coordinate_key);
 }
 fn WarpToCoordinateFinal(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var coordinate=action.input("microverse__warp_coordinate");
 prove_fixed_versions(action,coordinate);
 action.st_sum(coordinate.revealed,0,1);
@@ -2183,11 +1747,10 @@ action.st_gt(coordinate.destination_y,0);
 action.st_gt(2000000000000,coordinate.destination_y);
 action.st_gt(coordinate.destination_z,0);
 action.st_gt(2000000000000,coordinate.destination_z);
-warp_ship_core(action,next_ship,ship,coordinate.destination_x,coordinate.destination_y,coordinate.destination_z,ship.epoch);
+warp_ship_core(action,ship,coordinate.destination_x,coordinate.destination_y,coordinate.destination_z,ship.epoch);
 }
 fn TimeWarpToCoordinateReusable(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var coordinate=action.mutate("microverse__time_coordinate");
 prove_fixed_versions(action,coordinate);
 action.st_sum(coordinate.revealed,0,1);
@@ -2196,26 +1759,24 @@ var next_uses=unsafe{coordinate.uses_remaining-1};
 action.st_sum(next_uses,1,coordinate.uses_remaining);
 action.st_gt(coordinate.destination_epoch,-1);
 action.st_gt(1000000000000,coordinate.destination_epoch);
-warp_ship_core(action,next_ship,ship,ship.x,ship.y,ship.z,coordinate.destination_epoch);
+warp_ship_core(action,ship,ship.x,ship.y,ship.z,coordinate.destination_epoch);
 coordinate.update("uses_remaining",next_uses);
 var next_coordinate_key=action.random();
 rotate_key(coordinate,next_coordinate_key);
 }
 fn TimeWarpToCoordinateFinal(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var coordinate=action.input("microverse__time_coordinate");
 prove_fixed_versions(action,coordinate);
 action.st_sum(coordinate.revealed,0,1);
 action.st_sum(coordinate.uses_remaining,0,1);
 action.st_gt(coordinate.destination_epoch,-1);
 action.st_gt(1000000000000,coordinate.destination_epoch);
-warp_ship_core(action,next_ship,ship,ship.x,ship.y,ship.z,coordinate.destination_epoch);
+warp_ship_core(action,ship,ship.x,ship.y,ship.z,coordinate.destination_epoch);
 }
 fn ExtractWormholeWarpChart(action){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var chart=action.output("microverse__warp_chart");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 var source_body_identifier=action.random();
 var_assign(source_body_identifier,body.stable_identifier);
@@ -2238,14 +1799,13 @@ chart.set([
 ]);
 let chart_zero=action.top_limb_u256(0);
 chart.update("key",chart_zero);
-extract_v2_chart_core(action,next_ship,ship,body,11);
+extract_v2_chart_core(action,ship,body,11);
 var work=action.intro_vdf(20,chart);
 chart.update("work",work);
 }
 fn ExtractWormholeEpochChart(action){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var chart=action.output("microverse__epoch_chart");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 var source_body_identifier=action.random();
 var_assign(source_body_identifier,body.stable_identifier);
@@ -2266,7 +1826,7 @@ chart.set([
 ]);
 let chart_zero=action.top_limb_u256(0);
 chart.update("key",chart_zero);
-extract_v2_chart_core(action,next_ship,ship,body,14);
+extract_v2_chart_core(action,ship,body,14);
 var work=action.intro_vdf(20,chart);
 chart.update("work",work);
 }
@@ -2527,8 +2087,7 @@ fn RevealWarpChart254(action){reveal_warp_chart_action(action,254,247201906904,5
 fn RevealWarpChart255(action){reveal_warp_chart_action(action,255,12990416024,40219871999,55148265409,1,8999);}
 fn RevealWarpChart256(action){reveal_warp_chart_action(action,256,385729605511,631900261432,396119036916,1,8999);}
 fn WarpShipToPositionCoordinateReusable(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var chart=action.mutate("microverse__warp_chart");
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,1);
@@ -2539,14 +2098,13 @@ action.st_gt(chart.destination_y,99);
 action.st_gt(2000000000000,chart.destination_y);
 action.st_gt(chart.destination_z,99);
 action.st_gt(2000000000000,chart.destination_z);
-warp_ship_core(action,next_ship,ship,chart.destination_x,chart.destination_y,chart.destination_z,ship.epoch);
+warp_ship_core(action,ship,chart.destination_x,chart.destination_y,chart.destination_z,ship.epoch);
 consume_reusable_use_core(action,chart);
-var work=action.intro_vdf(12,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(12,ship);
+ship.update("work",work);
 }
 fn WarpShipToPositionCoordinateFinal(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var chart=action.input("microverse__warp_chart");
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,1);
@@ -2557,10 +2115,10 @@ action.st_gt(chart.destination_y,99);
 action.st_gt(2000000000000,chart.destination_y);
 action.st_gt(chart.destination_z,99);
 action.st_gt(2000000000000,chart.destination_z);
-warp_ship_core(action,next_ship,ship,chart.destination_x,chart.destination_y,chart.destination_z,ship.epoch);
+warp_ship_core(action,ship,chart.destination_x,chart.destination_y,chart.destination_z,ship.epoch);
 consume_final_use_core(action,chart);
-var work=action.intro_vdf(12,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(12,ship);
+ship.update("work",work);
 }
 fn RevealEpochChart001(action){reveal_epoch_chart_action(action,1,256368704,10,39999);}
 fn RevealEpochChart002(action){reveal_epoch_chart_action(action,2,822630710647,3,30999);}
@@ -2691,41 +2249,38 @@ fn RevealEpochChart126(action){reveal_epoch_chart_action(action,126,812740620169
 fn RevealEpochChart127(action){reveal_epoch_chart_action(action,127,685958831907,1,8999);}
 fn RevealEpochChart128(action){reveal_epoch_chart_action(action,128,995769685,1,8999);}
 fn WarpShipToEpochCoordinateReusable(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var chart=action.mutate("microverse__epoch_chart");
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,1);
 action.st_sum(ship.active_skill_type,0,58);
 action.st_gt(chart.destination_epoch,100);
 action.st_gt(1000000000000,chart.destination_epoch);
-warp_ship_core(action,next_ship,ship,ship.x,ship.y,ship.z,chart.destination_epoch);
+warp_ship_core(action,ship,ship.x,ship.y,ship.z,chart.destination_epoch);
 consume_reusable_use_core(action,chart);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn WarpShipToEpochCoordinateFinal(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var chart=action.input("microverse__epoch_chart");
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,1);
 action.st_sum(ship.active_skill_type,0,58);
 action.st_gt(chart.destination_epoch,100);
 action.st_gt(1000000000000,chart.destination_epoch);
-warp_ship_core(action,next_ship,ship,ship.x,ship.y,ship.z,chart.destination_epoch);
+warp_ship_core(action,ship,ship.x,ship.y,ship.z,chart.destination_epoch);
 consume_final_use_core(action,chart);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn CapturePositionAnchor(action){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var anchor=action.output("microverse__position_anchor");
-var ship=action.input("microverse__ship");
 var material_1=action.input("microverse__resource");
 var material_2=action.input("microverse__resource");
 var source_ship_id=consume_prepared_ship_core(
-action,next_ship,ship,49
+action,ship,49
 );
 prove_resource_stack_core(action,material_1,415,1);
 prove_resource_stack_core(action,material_2,419,1);
@@ -2750,13 +2305,12 @@ var work=action.intro_vdf(12,anchor);
 anchor.update("work",work);
 }
 fn CaptureTimeAnchor(action){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var anchor=action.output("microverse__time_anchor");
-var ship=action.input("microverse__ship");
 var material_1=action.input("microverse__resource");
 var material_2=action.input("microverse__resource");
 var source_ship_id=consume_prepared_ship_core(
-action,next_ship,ship,60
+action,ship,60
 );
 prove_resource_stack_core(action,material_1,428,1);
 prove_resource_stack_core(action,material_2,412,1);
@@ -2891,8 +2445,7 @@ var next_constructor_ship_key=action.random();
 rotate_key(ship,next_constructor_ship_key);
 }
 fn TraverseWormholeAToBReusable(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var link=action.mutate("microverse__wormhole_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,59);
@@ -2905,14 +2458,13 @@ action.st_sum(ship.y,0,source_y);
 var source_z=unsafe{link.endpoint_a_z-0};
 action.st_sum(link.endpoint_a_z,0,source_z);
 action.st_sum(ship.z,0,source_z);
-warp_ship_core(action,next_ship,ship,link.endpoint_b_x,link.endpoint_b_y,link.endpoint_b_z,ship.epoch);
+warp_ship_core(action,ship,link.endpoint_b_x,link.endpoint_b_y,link.endpoint_b_z,ship.epoch);
 consume_reusable_use_core(action,link);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn TraverseWormholeAToBFinal(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var link=action.input("microverse__wormhole_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,59);
@@ -2925,14 +2477,13 @@ action.st_sum(ship.y,0,source_y);
 var source_z=unsafe{link.endpoint_a_z-0};
 action.st_sum(link.endpoint_a_z,0,source_z);
 action.st_sum(ship.z,0,source_z);
-warp_ship_core(action,next_ship,ship,link.endpoint_b_x,link.endpoint_b_y,link.endpoint_b_z,ship.epoch);
+warp_ship_core(action,ship,link.endpoint_b_x,link.endpoint_b_y,link.endpoint_b_z,ship.epoch);
 consume_final_use_core(action,link);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn TraverseWormholeBToAReusable(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var link=action.mutate("microverse__wormhole_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,59);
@@ -2945,14 +2496,13 @@ action.st_sum(ship.y,0,source_y);
 var source_z=unsafe{link.endpoint_b_z-0};
 action.st_sum(link.endpoint_b_z,0,source_z);
 action.st_sum(ship.z,0,source_z);
-warp_ship_core(action,next_ship,ship,link.endpoint_a_x,link.endpoint_a_y,link.endpoint_a_z,ship.epoch);
+warp_ship_core(action,ship,link.endpoint_a_x,link.endpoint_a_y,link.endpoint_a_z,ship.epoch);
 consume_reusable_use_core(action,link);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn TraverseWormholeBToAFinal(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var link=action.input("microverse__wormhole_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,59);
@@ -2965,66 +2515,62 @@ action.st_sum(ship.y,0,source_y);
 var source_z=unsafe{link.endpoint_b_z-0};
 action.st_sum(link.endpoint_b_z,0,source_z);
 action.st_sum(ship.z,0,source_z);
-warp_ship_core(action,next_ship,ship,link.endpoint_a_x,link.endpoint_a_y,link.endpoint_a_z,ship.epoch);
+warp_ship_core(action,ship,link.endpoint_a_x,link.endpoint_a_y,link.endpoint_a_z,ship.epoch);
 consume_final_use_core(action,link);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn TraverseTemporalAToBReusable(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var link=action.mutate("microverse__temporal_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,60);
 var source_epoch=unsafe{link.endpoint_a_epoch-0};
 action.st_sum(link.endpoint_a_epoch,0,source_epoch);
 action.st_sum(ship.epoch,0,source_epoch);
-warp_ship_core(action,next_ship,ship,ship.x,ship.y,ship.z,link.endpoint_b_epoch);
+warp_ship_core(action,ship,ship.x,ship.y,ship.z,link.endpoint_b_epoch);
 consume_reusable_use_core(action,link);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn TraverseTemporalAToBFinal(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var link=action.input("microverse__temporal_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,60);
 var source_epoch=unsafe{link.endpoint_a_epoch-0};
 action.st_sum(link.endpoint_a_epoch,0,source_epoch);
 action.st_sum(ship.epoch,0,source_epoch);
-warp_ship_core(action,next_ship,ship,ship.x,ship.y,ship.z,link.endpoint_b_epoch);
+warp_ship_core(action,ship,ship.x,ship.y,ship.z,link.endpoint_b_epoch);
 consume_final_use_core(action,link);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn TraverseTemporalBToAReusable(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var link=action.mutate("microverse__temporal_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,60);
 var source_epoch=unsafe{link.endpoint_b_epoch-0};
 action.st_sum(link.endpoint_b_epoch,0,source_epoch);
 action.st_sum(ship.epoch,0,source_epoch);
-warp_ship_core(action,next_ship,ship,ship.x,ship.y,ship.z,link.endpoint_a_epoch);
+warp_ship_core(action,ship,ship.x,ship.y,ship.z,link.endpoint_a_epoch);
 consume_reusable_use_core(action,link);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn TraverseTemporalBToAFinal(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var link=action.input("microverse__temporal_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,60);
 var source_epoch=unsafe{link.endpoint_b_epoch-0};
 action.st_sum(link.endpoint_b_epoch,0,source_epoch);
 action.st_sum(ship.epoch,0,source_epoch);
-warp_ship_core(action,next_ship,ship,ship.x,ship.y,ship.z,link.endpoint_a_epoch);
+warp_ship_core(action,ship,ship.x,ship.y,ship.z,link.endpoint_a_epoch);
 consume_final_use_core(action,link);
-var work=action.intro_vdf(20,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(20,ship);
+ship.update("work",work);
 }
 fn ComposeRendezvousCoordinate(action){
 var coordinate=action.output("microverse__rendezvous_coordinate");
@@ -3085,14 +2631,12 @@ var next_constructor_ship_key=action.random();
 rotate_key(ship,next_constructor_ship_key);
 }
 fn WarpToRendezvousCoordinateReusable(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var coordinate=action.mutate("microverse__rendezvous_coordinate");
 prove_object_version_core(action,coordinate,"coordinate_version");
 action.st_sum(ship.active_skill_type,0,86);
 warp_ship_core(
 action,
-next_ship,
 ship,
 coordinate.destination_x,
 coordinate.destination_y,
@@ -3100,18 +2644,16 @@ coordinate.destination_z,
 coordinate.destination_epoch
 );
 consume_reusable_use_core(action,coordinate);
-var work=action.intro_vdf(32,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(32,ship);
+ship.update("work",work);
 }
 fn WarpToRendezvousCoordinateFinal(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var coordinate=action.input("microverse__rendezvous_coordinate");
 prove_object_version_core(action,coordinate,"coordinate_version");
 action.st_sum(ship.active_skill_type,0,86);
 warp_ship_core(
 action,
-next_ship,
 ship,
 coordinate.destination_x,
 coordinate.destination_y,
@@ -3119,8 +2661,8 @@ coordinate.destination_z,
 coordinate.destination_epoch
 );
 consume_final_use_core(action,coordinate);
-var work=action.intro_vdf(32,next_ship);
-next_ship.update("work",work);
+var work=action.intro_vdf(32,ship);
+ship.update("work",work);
 }
 // Basic resource extraction
 fn ExtractMatter(action){extract_base_action(action,8,0,"matter_remaining",1,10,1);}
@@ -3137,55 +2679,27 @@ fn ExtractEnergyMedium(action){extract_base_action(action,4,0,"energy_remaining"
 fn ExtractEnergyLarge(action){extract_base_action(action,4,0,"energy_remaining",4,250,25);}
 // Satellites, life, and civilizations
 fn DiscoverSatellite(action){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var satellite=action.output("microverse__satellite");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(body.sector_x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(body.sector_y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(body.sector_z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(body.sector_epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
+action.st_sum(ship.x,0,body.sector_x);
+action.st_sum(ship.y,0,body.sector_y);
+action.st_sum(ship.z,0,body.sector_z);
+action.st_sum(ship.epoch,0,body.sector_epoch);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
 var next_ship_satellite_serial=unsafe{ship.satellite_serial-(0-1)};
 action.st_sum(ship.satellite_serial,1,next_ship_satellite_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",next_ship_satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+ship.update("satellite_serial",next_ship_satellite_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 action.st_gt(body.satellites_remaining,0);
 var next_remaining=unsafe{body.satellites_remaining-1};
 action.st_sum(next_remaining,1,body.satellites_remaining);
@@ -3199,10 +2713,10 @@ satellite.set([
 ["mechanics_version",2],
 ["universe_version",2],
 ["parent_body_identifier",parent_body_identifier],
-["sector_x",x],
-["sector_y",y],
-["sector_z",z],
-["sector_epoch",epoch],
+["sector_x",ship.x],
+["sector_y",ship.y],
+["sector_z",ship.z],
+["sector_epoch",ship.epoch],
 ["satellite_serial",next_satellite_serial]
 ]);
 let zero=action.top_limb_u256(0);
@@ -3213,55 +2727,27 @@ var next_body_key=action.random();
 rotate_key(body,next_body_key);
 }
 fn DetectIntelligentLife(action){
-var next_ship=action.output("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var life_signal=action.output("microverse__life_signal");
-var ship=action.input("microverse__ship");
 var body=action.mutate("microverse__celestial_body");
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(body.sector_x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(body.sector_y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(body.sector_z,0,z);
-action.st_sum(ship.epoch,0,epoch);
-action.st_sum(body.sector_epoch,0,epoch);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
+action.st_sum(ship.x,0,body.sector_x);
+action.st_sum(ship.y,0,body.sector_y);
+action.st_sum(ship.z,0,body.sector_z);
+action.st_sum(ship.epoch,0,body.sector_epoch);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
 var next_scan_serial=unsafe{ship.civilization_scan_serial-(0-1)};
 action.st_sum(ship.civilization_scan_serial,1,next_scan_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",0],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",next_scan_serial],
-["ship_id",ship_id]
-]);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+ship.update("civilization_scan_serial",next_scan_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 let life_selector_lower=action.top_limb_u256(8974091709444932912);
 action.intro_lt_eq_u256(life_selector_lower,body.source_signal_identifier);
 let life_selector_upper=action.top_limb_u256(-8226250737952822467);
@@ -3278,10 +2764,10 @@ life_signal.set([
 ["universe_version",2],
 ["civilization_version",2],
 ["source_body_identifier",source_body_identifier],
-["sector_x",x],
-["sector_y",y],
-["sector_z",z],
-["origin_epoch",epoch]
+["sector_x",ship.x],
+["sector_y",ship.y],
+["sector_z",ship.z],
+["origin_epoch",ship.epoch]
 ]);
 let zero=action.top_limb_u256(0);
 life_signal.update("key",zero);
@@ -4390,52 +3876,21 @@ fn AssembleStellarMegastructureSeed(action){produce_capability_artifact_3_eviden
 fn AssembleWorldSeedPackage(action){produce_capability_artifact_3_evidence_action(action,32,89,699,1,677,1,678,1,679,1);}
 fn AssembleCivilizationContinuityCore(action){produce_capability_artifact_3_evidence_action(action,32,90,700,1,680,1,681,1,682,1);}
 fn UseTechnologySkill(action){
-var next_ship=action.output("microverse__ship");
-var ship=action.input("microverse__ship");
+var ship=action.mutate("microverse__ship");
 var technology_skill=action.mutate("microverse__technology_skill");
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,technology_skill);
 action.st_sum(technology_skill.civilization_version,0,2);
-var ship_id=bind_ship_id(action,ship);
-var extraction_amount=unsafe{ship.extraction_amount-0};
-var rare_extraction_amount=unsafe{ship.rare_extraction_amount-0};
-action.st_sum(ship.extraction_amount,0,extraction_amount);
-action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
-var x=unsafe{ship.x-0};
-var y=unsafe{ship.y-0};
-var z=unsafe{ship.z-0};
-var epoch=unsafe{ship.epoch-0};
-action.st_sum(ship.x,0,x);
-action.st_sum(ship.y,0,y);
-action.st_sum(ship.z,0,z);
-action.st_sum(ship.epoch,0,epoch);
 var active_skill_type=unsafe{technology_skill.skill_type-0};
 action.st_sum(technology_skill.skill_type,0,active_skill_type);
-var discovery_serial=unsafe{ship.discovery_serial-0};
-action.st_sum(ship.discovery_serial,0,discovery_serial);
-var satellite_serial=unsafe{ship.satellite_serial-0};
-action.st_sum(ship.satellite_serial,0,satellite_serial);
-var civilization_scan_serial=unsafe{ship.civilization_scan_serial-0};
-action.st_sum(ship.civilization_scan_serial,0,civilization_scan_serial);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-next_ship.set([
-["schema_version",2],
-["mechanics_version",2],
-["universe_version",2],
-["extraction_amount",extraction_amount],
-["rare_extraction_amount",rare_extraction_amount],
-["x",x],
-["y",y],
-["z",z],
-["epoch",epoch],
-["active_skill_type",active_skill_type],
-["action_serial",next_action_serial],
-["discovery_serial",discovery_serial],
-["satellite_serial",satellite_serial],
-["civilization_scan_serial",civilization_scan_serial],
-["ship_id",ship_id]
-]);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",active_skill_type);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
 action.st_sum(technology_skill.reusable,0,1);
 var next_skill_key=action.random();
 rotate_key(technology_skill,next_skill_key);
