@@ -1,6 +1,7 @@
 # Keep this repository limited to its public release artifacts.
 /*
 !/.gitignore
+!/README.md
 !/manifest.toml
 !/microverse.html
 !/microverse.pexe
