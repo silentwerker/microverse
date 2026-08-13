@@ -10001,4 +10001,3 @@ name = "ExtractWormholeMouthCausalConnectivityMap"
 emoji = "MV"
 description = "extract Causal Connectivity Map from a Wormhole Mouth with a Large Ship."
 hidden = false
-
