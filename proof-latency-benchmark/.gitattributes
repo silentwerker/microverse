@@ -1,0 +1,4 @@
+fixtures/manifest-*.toml -diff -text
+fixtures/plugin.rhai -text
+harness/src/main.rs -text
+harness/Cargo.lock -text
