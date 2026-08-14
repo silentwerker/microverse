@@ -1,0 +1,33 @@
+{
+  "stack": "PR212",
+  "action": "RefineFerrousOreToIron",
+  "fixture_seed": 5572696564498959967,
+  "action_seed": 16785926973844466682,
+  "plugin_sha256": "39ab8b32efefb738a16100f9521b1a167c1ffe938a4f9a178417efaef8aac61e",
+  "harness_source_sha256": "63ab19635c9532f10e6bef8c78dbfeaeba8273db5dbd262e2c3544d3778e7326",
+  "harness_lock_sha256": "e4bbdbb1e3783027abc67c381cf17c0607017fa22c74f2b990224f314ceadd30",
+  "configurations": [
+    {
+      "name": "original-order",
+      "git_reference": "https://github.com/silentwerker/microverse/commit/25d6e4e7517c24eedf932b2b303f03fc10fc4a6e",
+      "manifest": "manifest-original.toml",
+      "manifest_sha256": "8d9e6997a1d7e62d24bfa9ef2e6a216b32cdd2efa5edf490bbd8dc1b1cdfef98",
+      "module_hash": "0x5ef813152c1a5ddbfbdd54862341c3382507e0fa1ce0bd8ea50a9cade0cc4c07",
+      "operations": 481,
+      "pods": 37,
+      "output_pods": 1,
+      "recorded_real_execution_seconds": 1062.5366233
+    },
+    {
+      "name": "latency-order",
+      "git_reference": "https://github.com/silentwerker/microverse/commit/8e1583ac51c798dfb0f191e68f1fbec060d9a3ab",
+      "manifest": "manifest-ordered.toml",
+      "manifest_sha256": "78fa247a8323affa250cb1537bfb87aecb1fd2dd3d21d17a9adfd64f9fc65007",
+      "module_hash": "0x67452baf906bb174b4cd4125dfb7155bebfa90b4649b4ee941a1c12e2b4a1ff5",
+      "operations": 171,
+      "pods": 6,
+      "output_pods": 1,
+      "recorded_real_execution_seconds": 325.7393717
+    }
+  ]
+}
