@@ -2785,10 +2785,6 @@ action.intro_lt_eq_u256(life_signal,civilization_selector_upper);
 prove_fixed_versions(action,life_signal);
 prove_fixed_versions(action,ship);
 action.st_sum(life_signal.civilization_version,0,2);
-action.st_gt(
-ship.civilization_scan_serial,
-63
-);
 var sector_x=unsafe{life_signal.sector_x-0};
 var sector_y=unsafe{life_signal.sector_y-0};
 var sector_z=unsafe{life_signal.sector_z-0};
@@ -2842,10 +2838,6 @@ action.intro_lt_eq_u256(life_signal,civilization_selector_upper);
 prove_fixed_versions(action,life_signal);
 prove_fixed_versions(action,ship);
 action.st_sum(life_signal.civilization_version,0,2);
-action.st_gt(
-ship.civilization_scan_serial,
-1023
-);
 var sector_x=unsafe{life_signal.sector_x-0};
 var sector_y=unsafe{life_signal.sector_y-0};
 var sector_z=unsafe{life_signal.sector_z-0};
@@ -2897,10 +2889,6 @@ action.intro_lt_eq_u256(civilization_selector_lower,life_signal);
 prove_fixed_versions(action,life_signal);
 prove_fixed_versions(action,ship);
 action.st_sum(life_signal.civilization_version,0,2);
-action.st_gt(
-ship.civilization_scan_serial,
-16383
-);
 var sector_x=unsafe{life_signal.sector_x-0};
 var sector_y=unsafe{life_signal.sector_y-0};
 var sector_z=unsafe{life_signal.sector_z-0};
