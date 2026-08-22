@@ -304,6 +304,67 @@ ship.update("action_serial",next_action_serial);
 var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
 }
+fn accumulate_resource_balance_core(action,balance,resource_type,added_amount){
+prove_fixed_versions(action,balance);
+action.st_sum(balance.resource_type,0,resource_type);
+action.st_gt(balance.amount,-1);
+var next_amount=unsafe{balance.amount-(0-added_amount)};
+action.st_sum(balance.amount,added_amount,next_amount);
+balance.update("amount",next_amount);
+var next_balance_key=action.random();
+rotate_key(balance,next_balance_key);
+}
+fn extract_direct_resource_into_balance_core(action,balance,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
+prove_fixed_versions(action,ship);
+prove_fixed_versions(action,body);
+action.st_sum(body.body_bank_version,0,2);
+action.st_sum(ship.extraction_amount,0,extraction_amount);
+action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
+action.st_sum(ship.x,0,body.sector_x);
+action.st_sum(ship.y,0,body.sector_y);
+action.st_sum(ship.z,0,body.sector_z);
+action.st_sum(ship.epoch,0,body.sector_epoch);
+var next_remaining=unsafe{body[remaining_field]-extraction_amount};
+action.st_sum(next_remaining,extraction_amount,body[remaining_field]);
+action.st_gt(next_remaining,-1);
+accumulate_resource_balance_core(action,balance,resource_type,extraction_amount);
+var next_action_serial=unsafe{ship.action_serial-(0-1)};
+action.st_sum(ship.action_serial,1,next_action_serial);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
+body.update(remaining_field,next_remaining);
+var next_body_key=action.random();
+rotate_key(body,next_body_key);
+}
+fn refine_resource_into_balance_core(action,balance,ship,parent,skill_type,parent_resource_type,child_remaining_field,output_resource_type){
+prove_fixed_versions(action,ship);
+prove_fixed_versions(action,parent);
+action.st_sum(ship.x,0,parent.sector_x);
+action.st_sum(ship.y,0,parent.sector_y);
+action.st_sum(ship.z,0,parent.sector_z);
+action.st_sum(ship.epoch,0,parent.origin_epoch);
+action.st_sum(ship.active_skill_type,0,skill_type);
+action.st_sum(parent.resource_type,0,parent_resource_type);
+action.st_gt(parent[child_remaining_field],0);
+var refinement_amount=unsafe{parent[child_remaining_field]-0};
+action.st_sum(parent[child_remaining_field],0,refinement_amount);
+accumulate_resource_balance_core(action,balance,output_resource_type,refinement_amount);
+var next_action_serial=unsafe{ship.action_serial-(0-1)};
+action.st_sum(ship.action_serial,1,next_action_serial);
+let zero_work=action.top_limb_u256(0);
+ship.update("work",zero_work);
+ship.update("active_skill_type",0);
+ship.update("action_serial",next_action_serial);
+var next_ship_key=action.random();
+rotate_key(ship,next_ship_key);
+parent.update(child_remaining_field,0);
+var next_parent_key=action.random();
+rotate_key(parent,next_parent_key);
+}
 fn prove_resource_stack_core(action,resource,resource_type,amount){
 prove_fixed_versions(action,resource);
 action.st_sum(resource.resource_type,0,resource_type);
@@ -385,21 +446,21 @@ var work=action.intro_vdf(20,chart);
 chart.update("work",work);
 }
 fn reveal_warp_coordinate_action(action,code,x,y,z,uses,minimum_source_pool_exclusive){
-var c=action.mutate("microverse__warp_coordinate");
+var c=action.mutate("warp_coordinate");
 reveal_p(action,c,code,x,y,z,uses,minimum_source_pool_exclusive);
 }
 fn reveal_time_coordinate_action(action,code,epoch,uses,minimum_source_pool_exclusive){
-var c=action.mutate("microverse__time_coordinate");
+var c=action.mutate("time_coordinate");
 reveal_t(action,c,code,epoch,uses,minimum_source_pool_exclusive);
 }
 fn reveal_warp_chart_action(action,code,x,y,z,uses,minimum_source_pool_exclusive){
-var s=action.mutate("microverse__ship");
-var c=action.mutate("microverse__warp_chart");
+var s=action.mutate("ship");
+var c=action.mutate("warp_chart");
 reveal_chart_p(action,s,c,code,x,y,z,uses,minimum_source_pool_exclusive);
 }
 fn reveal_epoch_chart_action(action,code,epoch,uses,minimum_source_pool_exclusive){
-var s=action.mutate("microverse__ship");
-var c=action.mutate("microverse__epoch_chart");
+var s=action.mutate("ship");
+var c=action.mutate("epoch_chart");
 reveal_chart_t(action,s,c,code,epoch,uses,minimum_source_pool_exclusive);
 }
 fn develop_derived_skill_core(
@@ -515,57 +576,57 @@ fn consume_component_catalyst_final_core(action,catalyst){
 action.st_sum(catalyst.amount,0,1);
 }
 fn scan_celestial_body_ungated_action(action,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining){
-var body=action.output("microverse__celestial_body");
-var signal=action.input("microverse__celestial_signal");
-var ship=action.mutate("microverse__ship");
+var body=action.output("celestial_body");
+var signal=action.input("celestial_signal");
+var ship=action.mutate("ship");
 scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 }
 fn scan_celestial_body_upper_action(action,upper_limb,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining){
-var body=action.output("microverse__celestial_body");
-var signal=action.input("microverse__celestial_signal");
-var ship=action.mutate("microverse__ship");
+var body=action.output("celestial_body");
+var signal=action.input("celestial_signal");
+var ship=action.mutate("ship");
 let body_selector_upper=action.top_limb_u256(upper_limb);
-action.intro_lt_eq_u256(signal,body_selector_upper);
+action.intro_lt_eq_u256(signal.stable_identifier,body_selector_upper);
 scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 }
 fn scan_celestial_body_lower_action(action,lower_limb,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining){
-var body=action.output("microverse__celestial_body");
-var signal=action.input("microverse__celestial_signal");
-var ship=action.mutate("microverse__ship");
+var body=action.output("celestial_body");
+var signal=action.input("celestial_signal");
+var ship=action.mutate("ship");
 let body_selector_lower=action.top_limb_u256(lower_limb);
-action.intro_lt_eq_u256(body_selector_lower,signal);
+action.intro_lt_eq_u256(body_selector_lower,signal.stable_identifier);
 scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 }
 fn scan_celestial_body_range_action(action,lower_limb,upper_limb,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining){
-var body=action.output("microverse__celestial_body");
-var signal=action.input("microverse__celestial_signal");
-var ship=action.mutate("microverse__ship");
+var body=action.output("celestial_body");
+var signal=action.input("celestial_signal");
+var ship=action.mutate("ship");
 let body_selector_lower=action.top_limb_u256(lower_limb);
-action.intro_lt_eq_u256(body_selector_lower,signal);
+action.intro_lt_eq_u256(body_selector_lower,signal.stable_identifier);
 let body_selector_upper=action.top_limb_u256(upper_limb);
-action.intro_lt_eq_u256(signal,body_selector_upper);
+action.intro_lt_eq_u256(signal.stable_identifier,body_selector_upper);
 scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 }
 fn develop_initial_skill_upper_action(action,upper_limb,civilization_type,skill_type,reusable){
-var ship=action.mutate("microverse__ship");
-var technology_skill=action.output("microverse__technology_skill");
-var civilization=action.mutate("microverse__civilization");
+var ship=action.mutate("ship");
+var technology_skill=action.output("technology_skill");
+var civilization=action.mutate("civilization");
 let skill_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
 develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 }
 fn develop_initial_skill_lower_action(action,lower_limb,civilization_type,skill_type,reusable){
-var ship=action.mutate("microverse__ship");
-var technology_skill=action.output("microverse__technology_skill");
-var civilization=action.mutate("microverse__civilization");
+var ship=action.mutate("ship");
+var technology_skill=action.output("technology_skill");
+var civilization=action.mutate("civilization");
 let skill_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
 develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 }
 fn develop_initial_skill_range_action(action,lower_limb,upper_limb,civilization_type,skill_type,reusable){
-var ship=action.mutate("microverse__ship");
-var technology_skill=action.output("microverse__technology_skill");
-var civilization=action.mutate("microverse__civilization");
+var ship=action.mutate("ship");
+var technology_skill=action.output("technology_skill");
+var civilization=action.mutate("civilization");
 let skill_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
 let skill_selector_upper=action.top_limb_u256(upper_limb);
@@ -732,18 +793,18 @@ action.st_sum(sector.next_stellar_remnant_serial,0,0);
 action.st_sum(sector.next_minor_body_field_serial,0,0);
 }
 fn extract_base_action(action,vdf_iterations,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var ship=action.mutate("microverse__ship");
-var resource=action.output("microverse__resource");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var resource=action.output("resource");
+var body=action.mutate("celestial_body");
 action.st_sum(ship.active_skill_type,0,required_skill_type);
 extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_direct_ungated_action(action,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var ship=action.mutate("microverse__ship");
-var resource=action.output("microverse__resource");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var resource=action.output("resource");
+var body=action.mutate("celestial_body");
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
 extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
@@ -751,11 +812,11 @@ var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_direct_upper_action(action,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var ship=action.mutate("microverse__ship");
-var resource=action.output("microverse__resource");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var resource=action.output("resource");
+var body=action.mutate("celestial_body");
 let resource_selector_upper=action.top_limb_u256(upper_limb);
-action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+action.intro_lt_eq_u256(body.stable_identifier,resource_selector_upper);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
 extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
@@ -763,11 +824,11 @@ var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_direct_lower_action(action,lower_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var ship=action.mutate("microverse__ship");
-var resource=action.output("microverse__resource");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var resource=action.output("resource");
+var body=action.mutate("celestial_body");
 let resource_selector_lower=action.top_limb_u256(lower_limb);
-action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+action.intro_lt_eq_u256(resource_selector_lower,body.stable_identifier);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
 extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
@@ -775,23 +836,23 @@ var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_direct_range_action(action,lower_limb,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
-var ship=action.mutate("microverse__ship");
-var resource=action.output("microverse__resource");
-var body=action.mutate("microverse__celestial_body");
-let resource_selector_lower=action.top_limb_u256(lower_limb);
-action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
-let resource_selector_upper=action.top_limb_u256(upper_limb);
-action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+var ship=action.mutate("ship");
+var resource=action.output("resource");
+var body=action.mutate("celestial_body");
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
 extract_direct_resource_core(action,resource,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
+let resource_selector_upper=action.top_limb_u256(upper_limb);
+action.intro_lt_eq_u256(body.stable_identifier,resource_selector_upper);
+let resource_selector_lower=action.top_limb_u256(lower_limb);
+action.intro_lt_eq_u256(resource_selector_lower,body.stable_identifier);
 }
 fn extract_composite_ungated_action(action,vdf_iterations,candidate_code,required_skill_type,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount){
-var ship=action.mutate("microverse__ship");
-var composite_resource=action.output("microverse__composite_resource");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var composite_resource=action.output("composite_resource");
+var body=action.mutate("celestial_body");
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
 extract_composite_resource_core(action,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
@@ -799,11 +860,11 @@ var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_composite_upper_action(action,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount){
-var ship=action.mutate("microverse__ship");
-var composite_resource=action.output("microverse__composite_resource");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var composite_resource=action.output("composite_resource");
+var body=action.mutate("celestial_body");
 let resource_selector_upper=action.top_limb_u256(upper_limb);
-action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+action.intro_lt_eq_u256(body.stable_identifier,resource_selector_upper);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
 extract_composite_resource_core(action,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
@@ -811,11 +872,11 @@ var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_composite_lower_action(action,lower_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount){
-var ship=action.mutate("microverse__ship");
-var composite_resource=action.output("microverse__composite_resource");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var composite_resource=action.output("composite_resource");
+var body=action.mutate("celestial_body");
 let resource_selector_lower=action.top_limb_u256(lower_limb);
-action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
+action.intro_lt_eq_u256(resource_selector_lower,body.stable_identifier);
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
 extract_composite_resource_core(action,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
@@ -823,56 +884,121 @@ var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
 }
 fn extract_composite_range_action(action,lower_limb,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount){
-var ship=action.mutate("microverse__ship");
-var composite_resource=action.output("microverse__composite_resource");
-var body=action.mutate("microverse__celestial_body");
-let resource_selector_lower=action.top_limb_u256(lower_limb);
-action.intro_lt_eq_u256(resource_selector_lower,body.source_signal_identifier);
-let resource_selector_upper=action.top_limb_u256(upper_limb);
-action.intro_lt_eq_u256(body.source_signal_identifier,resource_selector_upper);
+var ship=action.mutate("ship");
+var composite_resource=action.output("composite_resource");
+var body=action.mutate("celestial_body");
 action.st_sum(body.candidate_code,0,candidate_code);
 action.st_sum(ship.active_skill_type,0,required_skill_type);
 extract_composite_resource_core(action,composite_resource,ship,body,remaining_field,composite_resource_type,extraction_amount,rare_extraction_amount,child_1_amount,child_2_amount,child_3_amount);
 var work=action.intro_vdf(vdf_iterations,body);
 body.update("work",work);
+let resource_selector_lower=action.top_limb_u256(lower_limb);
+action.intro_lt_eq_u256(resource_selector_lower,body.stable_identifier);
+let resource_selector_upper=action.top_limb_u256(upper_limb);
+action.intro_lt_eq_u256(body.stable_identifier,resource_selector_upper);
 }
 fn refine_resource_action(action,required_skill_type,parent_resource_type,child_remaining_field,output_resource_type,vdf_iterations){
-var ship=action.mutate("microverse__ship");
-var resource=action.output("microverse__resource");
-var parent=action.mutate("microverse__composite_resource");
+var ship=action.mutate("ship");
+var resource=action.output("resource");
+var parent=action.mutate("composite_resource");
 refine_resource_core(action,resource,ship,parent,required_skill_type,parent_resource_type,child_remaining_field,output_resource_type);
 var work=action.intro_vdf(vdf_iterations,parent);
 parent.update("work",work);
 }
+fn extract_base_into_balance_action(action,vdf_iterations,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
+var ship=action.mutate("ship");
+var balance=action.mutate("resource");
+var body=action.mutate("celestial_body");
+action.st_sum(ship.active_skill_type,0,required_skill_type);
+extract_direct_resource_into_balance_core(action,balance,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+var work=action.intro_vdf(vdf_iterations,body);
+body.update("work",work);
+}
+fn extract_direct_ungated_into_balance_action(action,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
+var ship=action.mutate("ship");
+var balance=action.mutate("resource");
+var body=action.mutate("celestial_body");
+action.st_sum(body.candidate_code,0,candidate_code);
+action.st_sum(ship.active_skill_type,0,required_skill_type);
+extract_direct_resource_into_balance_core(action,balance,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+var work=action.intro_vdf(vdf_iterations,body);
+body.update("work",work);
+}
+fn extract_direct_upper_into_balance_action(action,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
+var ship=action.mutate("ship");
+var balance=action.mutate("resource");
+var body=action.mutate("celestial_body");
+let resource_selector_upper=action.top_limb_u256(upper_limb);
+action.intro_lt_eq_u256(body.stable_identifier,resource_selector_upper);
+action.st_sum(body.candidate_code,0,candidate_code);
+action.st_sum(ship.active_skill_type,0,required_skill_type);
+extract_direct_resource_into_balance_core(action,balance,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+var work=action.intro_vdf(vdf_iterations,body);
+body.update("work",work);
+}
+fn extract_direct_lower_into_balance_action(action,lower_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
+var ship=action.mutate("ship");
+var balance=action.mutate("resource");
+var body=action.mutate("celestial_body");
+let resource_selector_lower=action.top_limb_u256(lower_limb);
+action.intro_lt_eq_u256(resource_selector_lower,body.stable_identifier);
+action.st_sum(body.candidate_code,0,candidate_code);
+action.st_sum(ship.active_skill_type,0,required_skill_type);
+extract_direct_resource_into_balance_core(action,balance,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+var work=action.intro_vdf(vdf_iterations,body);
+body.update("work",work);
+}
+fn extract_direct_range_into_balance_action(action,lower_limb,upper_limb,vdf_iterations,candidate_code,required_skill_type,remaining_field,resource_type,extraction_amount,rare_extraction_amount){
+var ship=action.mutate("ship");
+var balance=action.mutate("resource");
+var body=action.mutate("celestial_body");
+action.st_sum(body.candidate_code,0,candidate_code);
+action.st_sum(ship.active_skill_type,0,required_skill_type);
+extract_direct_resource_into_balance_core(action,balance,ship,body,remaining_field,resource_type,extraction_amount,rare_extraction_amount);
+var work=action.intro_vdf(vdf_iterations,body);
+body.update("work",work);
+let resource_selector_upper=action.top_limb_u256(upper_limb);
+action.intro_lt_eq_u256(body.stable_identifier,resource_selector_upper);
+let resource_selector_lower=action.top_limb_u256(lower_limb);
+action.intro_lt_eq_u256(resource_selector_lower,body.stable_identifier);
+}
+fn refine_resource_into_balance_action(action,required_skill_type,parent_resource_type,child_remaining_field,output_resource_type,vdf_iterations){
+var ship=action.mutate("ship");
+var balance=action.mutate("resource");
+var parent=action.mutate("composite_resource");
+refine_resource_into_balance_core(action,balance,ship,parent,required_skill_type,parent_resource_type,child_remaining_field,output_resource_type);
+var work=action.intro_vdf(vdf_iterations,parent);
+parent.update("work",work);
+}
 fn fabricate_component_reusable_action(action,vdf_iterations,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount){
-var s=action.mutate("microverse__ship");
-var c=action.output("microverse__resource");
-var a=action.input("microverse__resource");
-var b=action.input("microverse__resource");
-var d=action.input("microverse__resource");
-var k=action.mutate("microverse__resource");
+var s=action.mutate("ship");
+var c=action.output("resource");
+var a=action.input("resource");
+var b=action.input("resource");
+var d=action.input("resource");
+var k=action.mutate("resource");
 fabricate_component_core(action,c,s,a,b,d,k,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount);
 consume_component_catalyst_reusable_core(action,k);
 var work=action.intro_vdf(vdf_iterations,c);
 c.update("work",work);
 }
 fn fabricate_component_final_action(action,vdf_iterations,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount){
-var s=action.mutate("microverse__ship");
-var c=action.output("microverse__resource");
-var a=action.input("microverse__resource");
-var b=action.input("microverse__resource");
-var d=action.input("microverse__resource");
-var k=action.input("microverse__resource");
+var s=action.mutate("ship");
+var c=action.output("resource");
+var a=action.input("resource");
+var b=action.input("resource");
+var d=action.input("resource");
+var k=action.input("resource");
 fabricate_component_core(action,c,s,a,b,d,k,skill_type,material_1_type,material_1_amount,material_2_type,material_2_amount,material_3_type,material_3_amount,catalyst_type,component_type,component_amount);
 consume_component_catalyst_final_core(action,k);
 var work=action.intro_vdf(vdf_iterations,c);
 c.update("work",work);
 }
 fn develop_derived_skill_2_evidence_action(action,vdf_iterations,parent_skill_type,output_skill_type,evidence_1_type,evidence_1_amount,evidence_2_type,evidence_2_amount){
-var ship=action.mutate("microverse__ship");
-var technology_skill=action.output("microverse__technology_skill");
-var evidence_1=action.input("microverse__resource");
-var evidence_2=action.input("microverse__resource");
+var ship=action.mutate("ship");
+var technology_skill=action.output("technology_skill");
+var evidence_1=action.input("resource");
+var evidence_2=action.input("resource");
 develop_derived_skill_core(action,technology_skill,ship,parent_skill_type,output_skill_type);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 prove_resource_stack_core(action,evidence_2,evidence_2_type,evidence_2_amount);
@@ -880,11 +1006,11 @@ var work=action.intro_vdf(vdf_iterations,technology_skill);
 technology_skill.update("work",work);
 }
 fn develop_derived_skill_3_evidence_action(action,vdf_iterations,parent_skill_type,output_skill_type,evidence_1_type,evidence_1_amount,evidence_2_type,evidence_2_amount,evidence_3_type,evidence_3_amount){
-var ship=action.mutate("microverse__ship");
-var technology_skill=action.output("microverse__technology_skill");
-var evidence_1=action.input("microverse__resource");
-var evidence_2=action.input("microverse__resource");
-var evidence_3=action.input("microverse__resource");
+var ship=action.mutate("ship");
+var technology_skill=action.output("technology_skill");
+var evidence_1=action.input("resource");
+var evidence_2=action.input("resource");
+var evidence_3=action.input("resource");
 develop_derived_skill_core(action,technology_skill,ship,parent_skill_type,output_skill_type);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 prove_resource_stack_core(action,evidence_2,evidence_2_type,evidence_2_amount);
@@ -893,19 +1019,19 @@ var work=action.intro_vdf(vdf_iterations,technology_skill);
 technology_skill.update("work",work);
 }
 fn produce_capability_artifact_1_evidence_action(action,vdf_iterations,required_skill_type,output_resource_type,output_amount,evidence_1_type,evidence_1_amount){
-var ship=action.mutate("microverse__ship");
-var artifact=action.output("microverse__resource");
-var evidence_1=action.input("microverse__resource");
+var ship=action.mutate("ship");
+var artifact=action.output("resource");
+var evidence_1=action.input("resource");
 produce_capability_artifact_core(action,artifact,ship,required_skill_type,output_resource_type,output_amount);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 var work=action.intro_vdf(vdf_iterations,artifact);
 artifact.update("work",work);
 }
 fn produce_capability_artifact_2_evidence_action(action,vdf_iterations,required_skill_type,output_resource_type,output_amount,evidence_1_type,evidence_1_amount,evidence_2_type,evidence_2_amount){
-var ship=action.mutate("microverse__ship");
-var artifact=action.output("microverse__resource");
-var evidence_1=action.input("microverse__resource");
-var evidence_2=action.input("microverse__resource");
+var ship=action.mutate("ship");
+var artifact=action.output("resource");
+var evidence_1=action.input("resource");
+var evidence_2=action.input("resource");
 produce_capability_artifact_core(action,artifact,ship,required_skill_type,output_resource_type,output_amount);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 prove_resource_stack_core(action,evidence_2,evidence_2_type,evidence_2_amount);
@@ -913,11 +1039,11 @@ var work=action.intro_vdf(vdf_iterations,artifact);
 artifact.update("work",work);
 }
 fn produce_capability_artifact_3_evidence_action(action,vdf_iterations,required_skill_type,output_resource_type,output_amount,evidence_1_type,evidence_1_amount,evidence_2_type,evidence_2_amount,evidence_3_type,evidence_3_amount){
-var ship=action.mutate("microverse__ship");
-var artifact=action.output("microverse__resource");
-var evidence_1=action.input("microverse__resource");
-var evidence_2=action.input("microverse__resource");
-var evidence_3=action.input("microverse__resource");
+var ship=action.mutate("ship");
+var artifact=action.output("resource");
+var evidence_1=action.input("resource");
+var evidence_2=action.input("resource");
+var evidence_3=action.input("resource");
 produce_capability_artifact_core(action,artifact,ship,required_skill_type,output_resource_type,output_amount);
 prove_resource_stack_core(action,evidence_1,evidence_1_type,evidence_1_amount);
 prove_resource_stack_core(action,evidence_2,evidence_2_type,evidence_2_amount);
@@ -966,49 +1092,49 @@ var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
 }
 fn detect_celestial_signal_action(action,category_code,candidate_code,remaining_field,serial_field){
-var ship=action.mutate("microverse__ship");
-var signal=action.output("microverse__celestial_signal");
-var sector=action.mutate("microverse__sector");
+var ship=action.mutate("ship");
+var signal=action.output("celestial_signal");
+var sector=action.mutate("sector");
 detect_signal_core(action,signal,ship,sector,category_code,candidate_code,remaining_field,serial_field);
 }
 fn move_positive_x_action(action,step,extraction_amount,rare_extraction_amount,vdf_iterations){
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 move_positive_core(action,ship,ship.x,"x",step,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,ship);
 ship.update("work",work);
 }
 fn move_negative_x_action(action,step,extraction_amount,rare_extraction_amount,vdf_iterations){
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 move_negative_core(action,ship,ship.x,"x",step,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,ship);
 ship.update("work",work);
 }
 fn move_positive_y_action(action,step,extraction_amount,rare_extraction_amount,vdf_iterations){
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 move_positive_core(action,ship,ship.y,"y",step,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,ship);
 ship.update("work",work);
 }
 fn move_negative_y_action(action,step,extraction_amount,rare_extraction_amount,vdf_iterations){
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 move_negative_core(action,ship,ship.y,"y",step,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,ship);
 ship.update("work",work);
 }
 fn move_positive_z_action(action,step,extraction_amount,rare_extraction_amount,vdf_iterations){
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 move_positive_core(action,ship,ship.z,"z",step,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,ship);
 ship.update("work",work);
 }
 fn move_negative_z_action(action,step,extraction_amount,rare_extraction_amount,vdf_iterations){
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 move_negative_core(action,ship,ship.z,"z",step,extraction_amount,rare_extraction_amount);
 var work=action.intro_vdf(vdf_iterations,ship);
 ship.update("work",work);
 }
 fn time_warp_action(action,step,extraction_amount,rare_extraction_amount,vdf_iterations){
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 action.st_sum(ship.extraction_amount,0,extraction_amount);
 action.st_sum(ship.rare_extraction_amount,0,rare_extraction_amount);
 var next_epoch=unsafe{ship.epoch-(0-step)};
@@ -1018,13 +1144,13 @@ var work=action.intro_vdf(vdf_iterations,ship);
 ship.update("work",work);
 }
 fn authorize_large_ship_action(action,skill_type,authorization_field){
-var ship=action.mutate("microverse__ship");
-var permit=action.mutate("microverse__shipyard_permit");
+var ship=action.mutate("ship");
+var permit=action.mutate("shipyard_permit");
 authorize_large_ship_permit_core(action,ship,permit,skill_type,authorization_field);
 }
 // Ships and navigation
 fn BuildShipSmall(action){
-var ship=action.output("microverse__ship");
+var ship=action.output("ship");
 var ship_id=action.random();
 ship.set([
 ["schema_version",2],
@@ -1047,31 +1173,71 @@ var work=action.intro_vdf(17,ship);
 ship.update("work",work);
 }
 fn BuildShipMedium(action){
-var ship=action.output("microverse__ship");
-var ingredient_1_matter=action.input("microverse__resource");
-var ingredient_2_crystal=action.input("microverse__resource");
-var ingredient_3_energy=action.input("microverse__resource");
-var ingredient_4_iron=action.input("microverse__resource");
-var ingredient_5_aluminum=action.input("microverse__resource");
-var ingredient_6_copper=action.input("microverse__resource");
-var ingredient_7_silicon=action.input("microverse__resource");
-var ingredient_8_carbon=action.input("microverse__resource");
+var ship=action.output("ship");
+var ingredient_1_matter=action.mutate("resource");
+var ingredient_2_crystal=action.mutate("resource");
+var ingredient_3_energy=action.mutate("resource");
+var ingredient_4_iron=action.mutate("resource");
+var ingredient_5_aluminum=action.mutate("resource");
+var ingredient_6_copper=action.mutate("resource");
+var ingredient_7_silicon=action.mutate("resource");
+var ingredient_8_carbon=action.mutate("resource");
 action.st_sum(ingredient_1_matter.resource_type,0,1);
-action.st_sum(ingredient_1_matter.amount,0,10);
+var ingredient_1_matter_remainder=unsafe{ingredient_1_matter.amount-500};
+action.st_sum(ingredient_1_matter_remainder,500,ingredient_1_matter.amount);
+action.st_gt(ingredient_1_matter_remainder,-1);
+ingredient_1_matter.update("amount",ingredient_1_matter_remainder);
+var ingredient_1_matter_next_key=action.random();
+rotate_key(ingredient_1_matter,ingredient_1_matter_next_key);
 action.st_sum(ingredient_2_crystal.resource_type,0,2);
-action.st_sum(ingredient_2_crystal.amount,0,10);
+var ingredient_2_crystal_remainder=unsafe{ingredient_2_crystal.amount-500};
+action.st_sum(ingredient_2_crystal_remainder,500,ingredient_2_crystal.amount);
+action.st_gt(ingredient_2_crystal_remainder,-1);
+ingredient_2_crystal.update("amount",ingredient_2_crystal_remainder);
+var ingredient_2_crystal_next_key=action.random();
+rotate_key(ingredient_2_crystal,ingredient_2_crystal_next_key);
 action.st_sum(ingredient_3_energy.resource_type,0,4);
-action.st_sum(ingredient_3_energy.amount,0,10);
+var ingredient_3_energy_remainder=unsafe{ingredient_3_energy.amount-500};
+action.st_sum(ingredient_3_energy_remainder,500,ingredient_3_energy.amount);
+action.st_gt(ingredient_3_energy_remainder,-1);
+ingredient_3_energy.update("amount",ingredient_3_energy_remainder);
+var ingredient_3_energy_next_key=action.random();
+rotate_key(ingredient_3_energy,ingredient_3_energy_next_key);
 action.st_sum(ingredient_4_iron.resource_type,0,156);
-action.st_sum(ingredient_4_iron.amount,0,6);
+var ingredient_4_iron_remainder=unsafe{ingredient_4_iron.amount-40};
+action.st_sum(ingredient_4_iron_remainder,40,ingredient_4_iron.amount);
+action.st_gt(ingredient_4_iron_remainder,-1);
+ingredient_4_iron.update("amount",ingredient_4_iron_remainder);
+var ingredient_4_iron_next_key=action.random();
+rotate_key(ingredient_4_iron,ingredient_4_iron_next_key);
 action.st_sum(ingredient_5_aluminum.resource_type,0,196);
-action.st_sum(ingredient_5_aluminum.amount,0,6);
+var ingredient_5_aluminum_remainder=unsafe{ingredient_5_aluminum.amount-50};
+action.st_sum(ingredient_5_aluminum_remainder,50,ingredient_5_aluminum.amount);
+action.st_gt(ingredient_5_aluminum_remainder,-1);
+ingredient_5_aluminum.update("amount",ingredient_5_aluminum_remainder);
+var ingredient_5_aluminum_next_key=action.random();
+rotate_key(ingredient_5_aluminum,ingredient_5_aluminum_next_key);
 action.st_sum(ingredient_6_copper.resource_type,0,161);
-action.st_sum(ingredient_6_copper.amount,0,6);
+var ingredient_6_copper_remainder=unsafe{ingredient_6_copper.amount-40};
+action.st_sum(ingredient_6_copper_remainder,40,ingredient_6_copper.amount);
+action.st_gt(ingredient_6_copper_remainder,-1);
+ingredient_6_copper.update("amount",ingredient_6_copper_remainder);
+var ingredient_6_copper_next_key=action.random();
+rotate_key(ingredient_6_copper,ingredient_6_copper_next_key);
 action.st_sum(ingredient_7_silicon.resource_type,0,164);
-action.st_sum(ingredient_7_silicon.amount,0,6);
+var ingredient_7_silicon_remainder=unsafe{ingredient_7_silicon.amount-40};
+action.st_sum(ingredient_7_silicon_remainder,40,ingredient_7_silicon.amount);
+action.st_gt(ingredient_7_silicon_remainder,-1);
+ingredient_7_silicon.update("amount",ingredient_7_silicon_remainder);
+var ingredient_7_silicon_next_key=action.random();
+rotate_key(ingredient_7_silicon,ingredient_7_silicon_next_key);
 action.st_sum(ingredient_8_carbon.resource_type,0,205);
-action.st_sum(ingredient_8_carbon.amount,0,6);
+var ingredient_8_carbon_remainder=unsafe{ingredient_8_carbon.amount-40};
+action.st_sum(ingredient_8_carbon_remainder,40,ingredient_8_carbon.amount);
+action.st_gt(ingredient_8_carbon_remainder,-1);
+ingredient_8_carbon.update("amount",ingredient_8_carbon_remainder);
+var ingredient_8_carbon_next_key=action.random();
+rotate_key(ingredient_8_carbon,ingredient_8_carbon_next_key);
 var ship_id=action.random();
 ship.set([
 ["schema_version",2],
@@ -1094,51 +1260,23 @@ var work=action.intro_vdf(51,ship);
 ship.update("work",work);
 }
 fn BuildShipLarge(action){
-var ship=action.output("microverse__ship");
-var permit=action.input("microverse__shipyard_permit");
-var ingredient_1_matter=action.input("microverse__resource");
-var ingredient_2_crystal=action.input("microverse__resource");
-var ingredient_3_energy=action.input("microverse__resource");
-var ingredient_4_steel=action.input("microverse__resource");
-var ingredient_5_aluminum=action.input("microverse__resource");
-var ingredient_6_titanium=action.input("microverse__resource");
-var ingredient_7_copper=action.input("microverse__resource");
-var ingredient_8_silicon=action.input("microverse__resource");
-var ingredient_9_gold=action.input("microverse__resource");
-var ingredient_10_carboncomposite=action.input("microverse__resource");
+var ship=action.output("ship");
+var permit=action.input("shipyard_permit");
+var ingredient_1_matter=action.mutate("resource");
+var ingredient_2_crystal=action.mutate("resource");
+var ingredient_3_energy=action.mutate("resource");
+var ingredient_4_steel=action.mutate("resource");
+var ingredient_5_aluminum=action.mutate("resource");
+var ingredient_6_titanium=action.mutate("resource");
+var ingredient_7_copper=action.mutate("resource");
+var ingredient_8_silicon=action.mutate("resource");
+var ingredient_9_gold=action.mutate("resource");
+var ingredient_10_carboncomposite=action.mutate("resource");
 prove_fixed_versions(action,permit);
 action.st_sum(permit.permit_type,0,1);
 action.st_sum(permit.industrial_authorized,0,1);
 action.st_sum(permit.electronics_authorized,0,1);
 action.st_sum(permit.molecular_authorized,0,1);
-var build_x=unsafe{permit.x-0};
-var build_y=unsafe{permit.y-0};
-var build_z=unsafe{permit.z-0};
-var build_epoch=unsafe{permit.epoch-0};
-action.st_sum(permit.x,0,build_x);
-action.st_sum(permit.y,0,build_y);
-action.st_sum(permit.z,0,build_z);
-action.st_sum(permit.epoch,0,build_epoch);
-action.st_sum(ingredient_1_matter.resource_type,0,1);
-action.st_sum(ingredient_1_matter.amount,0,50);
-action.st_sum(ingredient_2_crystal.resource_type,0,2);
-action.st_sum(ingredient_2_crystal.amount,0,50);
-action.st_sum(ingredient_3_energy.resource_type,0,4);
-action.st_sum(ingredient_3_energy.amount,0,50);
-action.st_sum(ingredient_4_steel.resource_type,0,211);
-action.st_sum(ingredient_4_steel.amount,0,30);
-action.st_sum(ingredient_5_aluminum.resource_type,0,196);
-action.st_sum(ingredient_5_aluminum.amount,0,30);
-action.st_sum(ingredient_6_titanium.resource_type,0,197);
-action.st_sum(ingredient_6_titanium.amount,0,15);
-action.st_sum(ingredient_7_copper.resource_type,0,161);
-action.st_sum(ingredient_7_copper.amount,0,30);
-action.st_sum(ingredient_8_silicon.resource_type,0,164);
-action.st_sum(ingredient_8_silicon.amount,0,30);
-action.st_sum(ingredient_9_gold.resource_type,0,200);
-action.st_sum(ingredient_9_gold.amount,0,15);
-action.st_sum(ingredient_10_carboncomposite.resource_type,0,212);
-action.st_sum(ingredient_10_carboncomposite.amount,0,5);
 var ship_id=action.random();
 ship.set([
 ["schema_version",2],
@@ -1146,10 +1284,10 @@ ship.set([
 ["universe_version",2],
 ["extraction_amount",250],
 ["rare_extraction_amount",25],
-["x",build_x],
-["y",build_y],
-["z",build_z],
-["epoch",build_epoch],
+["x",permit.x],
+["y",permit.y],
+["z",permit.z],
+["epoch",permit.epoch],
 ["active_skill_type",0],
 ["action_serial",0],
 ["discovery_serial",0],
@@ -1159,6 +1297,76 @@ ship.set([
 ]);
 var work=action.intro_vdf(510,ship);
 ship.update("work",work);
+action.st_sum(ingredient_1_matter.resource_type,0,1);
+var ingredient_1_matter_remainder=unsafe{ingredient_1_matter.amount-5000};
+action.st_sum(ingredient_1_matter_remainder,5000,ingredient_1_matter.amount);
+action.st_gt(ingredient_1_matter_remainder,-1);
+ingredient_1_matter.update("amount",ingredient_1_matter_remainder);
+var ingredient_1_matter_next_key=action.random();
+rotate_key(ingredient_1_matter,ingredient_1_matter_next_key);
+action.st_sum(ingredient_2_crystal.resource_type,0,2);
+var ingredient_2_crystal_remainder=unsafe{ingredient_2_crystal.amount-5000};
+action.st_sum(ingredient_2_crystal_remainder,5000,ingredient_2_crystal.amount);
+action.st_gt(ingredient_2_crystal_remainder,-1);
+ingredient_2_crystal.update("amount",ingredient_2_crystal_remainder);
+var ingredient_2_crystal_next_key=action.random();
+rotate_key(ingredient_2_crystal,ingredient_2_crystal_next_key);
+action.st_sum(ingredient_3_energy.resource_type,0,4);
+var ingredient_3_energy_remainder=unsafe{ingredient_3_energy.amount-5000};
+action.st_sum(ingredient_3_energy_remainder,5000,ingredient_3_energy.amount);
+action.st_gt(ingredient_3_energy_remainder,-1);
+ingredient_3_energy.update("amount",ingredient_3_energy_remainder);
+var ingredient_3_energy_next_key=action.random();
+rotate_key(ingredient_3_energy,ingredient_3_energy_next_key);
+action.st_sum(ingredient_4_steel.resource_type,0,211);
+var ingredient_4_steel_remainder=unsafe{ingredient_4_steel.amount-300};
+action.st_sum(ingredient_4_steel_remainder,300,ingredient_4_steel.amount);
+action.st_gt(ingredient_4_steel_remainder,-1);
+ingredient_4_steel.update("amount",ingredient_4_steel_remainder);
+var ingredient_4_steel_next_key=action.random();
+rotate_key(ingredient_4_steel,ingredient_4_steel_next_key);
+action.st_sum(ingredient_5_aluminum.resource_type,0,196);
+var ingredient_5_aluminum_remainder=unsafe{ingredient_5_aluminum.amount-500};
+action.st_sum(ingredient_5_aluminum_remainder,500,ingredient_5_aluminum.amount);
+action.st_gt(ingredient_5_aluminum_remainder,-1);
+ingredient_5_aluminum.update("amount",ingredient_5_aluminum_remainder);
+var ingredient_5_aluminum_next_key=action.random();
+rotate_key(ingredient_5_aluminum,ingredient_5_aluminum_next_key);
+action.st_sum(ingredient_6_titanium.resource_type,0,197);
+var ingredient_6_titanium_remainder=unsafe{ingredient_6_titanium.amount-50};
+action.st_sum(ingredient_6_titanium_remainder,50,ingredient_6_titanium.amount);
+action.st_gt(ingredient_6_titanium_remainder,-1);
+ingredient_6_titanium.update("amount",ingredient_6_titanium_remainder);
+var ingredient_6_titanium_next_key=action.random();
+rotate_key(ingredient_6_titanium,ingredient_6_titanium_next_key);
+action.st_sum(ingredient_7_copper.resource_type,0,161);
+var ingredient_7_copper_remainder=unsafe{ingredient_7_copper.amount-350};
+action.st_sum(ingredient_7_copper_remainder,350,ingredient_7_copper.amount);
+action.st_gt(ingredient_7_copper_remainder,-1);
+ingredient_7_copper.update("amount",ingredient_7_copper_remainder);
+var ingredient_7_copper_next_key=action.random();
+rotate_key(ingredient_7_copper,ingredient_7_copper_next_key);
+action.st_sum(ingredient_8_silicon.resource_type,0,164);
+var ingredient_8_silicon_remainder=unsafe{ingredient_8_silicon.amount-350};
+action.st_sum(ingredient_8_silicon_remainder,350,ingredient_8_silicon.amount);
+action.st_gt(ingredient_8_silicon_remainder,-1);
+ingredient_8_silicon.update("amount",ingredient_8_silicon_remainder);
+var ingredient_8_silicon_next_key=action.random();
+rotate_key(ingredient_8_silicon,ingredient_8_silicon_next_key);
+action.st_sum(ingredient_9_gold.resource_type,0,200);
+var ingredient_9_gold_remainder=unsafe{ingredient_9_gold.amount-50};
+action.st_sum(ingredient_9_gold_remainder,50,ingredient_9_gold.amount);
+action.st_gt(ingredient_9_gold_remainder,-1);
+ingredient_9_gold.update("amount",ingredient_9_gold_remainder);
+var ingredient_9_gold_next_key=action.random();
+rotate_key(ingredient_9_gold,ingredient_9_gold_next_key);
+action.st_sum(ingredient_10_carboncomposite.resource_type,0,212);
+var ingredient_10_carboncomposite_remainder=unsafe{ingredient_10_carboncomposite.amount-50};
+action.st_sum(ingredient_10_carboncomposite_remainder,50,ingredient_10_carboncomposite.amount);
+action.st_gt(ingredient_10_carboncomposite_remainder,-1);
+ingredient_10_carboncomposite.update("amount",ingredient_10_carboncomposite_remainder);
+var ingredient_10_carboncomposite_next_key=action.random();
+rotate_key(ingredient_10_carboncomposite,ingredient_10_carboncomposite_next_key);
 }
 fn MovePositiveX(action){move_positive_x_action(action,1,10,1,4);}
 fn MovePositiveXMedium(action){move_positive_x_action(action,10,50,5,12);}
@@ -1183,8 +1391,8 @@ fn TimeWarpMedium(action){time_warp_action(action,10,50,5,12);}
 fn TimeWarpLarge(action){time_warp_action(action,100,250,25,28);}
 // Sectors and survey profiles
 fn ClaimSector(action){
-var sector=action.output("microverse__sector");
-var ship=action.mutate("microverse__ship");
+var sector=action.output("sector");
+var ship=action.mutate("ship");
 prove_fixed_versions(action,ship);
 var sector_x=unsafe{ship.x-0};
 var sector_y=unsafe{ship.y-0};
@@ -1239,8 +1447,8 @@ var next_ship_key=action.random();
 ship.update("key",next_ship_key);
 }
 fn SurveySector_01_Sparse(action){
-var ship=action.mutate("microverse__ship");
-var sector=action.mutate("microverse__sector");
+var ship=action.mutate("ship");
+var sector=action.mutate("sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
 sector.update("stable_identifier",sector_selector);
@@ -1260,8 +1468,8 @@ var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
 }
 fn SurveySector_02_Standard(action){
-var ship=action.mutate("microverse__ship");
-var sector=action.mutate("microverse__sector");
+var ship=action.mutate("ship");
+var sector=action.mutate("sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
 sector.update("stable_identifier",sector_selector);
@@ -1287,8 +1495,8 @@ var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
 }
 fn SurveySector_03_Rich(action){
-var ship=action.mutate("microverse__ship");
-var sector=action.mutate("microverse__sector");
+var ship=action.mutate("ship");
+var sector=action.mutate("sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
 sector.update("stable_identifier",sector_selector);
@@ -1316,8 +1524,8 @@ var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
 }
 fn SurveySector_04_Ancient(action){
-var ship=action.mutate("microverse__ship");
-var sector=action.mutate("microverse__sector");
+var ship=action.mutate("ship");
+var sector=action.mutate("sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
 sector.update("stable_identifier",sector_selector);
@@ -1345,8 +1553,8 @@ var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
 }
 fn SurveySector_05_Anomalous(action){
-var ship=action.mutate("microverse__ship");
-var sector=action.mutate("microverse__sector");
+var ship=action.mutate("ship");
+var sector=action.mutate("sector");
 var sector_selector=action.random();
 var_assign(sector_selector,sector.stable_identifier);
 sector.update("stable_identifier",sector_selector);
@@ -1424,9 +1632,9 @@ fn ScanCelestialBody_21_Magnetar(action){scan_celestial_body_lower_action(action
 fn ScanCelestialBody_22_WormholeMouth(action){scan_celestial_body_lower_action(action,6148914689804861440,7,22,7,0,6000,6000,0,40000,0);}
 // Coordinates, charts, and traversal
 fn ExtractAnomalyWarpCoordinate(action){
-var ship=action.mutate("microverse__ship");
-var coordinate=action.output("microverse__warp_coordinate");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var coordinate=action.output("warp_coordinate");
+var body=action.mutate("celestial_body");
 consume_prepared_ship_mutation_core(action,ship,14);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
@@ -1466,9 +1674,9 @@ var next_body_key=action.random();
 rotate_key(body,next_body_key);
 }
 fn ExtractAnomalyTimeCoordinate(action){
-var ship=action.mutate("microverse__ship");
-var coordinate=action.output("microverse__time_coordinate");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var coordinate=action.output("time_coordinate");
+var body=action.mutate("celestial_body");
 consume_prepared_ship_mutation_core(action,ship,14);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
@@ -1717,8 +1925,8 @@ fn RevealTimeCoordinate84(action){reveal_time_coordinate_action(action,84,909152
 fn RevealTimeCoordinate85(action){reveal_time_coordinate_action(action,85,953765132126,1,8999);}
 fn RevealTimeCoordinate86(action){reveal_time_coordinate_action(action,86,999999999999,1,8999);}
 fn WarpToCoordinateReusable(action){
-var ship=action.mutate("microverse__ship");
-var coordinate=action.mutate("microverse__warp_coordinate");
+var ship=action.mutate("ship");
+var coordinate=action.mutate("warp_coordinate");
 prove_fixed_versions(action,coordinate);
 action.st_sum(coordinate.revealed,0,1);
 action.st_gt(coordinate.uses_remaining,1);
@@ -1736,8 +1944,8 @@ var next_coordinate_key=action.random();
 rotate_key(coordinate,next_coordinate_key);
 }
 fn WarpToCoordinateFinal(action){
-var ship=action.mutate("microverse__ship");
-var coordinate=action.input("microverse__warp_coordinate");
+var ship=action.mutate("ship");
+var coordinate=action.input("warp_coordinate");
 prove_fixed_versions(action,coordinate);
 action.st_sum(coordinate.revealed,0,1);
 action.st_sum(coordinate.uses_remaining,0,1);
@@ -1750,8 +1958,8 @@ action.st_gt(2000000000000,coordinate.destination_z);
 warp_ship_core(action,ship,coordinate.destination_x,coordinate.destination_y,coordinate.destination_z,ship.epoch);
 }
 fn TimeWarpToCoordinateReusable(action){
-var ship=action.mutate("microverse__ship");
-var coordinate=action.mutate("microverse__time_coordinate");
+var ship=action.mutate("ship");
+var coordinate=action.mutate("time_coordinate");
 prove_fixed_versions(action,coordinate);
 action.st_sum(coordinate.revealed,0,1);
 action.st_gt(coordinate.uses_remaining,1);
@@ -1765,8 +1973,8 @@ var next_coordinate_key=action.random();
 rotate_key(coordinate,next_coordinate_key);
 }
 fn TimeWarpToCoordinateFinal(action){
-var ship=action.mutate("microverse__ship");
-var coordinate=action.input("microverse__time_coordinate");
+var ship=action.mutate("ship");
+var coordinate=action.input("time_coordinate");
 prove_fixed_versions(action,coordinate);
 action.st_sum(coordinate.revealed,0,1);
 action.st_sum(coordinate.uses_remaining,0,1);
@@ -1775,9 +1983,9 @@ action.st_gt(1000000000000,coordinate.destination_epoch);
 warp_ship_core(action,ship,ship.x,ship.y,ship.z,coordinate.destination_epoch);
 }
 fn ExtractWormholeWarpChart(action){
-var ship=action.mutate("microverse__ship");
-var chart=action.output("microverse__warp_chart");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var chart=action.output("warp_chart");
+var body=action.mutate("celestial_body");
 var source_body_identifier=action.random();
 var_assign(source_body_identifier,body.stable_identifier);
 body.update("stable_identifier",source_body_identifier);
@@ -1804,9 +2012,9 @@ var work=action.intro_vdf(20,chart);
 chart.update("work",work);
 }
 fn ExtractWormholeEpochChart(action){
-var ship=action.mutate("microverse__ship");
-var chart=action.output("microverse__epoch_chart");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var chart=action.output("epoch_chart");
+var body=action.mutate("celestial_body");
 var source_body_identifier=action.random();
 var_assign(source_body_identifier,body.stable_identifier);
 body.update("stable_identifier",source_body_identifier);
@@ -2087,8 +2295,8 @@ fn RevealWarpChart254(action){reveal_warp_chart_action(action,254,247201906904,5
 fn RevealWarpChart255(action){reveal_warp_chart_action(action,255,12990416024,40219871999,55148265409,1,8999);}
 fn RevealWarpChart256(action){reveal_warp_chart_action(action,256,385729605511,631900261432,396119036916,1,8999);}
 fn WarpShipToPositionCoordinateReusable(action){
-var ship=action.mutate("microverse__ship");
-var chart=action.mutate("microverse__warp_chart");
+var ship=action.mutate("ship");
+var chart=action.mutate("warp_chart");
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,1);
 action.st_sum(ship.active_skill_type,0,51);
@@ -2104,8 +2312,8 @@ var work=action.intro_vdf(12,ship);
 ship.update("work",work);
 }
 fn WarpShipToPositionCoordinateFinal(action){
-var ship=action.mutate("microverse__ship");
-var chart=action.input("microverse__warp_chart");
+var ship=action.mutate("ship");
+var chart=action.input("warp_chart");
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,1);
 action.st_sum(ship.active_skill_type,0,51);
@@ -2249,8 +2457,8 @@ fn RevealEpochChart126(action){reveal_epoch_chart_action(action,126,812740620169
 fn RevealEpochChart127(action){reveal_epoch_chart_action(action,127,685958831907,1,8999);}
 fn RevealEpochChart128(action){reveal_epoch_chart_action(action,128,995769685,1,8999);}
 fn WarpShipToEpochCoordinateReusable(action){
-var ship=action.mutate("microverse__ship");
-var chart=action.mutate("microverse__epoch_chart");
+var ship=action.mutate("ship");
+var chart=action.mutate("epoch_chart");
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,1);
 action.st_sum(ship.active_skill_type,0,58);
@@ -2262,8 +2470,8 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn WarpShipToEpochCoordinateFinal(action){
-var ship=action.mutate("microverse__ship");
-var chart=action.input("microverse__epoch_chart");
+var ship=action.mutate("ship");
+var chart=action.input("epoch_chart");
 prove_object_version_core(action,chart,"catalog_version");
 action.st_sum(chart.revealed,0,1);
 action.st_sum(ship.active_skill_type,0,58);
@@ -2275,10 +2483,10 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn CapturePositionAnchor(action){
-var ship=action.mutate("microverse__ship");
-var anchor=action.output("microverse__position_anchor");
-var material_1=action.input("microverse__resource");
-var material_2=action.input("microverse__resource");
+var ship=action.mutate("ship");
+var anchor=action.output("position_anchor");
+var material_1=action.input("resource");
+var material_2=action.input("resource");
 var source_ship_id=consume_prepared_ship_core(
 action,ship,49
 );
@@ -2305,10 +2513,10 @@ var work=action.intro_vdf(12,anchor);
 anchor.update("work",work);
 }
 fn CaptureTimeAnchor(action){
-var ship=action.mutate("microverse__ship");
-var anchor=action.output("microverse__time_anchor");
-var material_1=action.input("microverse__resource");
-var material_2=action.input("microverse__resource");
+var ship=action.mutate("ship");
+var anchor=action.output("time_anchor");
+var material_1=action.input("resource");
+var material_2=action.input("resource");
 var source_ship_id=consume_prepared_ship_core(
 action,ship,60
 );
@@ -2329,7 +2537,7 @@ var work=action.intro_vdf(20,anchor);
 anchor.update("work",work);
 }
 fn ConstructWormholeLink(action){
-var link=action.output("microverse__wormhole_link");
+var link=action.output("wormhole_link");
 let placeholder_identifier=action.top_limb_u256(0);
 link.set([
 ["schema_version",2],
@@ -2346,7 +2554,7 @@ link.set([
 ["endpoint_b_z",0],
 ["uses_remaining",3]
 ]);
-var anchor_a=action.input("microverse__position_anchor");
+var anchor_a=action.input("position_anchor");
 prove_object_version_core(action,anchor_a,"anchor_version");
 action.st_sum(anchor_a.uses_remaining,0,1);
 var endpoint_a_x=unsafe{anchor_a.x-0};
@@ -2362,7 +2570,7 @@ var endpoint_a_anchor_identifier=action.random();
 var_assign(endpoint_a_anchor_identifier,anchor_a.stable_identifier);
 anchor_a.update("stable_identifier",endpoint_a_anchor_identifier);
 link.update("endpoint_a_anchor_identifier",endpoint_a_anchor_identifier);
-var anchor_b=action.input("microverse__position_anchor");
+var anchor_b=action.input("position_anchor");
 prove_object_version_core(action,anchor_b,"anchor_version");
 action.st_sum(anchor_b.uses_remaining,0,1);
 var endpoint_b_x=unsafe{anchor_b.x-0};
@@ -2378,13 +2586,13 @@ var endpoint_b_anchor_identifier=action.random();
 var_assign(endpoint_b_anchor_identifier,anchor_b.stable_identifier);
 anchor_b.update("stable_identifier",endpoint_b_anchor_identifier);
 link.update("endpoint_b_anchor_identifier",endpoint_b_anchor_identifier);
-var material_1=action.input("microverse__resource");
+var material_1=action.input("resource");
 prove_resource_stack_core(action,material_1,432,1);
-var material_2=action.input("microverse__resource");
+var material_2=action.input("resource");
 prove_resource_stack_core(action,material_2,410,1);
 var work=action.intro_vdf(32,link);
 link.update("work",work);
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 prove_fixed_versions(action,ship);
 action.st_sum(ship.active_skill_type,0,59);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
@@ -2395,7 +2603,7 @@ var next_constructor_ship_key=action.random();
 rotate_key(ship,next_constructor_ship_key);
 }
 fn ConstructTemporalLink(action){
-var link=action.output("microverse__temporal_link");
+var link=action.output("temporal_link");
 let placeholder_identifier=action.top_limb_u256(0);
 link.set([
 ["schema_version",2],
@@ -2408,7 +2616,7 @@ link.set([
 ["endpoint_b_epoch",0],
 ["uses_remaining",3]
 ]);
-var anchor_a=action.input("microverse__time_anchor");
+var anchor_a=action.input("time_anchor");
 prove_object_version_core(action,anchor_a,"anchor_version");
 action.st_sum(anchor_a.uses_remaining,0,1);
 var endpoint_a_epoch=unsafe{anchor_a.epoch-0};
@@ -2418,7 +2626,7 @@ var endpoint_a_anchor_identifier=action.random();
 var_assign(endpoint_a_anchor_identifier,anchor_a.stable_identifier);
 anchor_a.update("stable_identifier",endpoint_a_anchor_identifier);
 link.update("endpoint_a_anchor_identifier",endpoint_a_anchor_identifier);
-var anchor_b=action.input("microverse__time_anchor");
+var anchor_b=action.input("time_anchor");
 prove_object_version_core(action,anchor_b,"anchor_version");
 action.st_sum(anchor_b.uses_remaining,0,1);
 var endpoint_b_epoch=unsafe{anchor_b.epoch-0};
@@ -2428,13 +2636,13 @@ var endpoint_b_anchor_identifier=action.random();
 var_assign(endpoint_b_anchor_identifier,anchor_b.stable_identifier);
 anchor_b.update("stable_identifier",endpoint_b_anchor_identifier);
 link.update("endpoint_b_anchor_identifier",endpoint_b_anchor_identifier);
-var material_1=action.input("microverse__resource");
+var material_1=action.input("resource");
 prove_resource_stack_core(action,material_1,412,1);
-var material_2=action.input("microverse__resource");
+var material_2=action.input("resource");
 prove_resource_stack_core(action,material_2,428,1);
 var work=action.intro_vdf(32,link);
 link.update("work",work);
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 prove_fixed_versions(action,ship);
 action.st_sum(ship.active_skill_type,0,60);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
@@ -2445,8 +2653,8 @@ var next_constructor_ship_key=action.random();
 rotate_key(ship,next_constructor_ship_key);
 }
 fn TraverseWormholeAToBReusable(action){
-var ship=action.mutate("microverse__ship");
-var link=action.mutate("microverse__wormhole_link");
+var ship=action.mutate("ship");
+var link=action.mutate("wormhole_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,59);
 var source_x=unsafe{link.endpoint_a_x-0};
@@ -2464,8 +2672,8 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn TraverseWormholeAToBFinal(action){
-var ship=action.mutate("microverse__ship");
-var link=action.input("microverse__wormhole_link");
+var ship=action.mutate("ship");
+var link=action.input("wormhole_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,59);
 var source_x=unsafe{link.endpoint_a_x-0};
@@ -2483,8 +2691,8 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn TraverseWormholeBToAReusable(action){
-var ship=action.mutate("microverse__ship");
-var link=action.mutate("microverse__wormhole_link");
+var ship=action.mutate("ship");
+var link=action.mutate("wormhole_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,59);
 var source_x=unsafe{link.endpoint_b_x-0};
@@ -2502,8 +2710,8 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn TraverseWormholeBToAFinal(action){
-var ship=action.mutate("microverse__ship");
-var link=action.input("microverse__wormhole_link");
+var ship=action.mutate("ship");
+var link=action.input("wormhole_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,59);
 var source_x=unsafe{link.endpoint_b_x-0};
@@ -2521,8 +2729,8 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn TraverseTemporalAToBReusable(action){
-var ship=action.mutate("microverse__ship");
-var link=action.mutate("microverse__temporal_link");
+var ship=action.mutate("ship");
+var link=action.mutate("temporal_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,60);
 var source_epoch=unsafe{link.endpoint_a_epoch-0};
@@ -2534,8 +2742,8 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn TraverseTemporalAToBFinal(action){
-var ship=action.mutate("microverse__ship");
-var link=action.input("microverse__temporal_link");
+var ship=action.mutate("ship");
+var link=action.input("temporal_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,60);
 var source_epoch=unsafe{link.endpoint_a_epoch-0};
@@ -2547,8 +2755,8 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn TraverseTemporalBToAReusable(action){
-var ship=action.mutate("microverse__ship");
-var link=action.mutate("microverse__temporal_link");
+var ship=action.mutate("ship");
+var link=action.mutate("temporal_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,60);
 var source_epoch=unsafe{link.endpoint_b_epoch-0};
@@ -2560,8 +2768,8 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn TraverseTemporalBToAFinal(action){
-var ship=action.mutate("microverse__ship");
-var link=action.input("microverse__temporal_link");
+var ship=action.mutate("ship");
+var link=action.input("temporal_link");
 prove_object_version_core(action,link,"link_version");
 action.st_sum(ship.active_skill_type,0,60);
 var source_epoch=unsafe{link.endpoint_b_epoch-0};
@@ -2573,7 +2781,7 @@ var work=action.intro_vdf(20,ship);
 ship.update("work",work);
 }
 fn ComposeRendezvousCoordinate(action){
-var coordinate=action.output("microverse__rendezvous_coordinate");
+var coordinate=action.output("rendezvous_coordinate");
 let placeholder_identifier=action.top_limb_u256(0);
 coordinate.set([
 ["schema_version",2],
@@ -2588,7 +2796,7 @@ coordinate.set([
 ["destination_epoch",0],
 ["uses_remaining",3]
 ]);
-var position_anchor=action.input("microverse__position_anchor");
+var position_anchor=action.input("position_anchor");
 prove_object_version_core(action,position_anchor,"anchor_version");
 action.st_sum(position_anchor.uses_remaining,0,1);
 var destination_x=unsafe{position_anchor.x-0};
@@ -2604,7 +2812,7 @@ var position_anchor_identifier=action.random();
 var_assign(position_anchor_identifier,position_anchor.stable_identifier);
 position_anchor.update("stable_identifier",position_anchor_identifier);
 coordinate.update("position_anchor_identifier",position_anchor_identifier);
-var time_anchor=action.input("microverse__time_anchor");
+var time_anchor=action.input("time_anchor");
 prove_object_version_core(action,time_anchor,"anchor_version");
 action.st_sum(time_anchor.uses_remaining,0,1);
 var destination_epoch=unsafe{time_anchor.epoch-0};
@@ -2614,13 +2822,13 @@ var time_anchor_identifier=action.random();
 var_assign(time_anchor_identifier,time_anchor.stable_identifier);
 time_anchor.update("stable_identifier",time_anchor_identifier);
 coordinate.update("time_anchor_identifier",time_anchor_identifier);
-var material_1=action.input("microverse__resource");
+var material_1=action.input("resource");
 prove_resource_stack_core(action,material_1,426,1);
-var material_2=action.input("microverse__resource");
+var material_2=action.input("resource");
 prove_resource_stack_core(action,material_2,413,1);
 var work=action.intro_vdf(32,coordinate);
 coordinate.update("work",work);
-var ship=action.mutate("microverse__ship");
+var ship=action.mutate("ship");
 prove_fixed_versions(action,ship);
 action.st_sum(ship.active_skill_type,0,86);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
@@ -2631,8 +2839,8 @@ var next_constructor_ship_key=action.random();
 rotate_key(ship,next_constructor_ship_key);
 }
 fn WarpToRendezvousCoordinateReusable(action){
-var ship=action.mutate("microverse__ship");
-var coordinate=action.mutate("microverse__rendezvous_coordinate");
+var ship=action.mutate("ship");
+var coordinate=action.mutate("rendezvous_coordinate");
 prove_object_version_core(action,coordinate,"coordinate_version");
 action.st_sum(ship.active_skill_type,0,86);
 warp_ship_core(
@@ -2648,8 +2856,8 @@ var work=action.intro_vdf(32,ship);
 ship.update("work",work);
 }
 fn WarpToRendezvousCoordinateFinal(action){
-var ship=action.mutate("microverse__ship");
-var coordinate=action.input("microverse__rendezvous_coordinate");
+var ship=action.mutate("ship");
+var coordinate=action.input("rendezvous_coordinate");
 prove_object_version_core(action,coordinate,"coordinate_version");
 action.st_sum(ship.active_skill_type,0,86);
 warp_ship_core(
@@ -2679,9 +2887,9 @@ fn ExtractEnergyMedium(action){extract_base_action(action,4,0,"energy_remaining"
 fn ExtractEnergyLarge(action){extract_base_action(action,4,0,"energy_remaining",4,250,25);}
 // Satellites, life, and civilizations
 fn DiscoverSatellite(action){
-var ship=action.mutate("microverse__ship");
-var satellite=action.output("microverse__satellite");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var satellite=action.output("satellite");
+var body=action.mutate("celestial_body");
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
@@ -2727,9 +2935,9 @@ var next_body_key=action.random();
 rotate_key(body,next_body_key);
 }
 fn DetectIntelligentLife(action){
-var ship=action.mutate("microverse__ship");
-var life_signal=action.output("microverse__life_signal");
-var body=action.mutate("microverse__celestial_body");
+var ship=action.mutate("ship");
+var life_signal=action.output("life_signal");
+var body=action.mutate("celestial_body");
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,body);
 action.st_sum(body.body_bank_version,0,2);
@@ -2748,9 +2956,9 @@ ship.update("action_serial",next_action_serial);
 ship.update("civilization_scan_serial",next_scan_serial);
 var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
-let life_selector_lower=action.top_limb_u256(8974091709444932912);
+let life_selector_lower=action.top_limb_u256(-8610277184978619144);
 action.intro_lt_eq_u256(life_selector_lower,body.source_signal_identifier);
-let life_selector_upper=action.top_limb_u256(-8226250737952822467);
+let life_selector_upper=action.top_limb_u256(-8441844532774322357);
 action.intro_lt_eq_u256(body.source_signal_identifier,life_selector_upper);
 action.st_sum(body.body_type,0,1);
 action.st_sum(body.life_stat,0,0);
@@ -2777,9 +2985,9 @@ var next_body_key=action.random();
 rotate_key(body,next_body_key);
 }
 fn MaterializeCivilizationTypeI(action){
-var civilization=action.output("microverse__civilization");
-var life_signal=action.input("microverse__life_signal");
-var ship=action.mutate("microverse__ship");
+var civilization=action.output("civilization");
+var life_signal=action.input("life_signal");
+var ship=action.mutate("ship");
 let civilization_selector_upper=action.top_limb_u256(-1148698352939831522);
 action.intro_lt_eq_u256(life_signal,civilization_selector_upper);
 prove_fixed_versions(action,life_signal);
@@ -2828,9 +3036,9 @@ var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
 }
 fn MaterializeCivilizationTypeII(action){
-var civilization=action.output("microverse__civilization");
-var life_signal=action.input("microverse__life_signal");
-var ship=action.mutate("microverse__ship");
+var civilization=action.output("civilization");
+var life_signal=action.input("life_signal");
+var ship=action.mutate("ship");
 let civilization_selector_lower=action.top_limb_u256(-1148698352939831521);
 action.intro_lt_eq_u256(civilization_selector_lower,life_signal);
 let civilization_selector_upper=action.top_limb_u256(-67570495391724016);
@@ -2881,9 +3089,9 @@ var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
 }
 fn MaterializeCivilizationTypeIII(action){
-var civilization=action.output("microverse__civilization");
-var life_signal=action.input("microverse__life_signal");
-var ship=action.mutate("microverse__ship");
+var civilization=action.output("civilization");
+var life_signal=action.input("life_signal");
+var ship=action.mutate("ship");
 let civilization_selector_lower=action.top_limb_u256(-67570495391724015);
 action.intro_lt_eq_u256(civilization_selector_lower,life_signal);
 prove_fixed_versions(action,life_signal);
@@ -3283,6 +3491,95 @@ fn ExtractWormholeMouthTraversabilityFieldMatrix(action){extract_composite_lower
 fn ExtractWormholeMouthThroatGeometrySolution(action){extract_direct_lower_action(action,9223372034707292160,20,22,14,"energy_remaining",491,250,25);}
 fn ExtractWormholeMouthTransitPhaseData(action){extract_direct_ungated_action(action,20,22,11,"energy_remaining",492,250,25);}
 fn ExtractWormholeMouthCausalConnectivityMap(action){extract_direct_ungated_action(action,20,22,18,"energy_remaining",493,250,25);}
+fn ExtractMatterIntoBalance(action){extract_base_into_balance_action(action,8,0,"matter_remaining",1,10,1);}
+fn ExtractMatterMediumIntoBalance(action){extract_base_into_balance_action(action,8,0,"matter_remaining",1,50,5);}
+fn ExtractMatterLargeIntoBalance(action){extract_base_into_balance_action(action,8,0,"matter_remaining",1,250,25);}
+fn ExtractCrystalIntoBalance(action){extract_base_into_balance_action(action,8,0,"crystal_remaining",2,10,1);}
+fn ExtractCrystalMediumIntoBalance(action){extract_base_into_balance_action(action,8,0,"crystal_remaining",2,50,5);}
+fn ExtractCrystalLargeIntoBalance(action){extract_base_into_balance_action(action,8,0,"crystal_remaining",2,250,25);}
+fn ExtractGasIntoBalance(action){extract_base_into_balance_action(action,2,0,"gas_remaining",3,10,1);}
+fn ExtractGasMediumIntoBalance(action){extract_base_into_balance_action(action,2,0,"gas_remaining",3,50,5);}
+fn ExtractGasLargeIntoBalance(action){extract_base_into_balance_action(action,2,0,"gas_remaining",3,250,25);}
+fn ExtractEnergyIntoBalance(action){extract_base_into_balance_action(action,4,0,"energy_remaining",4,10,1);}
+fn ExtractEnergyMediumIntoBalance(action){extract_base_into_balance_action(action,4,0,"energy_remaining",4,50,5);}
+fn ExtractEnergyLargeIntoBalance(action){extract_base_into_balance_action(action,4,0,"energy_remaining",4,250,25);}
+fn ExtractRedDwarfRadiantEnergyIntoBalance(action){extract_direct_upper_into_balance_action(action,6148914689804861439,4,0,8,"energy_remaining",121,50,5);}
+fn ExtractRedDwarfRadiantEnergyLargeIntoBalance(action){extract_direct_upper_into_balance_action(action,6148914689804861439,4,0,8,"energy_remaining",121,250,25);}
+fn ExtractRedDwarfFlareSpectrumDataIntoBalance(action){extract_direct_lower_into_balance_action(action,-6148914694099828736,12,0,8,"energy_remaining",225,50,5);}
+fn ExtractRedDwarfFlareSpectrumDataLargeIntoBalance(action){extract_direct_lower_into_balance_action(action,-6148914694099828736,12,0,8,"energy_remaining",225,250,25);}
+fn ExtractMainSequenceStarRadiantEnergyIntoBalance(action){extract_direct_upper_into_balance_action(action,6148914689804861439,4,1,8,"energy_remaining",121,50,5);}
+fn ExtractMainSequenceStarRadiantEnergyLargeIntoBalance(action){extract_direct_upper_into_balance_action(action,6148914689804861439,4,1,8,"energy_remaining",121,250,25);}
+fn ExtractMainSequenceStarStellarSpectrumDataIntoBalance(action){extract_direct_lower_into_balance_action(action,-6148914694099828736,12,1,8,"energy_remaining",228,50,5);}
+fn ExtractMainSequenceStarStellarSpectrumDataLargeIntoBalance(action){extract_direct_lower_into_balance_action(action,-6148914694099828736,12,1,8,"energy_remaining",228,250,25);}
+fn ExtractGiantStarRadiantEnergyIntoBalance(action){extract_direct_ungated_into_balance_action(action,4,2,8,"energy_remaining",121,50,5);}
+fn ExtractGiantStarRadiantEnergyLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,4,2,8,"energy_remaining",121,250,25);}
+fn ExtractGiantStarNeutrinoDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,2,16,"energy_remaining",231,50,5);}
+fn ExtractGiantStarNeutrinoDataLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,2,16,"energy_remaining",231,250,25);}
+fn ExtractRockyPlanetGeothermalEnergyIntoBalance(action){extract_direct_ungated_into_balance_action(action,4,3,0,"energy_remaining",233,10,1);}
+fn ExtractRockyPlanetGeothermalEnergyMediumIntoBalance(action){extract_direct_ungated_into_balance_action(action,4,3,0,"energy_remaining",233,50,5);}
+fn ExtractRockyPlanetGeothermalEnergyLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,4,3,0,"energy_remaining",233,250,25);}
+fn ExtractOceanPlanetWaterIntoBalance(action){extract_direct_upper_into_balance_action(action,6148914689804861439,2,4,0,"matter_remaining",126,10,1);}
+fn ExtractOceanPlanetWaterMediumIntoBalance(action){extract_direct_upper_into_balance_action(action,6148914689804861439,2,4,0,"matter_remaining",126,50,5);}
+fn ExtractOceanPlanetWaterLargeIntoBalance(action){extract_direct_upper_into_balance_action(action,6148914689804861439,2,4,0,"matter_remaining",126,250,25);}
+fn ExtractOceanPlanetTidalEnergyIntoBalance(action){extract_direct_ungated_into_balance_action(action,4,4,0,"energy_remaining",236,10,1);}
+fn ExtractOceanPlanetTidalEnergyMediumIntoBalance(action){extract_direct_ungated_into_balance_action(action,4,4,0,"energy_remaining",236,50,5);}
+fn ExtractOceanPlanetTidalEnergyLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,4,4,0,"energy_remaining",236,250,25);}
+fn ExtractGasGiantStormFieldDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,6,11,"energy_remaining",240,50,5);}
+fn ExtractGasGiantStormFieldDataLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,6,11,"energy_remaining",240,250,25);}
+fn ExtractIceGiantHighPressurePhaseDataIntoBalance(action){extract_direct_upper_into_balance_action(action,9223372034707292159,12,7,7,"energy_remaining",243,50,5);}
+fn ExtractIceGiantHighPressurePhaseDataLargeIntoBalance(action){extract_direct_upper_into_balance_action(action,9223372034707292159,12,7,7,"energy_remaining",243,250,25);}
+fn ExtractIceGiantCryosphereSpectrumDataIntoBalance(action){extract_direct_lower_into_balance_action(action,9223372034707292160,12,7,7,"energy_remaining",343,50,5);}
+fn ExtractIceGiantCryosphereSpectrumDataLargeIntoBalance(action){extract_direct_lower_into_balance_action(action,9223372034707292160,12,7,7,"energy_remaining",343,250,25);}
+fn ExtractNeutronStarHighEnergyRadiationIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,9,8,"energy_remaining",143,250,25);}
+fn ExtractNeutronStarGravitationalDataIntoBalance(action){extract_direct_upper_into_balance_action(action,6148914689804861439,20,9,16,"energy_remaining",144,250,25);}
+fn ExtractNeutronStarPulsarEmissionDataIntoBalance(action){extract_direct_range_into_balance_action(action,6148914689804861440,-6148914694099828737,12,9,16,"energy_remaining",246,250,25);}
+fn ExtractNeutronStarPulsarTimingDataIntoBalance(action){extract_direct_lower_into_balance_action(action,-6148914694099828736,12,9,16,"energy_remaining",346,250,25);}
+fn ExtractBlackHoleHighEnergyRadiationIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,10,8,"energy_remaining",143,250,25);}
+fn ExtractBlackHoleGravitationalDataIntoBalance(action){extract_direct_upper_into_balance_action(action,9223372034707292159,20,10,16,"energy_remaining",144,250,25);}
+fn ExtractBlackHoleAccretionDataIntoBalance(action){extract_direct_lower_into_balance_action(action,9223372034707292160,20,10,16,"energy_remaining",145,250,25);}
+fn ExtractBlackHoleLensingDataIntoBalance(action){extract_direct_upper_into_balance_action(action,9223372034707292159,20,10,14,"energy_remaining",249,250,25);}
+fn ExtractBlackHoleHawkingRadiationDataIntoBalance(action){extract_direct_lower_into_balance_action(action,9223372034707292160,20,10,14,"energy_remaining",348,250,25);}
+fn ExtractAnomalyTemporalDataIntoBalance(action){extract_direct_upper_into_balance_action(action,4611686017353646079,20,11,14,"energy_remaining",146,250,25);}
+fn ExtractAnomalyGravitationalDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,20,11,14,"matter_remaining",144,250,25);}
+fn ExtractAnomalyFieldDataIntoBalance(action){extract_direct_upper_into_balance_action(action,9223372034707292159,20,11,14,"crystal_remaining",147,250,25);}
+fn ExtractAnomalyMagneticObservationIntoBalance(action){extract_direct_lower_into_balance_action(action,9223372034707292160,20,11,14,"crystal_remaining",251,250,25);}
+fn ExtractAnomalyRadiationObservationIntoBalance(action){extract_direct_range_into_balance_action(action,4611686017353646080,9223372034707292159,20,11,14,"energy_remaining",252,250,25);}
+fn ExtractAnomalyPolarizationDataIntoBalance(action){extract_direct_range_into_balance_action(action,9223372034707292160,-4611686021648613377,20,11,14,"energy_remaining",349,250,25);}
+fn ExtractAnomalyVacuumFluctuationDataIntoBalance(action){extract_direct_lower_into_balance_action(action,-4611686021648613376,20,11,14,"energy_remaining",350,250,25);}
+fn ExtractMegastructureArchiveDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,32,12,18,"crystal_remaining",151,250,25);}
+fn ExtractGasClusterMolecularSpectrumDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,13,11,"energy_remaining",257,10,1);}
+fn ExtractGasClusterMolecularSpectrumDataMediumIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,13,11,"energy_remaining",257,50,5);}
+fn ExtractGasClusterMolecularSpectrumDataLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,13,11,"energy_remaining",257,250,25);}
+fn ExtractStellarRemnantShockwaveSpectrumDataIntoBalance(action){extract_direct_range_into_balance_action(action,6148914689804861440,-6148914694099828737,12,14,16,"energy_remaining",260,50,5);}
+fn ExtractStellarRemnantShockwaveSpectrumDataLargeIntoBalance(action){extract_direct_range_into_balance_action(action,6148914689804861440,-6148914694099828737,12,14,16,"energy_remaining",260,250,25);}
+fn ExtractStellarRemnantDecaySpectrumDataIntoBalance(action){extract_direct_lower_into_balance_action(action,-6148914694099828736,12,14,16,"energy_remaining",353,50,5);}
+fn ExtractStellarRemnantDecaySpectrumDataLargeIntoBalance(action){extract_direct_lower_into_balance_action(action,-6148914694099828736,12,14,16,"energy_remaining",353,250,25);}
+fn ExtractAsteroidBeltOrbitalSurveyDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,15,11,"energy_remaining",441,10,1);}
+fn ExtractAsteroidBeltOrbitalSurveyDataMediumIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,15,11,"energy_remaining",441,50,5);}
+fn ExtractAsteroidBeltOrbitalSurveyDataLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,15,11,"energy_remaining",441,250,25);}
+fn ExtractVolcanicPlanetSeismicTomographyDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,16,9,"energy_remaining",448,10,1);}
+fn ExtractVolcanicPlanetSeismicTomographyDataMediumIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,16,9,"energy_remaining",448,50,5);}
+fn ExtractVolcanicPlanetSeismicTomographyDataLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,16,9,"energy_remaining",448,250,25);}
+fn ExtractNebulaProtostarCensusDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,17,11,"energy_remaining",454,50,5);}
+fn ExtractNebulaProtostarCensusDataLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,17,11,"energy_remaining",454,250,25);}
+fn ExtractNebulaEmissionLineMapIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,17,9,"energy_remaining",455,50,5);}
+fn ExtractNebulaEmissionLineMapLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,17,9,"energy_remaining",455,250,25);}
+fn ExtractCometClusterCometaryOrbitSolutionIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,18,11,"energy_remaining",462,10,1);}
+fn ExtractCometClusterCometaryOrbitSolutionMediumIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,18,11,"energy_remaining",462,50,5);}
+fn ExtractCometClusterCometaryOrbitSolutionLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,18,11,"energy_remaining",462,250,25);}
+fn ExtractBrownDwarfInfraredWeatherMapIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,19,9,"energy_remaining",468,50,5);}
+fn ExtractBrownDwarfInfraredWeatherMapLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,19,9,"energy_remaining",468,250,25);}
+fn ExtractBrownDwarfSubstellarRotationDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,19,11,"energy_remaining",469,50,5);}
+fn ExtractBrownDwarfSubstellarRotationDataLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,19,11,"energy_remaining",469,250,25);}
+fn ExtractWhiteDwarfAsteroseismicModeDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,20,9,"energy_remaining",476,50,5);}
+fn ExtractWhiteDwarfAsteroseismicModeDataLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,20,9,"energy_remaining",476,250,25);}
+fn ExtractWhiteDwarfCoolingAgeCalibrationIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,20,16,"energy_remaining",477,50,5);}
+fn ExtractWhiteDwarfCoolingAgeCalibrationLargeIntoBalance(action){extract_direct_ungated_into_balance_action(action,12,20,16,"energy_remaining",477,250,25);}
+fn ExtractMagnetarGiantFlareLightCurveIntoBalance(action){extract_direct_ungated_into_balance_action(action,20,21,9,"energy_remaining",484,250,25);}
+fn ExtractMagnetarMagneticTopologyMapIntoBalance(action){extract_direct_ungated_into_balance_action(action,20,21,15,"energy_remaining",485,250,25);}
+fn ExtractWormholeMouthThroatGeometrySolutionIntoBalance(action){extract_direct_lower_into_balance_action(action,9223372034707292160,20,22,14,"energy_remaining",491,250,25);}
+fn ExtractWormholeMouthTransitPhaseDataIntoBalance(action){extract_direct_ungated_into_balance_action(action,20,22,11,"energy_remaining",492,250,25);}
+fn ExtractWormholeMouthCausalConnectivityMapIntoBalance(action){extract_direct_ungated_into_balance_action(action,20,22,18,"energy_remaining",493,250,25);}
 fn RefineFusionGasToHydrogen(action){refine_resource_action(action,4,119,"child_1_remaining",153,12);}
 fn RefineFusionGasToHelium(action){refine_resource_action(action,4,119,"child_2_remaining",154,12);}
 fn RefineFusionGasToDeuterium(action){refine_resource_action(action,4,119,"child_3_remaining",155,12);}
@@ -3607,6 +3904,541 @@ fn RefineVacuumBoundaryLayerToQuantumFoamInclusion(action){refine_resource_actio
 fn RefineTraversabilityFieldMatrixToMorrisThorneMetricSeed(action){refine_resource_action(action,14,490,"child_1_remaining",626,20);}
 fn RefineTraversabilityFieldMatrixToThroatStabilizationMode(action){refine_resource_action(action,14,490,"child_2_remaining",627,20);}
 fn RefineTraversabilityFieldMatrixToExoticStressTensor(action){refine_resource_action(action,14,490,"child_3_remaining",628,20);}
+fn RefineFusionGasToHydrogenIntoBalance(action){refine_resource_into_balance_action(action,4,119,"child_1_remaining",153,12);}
+fn RefineFusionGasToHeliumIntoBalance(action){refine_resource_into_balance_action(action,4,119,"child_2_remaining",154,12);}
+fn RefineFusionGasToDeuteriumIntoBalance(action){refine_resource_into_balance_action(action,4,119,"child_3_remaining",155,12);}
+fn RefineMetalRichOreToIronIntoBalance(action){refine_resource_into_balance_action(action,1,120,"child_1_remaining",156,12);}
+fn RefineMetalRichOreToNickelIntoBalance(action){refine_resource_into_balance_action(action,1,120,"child_2_remaining",157,12);}
+fn RefineMetalRichOreToCobaltIntoBalance(action){refine_resource_into_balance_action(action,1,120,"child_3_remaining",158,12);}
+fn RefineFerrousOreToIronIntoBalance(action){refine_resource_into_balance_action(action,1,122,"child_1_remaining",156,8);}
+fn RefineFerrousOreToChromiumIntoBalance(action){refine_resource_into_balance_action(action,1,122,"child_2_remaining",159,8);}
+fn RefineFerrousOreToManganeseIntoBalance(action){refine_resource_into_balance_action(action,1,122,"child_3_remaining",160,8);}
+fn RefineBaseMetalOreToCopperIntoBalance(action){refine_resource_into_balance_action(action,1,123,"child_1_remaining",161,8);}
+fn RefineBaseMetalOreToZincIntoBalance(action){refine_resource_into_balance_action(action,1,123,"child_2_remaining",162,8);}
+fn RefineBaseMetalOreToTinIntoBalance(action){refine_resource_into_balance_action(action,1,123,"child_3_remaining",163,8);}
+fn RefineSilicateMineralToSiliconIntoBalance(action){refine_resource_into_balance_action(action,3,124,"child_1_remaining",164,8);}
+fn RefineSilicateMineralToMagnesiumIntoBalance(action){refine_resource_into_balance_action(action,3,124,"child_2_remaining",165,8);}
+fn RefineSilicateMineralToQuartzIntoBalance(action){refine_resource_into_balance_action(action,3,124,"child_3_remaining",166,8);}
+fn RefineIndustrialMineralToLimestoneIntoBalance(action){refine_resource_into_balance_action(action,3,125,"child_1_remaining",167,8);}
+fn RefineIndustrialMineralToClayIntoBalance(action){refine_resource_into_balance_action(action,3,125,"child_2_remaining",168,8);}
+fn RefineIndustrialMineralToGypsumIntoBalance(action){refine_resource_into_balance_action(action,3,125,"child_3_remaining",169,8);}
+fn RefineSeawaterMineralsToSodiumChlorideIntoBalance(action){refine_resource_into_balance_action(action,3,127,"child_1_remaining",170,4);}
+fn RefineSeawaterMineralsToMagnesiumIntoBalance(action){refine_resource_into_balance_action(action,3,127,"child_2_remaining",165,4);}
+fn RefineSeawaterMineralsToCalciumIntoBalance(action){refine_resource_into_balance_action(action,3,127,"child_3_remaining",171,4);}
+fn RefineAtmosphericGasToNitrogenIntoBalance(action){refine_resource_into_balance_action(action,3,128,"child_1_remaining",172,2);}
+fn RefineAtmosphericGasToOxygenIntoBalance(action){refine_resource_into_balance_action(action,3,128,"child_2_remaining",173,2);}
+fn RefineAtmosphericGasToCarbonDioxideIntoBalance(action){refine_resource_into_balance_action(action,3,128,"child_3_remaining",174,2);}
+fn RefineBiomassToCelluloseIntoBalance(action){refine_resource_into_balance_action(action,12,129,"child_1_remaining",175,4);}
+fn RefineBiomassToProteinIntoBalance(action){refine_resource_into_balance_action(action,12,129,"child_2_remaining",176,4);}
+fn RefineBiomassToLipidIntoBalance(action){refine_resource_into_balance_action(action,12,129,"child_3_remaining",177,4);}
+fn RefineGeneticMaterialToDNAIntoBalance(action){refine_resource_into_balance_action(action,5,130,"child_1_remaining",178,8);}
+fn RefineGeneticMaterialToRNAIntoBalance(action){refine_resource_into_balance_action(action,5,130,"child_2_remaining",179,8);}
+fn RefineGeneticMaterialToPlasmidIntoBalance(action){refine_resource_into_balance_action(action,5,130,"child_3_remaining",180,8);}
+fn RefineBiochemicalMixtureToAminoAcidIntoBalance(action){refine_resource_into_balance_action(action,5,131,"child_1_remaining",181,4);}
+fn RefineBiochemicalMixtureToEnzymeIntoBalance(action){refine_resource_into_balance_action(action,5,131,"child_2_remaining",182,4);}
+fn RefineBiochemicalMixtureToAlkaloidIntoBalance(action){refine_resource_into_balance_action(action,5,131,"child_3_remaining",183,4);}
+fn RefineMicrobialCultureToBacterialCultureIntoBalance(action){refine_resource_into_balance_action(action,12,132,"child_1_remaining",184,8);}
+fn RefineMicrobialCultureToFungalCultureIntoBalance(action){refine_resource_into_balance_action(action,12,132,"child_2_remaining",185,8);}
+fn RefineMicrobialCultureToArchaealCultureIntoBalance(action){refine_resource_into_balance_action(action,12,132,"child_3_remaining",186,8);}
+fn RefineNaturalMaterialToWoodFiberIntoBalance(action){refine_resource_into_balance_action(action,12,133,"child_1_remaining",187,8);}
+fn RefineNaturalMaterialToChitinIntoBalance(action){refine_resource_into_balance_action(action,12,133,"child_2_remaining",188,8);}
+fn RefineNaturalMaterialToNaturalRubberIntoBalance(action){refine_resource_into_balance_action(action,12,133,"child_3_remaining",189,8);}
+fn RefineNobleGasToArgonIntoBalance(action){refine_resource_into_balance_action(action,3,134,"child_1_remaining",190,2);}
+fn RefineNobleGasToNeonIntoBalance(action){refine_resource_into_balance_action(action,3,134,"child_2_remaining",191,2);}
+fn RefineNobleGasToXenonIntoBalance(action){refine_resource_into_balance_action(action,3,134,"child_3_remaining",192,2);}
+fn RefineVolatileIceToWaterIceIntoBalance(action){refine_resource_into_balance_action(action,3,135,"child_1_remaining",193,4);}
+fn RefineVolatileIceToMethaneIceIntoBalance(action){refine_resource_into_balance_action(action,3,135,"child_2_remaining",194,4);}
+fn RefineVolatileIceToAmmoniaIceIntoBalance(action){refine_resource_into_balance_action(action,3,135,"child_3_remaining",195,4);}
+fn RefineLightMetalOreToAluminumIntoBalance(action){refine_resource_into_balance_action(action,1,136,"child_1_remaining",196,8);}
+fn RefineLightMetalOreToTitaniumIntoBalance(action){refine_resource_into_balance_action(action,1,136,"child_2_remaining",197,8);}
+fn RefineLightMetalOreToLithiumIntoBalance(action){refine_resource_into_balance_action(action,1,136,"child_3_remaining",198,8);}
+fn RefinePreciousMetalOreToSilverIntoBalance(action){refine_resource_into_balance_action(action,1,137,"child_1_remaining",199,8);}
+fn RefinePreciousMetalOreToGoldIntoBalance(action){refine_resource_into_balance_action(action,1,137,"child_2_remaining",200,8);}
+fn RefinePreciousMetalOreToPlatinumIntoBalance(action){refine_resource_into_balance_action(action,1,137,"child_3_remaining",201,8);}
+fn RefineNuclearOreToUraniumIntoBalance(action){refine_resource_into_balance_action(action,4,138,"child_1_remaining",202,12);}
+fn RefineNuclearOreToThoriumIntoBalance(action){refine_resource_into_balance_action(action,4,138,"child_2_remaining",203,12);}
+fn RefineNuclearOreToRadiumIntoBalance(action){refine_resource_into_balance_action(action,4,138,"child_3_remaining",204,12);}
+fn RefineCarbonaceousDepositToCarbonIntoBalance(action){refine_resource_into_balance_action(action,3,139,"child_1_remaining",205,8);}
+fn RefineCarbonaceousDepositToGraphiteIntoBalance(action){refine_resource_into_balance_action(action,3,139,"child_2_remaining",206,8);}
+fn RefineCarbonaceousDepositToDiamondIntoBalance(action){refine_resource_into_balance_action(action,3,139,"child_3_remaining",207,8);}
+fn RefineFertilizerMineralToPhosphateIntoBalance(action){refine_resource_into_balance_action(action,3,140,"child_1_remaining",208,8);}
+fn RefineFertilizerMineralToSulfurIntoBalance(action){refine_resource_into_balance_action(action,3,140,"child_2_remaining",209,8);}
+fn RefineFertilizerMineralToPotashIntoBalance(action){refine_resource_into_balance_action(action,3,140,"child_3_remaining",210,8);}
+fn RefineStructuralSalvageToSteelIntoBalance(action){refine_resource_into_balance_action(action,1,148,"child_1_remaining",211,32);}
+fn RefineStructuralSalvageToAluminumIntoBalance(action){refine_resource_into_balance_action(action,1,148,"child_2_remaining",196,32);}
+fn RefineStructuralSalvageToCarbonCompositeIntoBalance(action){refine_resource_into_balance_action(action,1,148,"child_3_remaining",212,32);}
+fn RefineElectronicSalvageToCopperIntoBalance(action){refine_resource_into_balance_action(action,2,149,"child_1_remaining",161,32);}
+fn RefineElectronicSalvageToSiliconIntoBalance(action){refine_resource_into_balance_action(action,2,149,"child_2_remaining",164,32);}
+fn RefineElectronicSalvageToGoldIntoBalance(action){refine_resource_into_balance_action(action,2,149,"child_3_remaining",200,32);}
+fn RefineCeramicSalvageToCeramicIntoBalance(action){refine_resource_into_balance_action(action,3,150,"child_1_remaining",213,32);}
+fn RefineCeramicSalvageToGlassIntoBalance(action){refine_resource_into_balance_action(action,3,150,"child_2_remaining",214,32);}
+fn RefineCeramicSalvageToSiliconCarbideIntoBalance(action){refine_resource_into_balance_action(action,3,150,"child_3_remaining",215,32);}
+fn RefineOrganicOreToMethanolIntoBalance(action){refine_resource_into_balance_action(action,3,152,"child_1_remaining",216,4);}
+fn RefineOrganicOreToFormaldehydeIntoBalance(action){refine_resource_into_balance_action(action,3,152,"child_2_remaining",217,4);}
+fn RefineOrganicOreToBenzeneIntoBalance(action){refine_resource_into_balance_action(action,3,152,"child_3_remaining",218,4);}
+fn RefineDenseMetalOreToLeadIntoBalance(action){refine_resource_into_balance_action(action,1,141,"child_1_remaining",219,8);}
+fn RefineDenseMetalOreToNickelIntoBalance(action){refine_resource_into_balance_action(action,1,141,"child_2_remaining",157,8);}
+fn RefineDenseMetalOreToCobaltIntoBalance(action){refine_resource_into_balance_action(action,1,141,"child_3_remaining",158,8);}
+fn RefineRareEarthOreToCeriumIntoBalance(action){refine_resource_into_balance_action(action,1,142,"child_1_remaining",220,8);}
+fn RefineRareEarthOreToLanthanumIntoBalance(action){refine_resource_into_balance_action(action,1,142,"child_2_remaining",221,8);}
+fn RefineRareEarthOreToNeodymiumIntoBalance(action){refine_resource_into_balance_action(action,1,142,"child_3_remaining",222,8);}
+fn RefineRedDwarfPlasmaToIonizedHydrogenIntoBalance(action){refine_resource_into_balance_action(action,8,223,"child_1_remaining",261,12);}
+fn RefineRedDwarfPlasmaToIonizedHeliumIntoBalance(action){refine_resource_into_balance_action(action,8,223,"child_2_remaining",262,12);}
+fn RefineRedDwarfPlasmaToElectronPlasmaIntoBalance(action){refine_resource_into_balance_action(action,8,223,"child_3_remaining",263,12);}
+fn RefineMagneticStellarCondensateToFerriteDustIntoBalance(action){refine_resource_into_balance_action(action,7,224,"child_1_remaining",264,12);}
+fn RefineMagneticStellarCondensateToMagnetiteGrainIntoBalance(action){refine_resource_into_balance_action(action,7,224,"child_2_remaining",265,12);}
+fn RefineMagneticStellarCondensateToCobaltFerriteIntoBalance(action){refine_resource_into_balance_action(action,7,224,"child_3_remaining",266,12);}
+fn RefinePhotosphericPlasmaToProtonPlasmaIntoBalance(action){refine_resource_into_balance_action(action,8,226,"child_1_remaining",267,12);}
+fn RefinePhotosphericPlasmaToAlphaParticlePlasmaIntoBalance(action){refine_resource_into_balance_action(action,8,226,"child_2_remaining",268,12);}
+fn RefinePhotosphericPlasmaToPhotosphericElectronPlasmaIntoBalance(action){refine_resource_into_balance_action(action,8,226,"child_3_remaining",269,12);}
+fn RefinePhotosphericMineralToCalciumIonDustIntoBalance(action){refine_resource_into_balance_action(action,8,227,"child_1_remaining",270,12);}
+fn RefinePhotosphericMineralToSodiumIonDustIntoBalance(action){refine_resource_into_balance_action(action,8,227,"child_2_remaining",271,12);}
+fn RefinePhotosphericMineralToMagnesiumIonDustIntoBalance(action){refine_resource_into_balance_action(action,8,227,"child_3_remaining",272,12);}
+fn RefineHeliumCarbonEjectaToHelium3IntoBalance(action){refine_resource_into_balance_action(action,16,229,"child_1_remaining",273,12);}
+fn RefineHeliumCarbonEjectaToCarbon12IntoBalance(action){refine_resource_into_balance_action(action,16,229,"child_2_remaining",274,12);}
+fn RefineHeliumCarbonEjectaToOxygen16IntoBalance(action){refine_resource_into_balance_action(action,16,229,"child_3_remaining",275,12);}
+fn RefineHeavyElementCondensateToStrontiumIntoBalance(action){refine_resource_into_balance_action(action,16,230,"child_1_remaining",276,12);}
+fn RefineHeavyElementCondensateToBariumIntoBalance(action){refine_resource_into_balance_action(action,16,230,"child_2_remaining",277,12);}
+fn RefineHeavyElementCondensateToEuropiumIntoBalance(action){refine_resource_into_balance_action(action,16,230,"child_3_remaining",278,12);}
+fn RefineIgneousRockToBasaltIntoBalance(action){refine_resource_into_balance_action(action,6,232,"child_1_remaining",279,8);}
+fn RefineIgneousRockToGraniteIntoBalance(action){refine_resource_into_balance_action(action,6,232,"child_2_remaining",280,8);}
+fn RefineIgneousRockToObsidianIntoBalance(action){refine_resource_into_balance_action(action,6,232,"child_3_remaining",281,8);}
+fn RefineSeafloorSulfideOreToPyriteIntoBalance(action){refine_resource_into_balance_action(action,1,234,"child_1_remaining",282,8);}
+fn RefineSeafloorSulfideOreToChalcopyriteIntoBalance(action){refine_resource_into_balance_action(action,1,234,"child_2_remaining",283,8);}
+fn RefineSeafloorSulfideOreToSphaleriteIntoBalance(action){refine_resource_into_balance_action(action,1,234,"child_3_remaining",284,8);}
+fn RefineMarineBiomassToAlgalFiberIntoBalance(action){refine_resource_into_balance_action(action,12,235,"child_1_remaining",285,4);}
+fn RefineMarineBiomassToMarineProteinIntoBalance(action){refine_resource_into_balance_action(action,12,235,"child_2_remaining",286,4);}
+fn RefineMarineBiomassToAlgalOilIntoBalance(action){refine_resource_into_balance_action(action,12,235,"child_3_remaining",287,4);}
+fn RefineLivingSoilToHumusIntoBalance(action){refine_resource_into_balance_action(action,17,237,"child_1_remaining",288,8);}
+fn RefineLivingSoilToMycorrhizalCultureIntoBalance(action){refine_resource_into_balance_action(action,17,237,"child_2_remaining",289,8);}
+fn RefineLivingSoilToSoilMicrobiomeIntoBalance(action){refine_resource_into_balance_action(action,17,237,"child_3_remaining",290,8);}
+fn RefineDeepAtmosphereGasToAmmoniaVaporIntoBalance(action){refine_resource_into_balance_action(action,3,238,"child_1_remaining",291,2);}
+fn RefineDeepAtmosphereGasToMethaneVaporIntoBalance(action){refine_resource_into_balance_action(action,3,238,"child_2_remaining",292,2);}
+fn RefineDeepAtmosphereGasToHydrogenSulfideIntoBalance(action){refine_resource_into_balance_action(action,3,238,"child_3_remaining",293,2);}
+fn RefineHydrocarbonCloudToEthaneIntoBalance(action){refine_resource_into_balance_action(action,3,239,"child_1_remaining",294,4);}
+fn RefineHydrocarbonCloudToPropaneIntoBalance(action){refine_resource_into_balance_action(action,3,239,"child_2_remaining",295,4);}
+fn RefineHydrocarbonCloudToAcetyleneIntoBalance(action){refine_resource_into_balance_action(action,3,239,"child_3_remaining",296,4);}
+fn RefineCryogenicVolatileToLiquidMethaneIntoBalance(action){refine_resource_into_balance_action(action,3,241,"child_1_remaining",297,4);}
+fn RefineCryogenicVolatileToLiquidAmmoniaIntoBalance(action){refine_resource_into_balance_action(action,3,241,"child_2_remaining",298,4);}
+fn RefineCryogenicVolatileToSuperionicWaterIntoBalance(action){refine_resource_into_balance_action(action,7,241,"child_3_remaining",299,4);}
+fn RefineIceMantleMaterialToHighPressureIceIntoBalance(action){refine_resource_into_balance_action(action,7,242,"child_1_remaining",300,8);}
+fn RefineIceMantleMaterialToMethaneClathrateIntoBalance(action){refine_resource_into_balance_action(action,7,242,"child_2_remaining",301,8);}
+fn RefineIceMantleMaterialToAmmoniaHydrateIntoBalance(action){refine_resource_into_balance_action(action,7,242,"child_3_remaining",302,8);}
+fn RefineRProcessEjectaToOsmiumIntoBalance(action){refine_resource_into_balance_action(action,13,244,"child_1_remaining",303,20);}
+fn RefineRProcessEjectaToIridiumIntoBalance(action){refine_resource_into_balance_action(action,13,244,"child_2_remaining",304,20);}
+fn RefineRProcessEjectaToRheniumIntoBalance(action){refine_resource_into_balance_action(action,13,244,"child_3_remaining",305,20);}
+fn RefineDegenerateCrustMaterialToNuclearPastaIntoBalance(action){refine_resource_into_balance_action(action,13,245,"child_1_remaining",306,20);}
+fn RefineDegenerateCrustMaterialToNeutronRichAlloyIntoBalance(action){refine_resource_into_balance_action(action,13,245,"child_2_remaining",307,20);}
+fn RefineDegenerateCrustMaterialToSuperdenseCarbonIntoBalance(action){refine_resource_into_balance_action(action,13,245,"child_3_remaining",308,20);}
+fn RefineAccretionDiskMatterToIonizedIronIntoBalance(action){refine_resource_into_balance_action(action,13,247,"child_1_remaining",309,20);}
+fn RefineAccretionDiskMatterToCarbonPlasmaIntoBalance(action){refine_resource_into_balance_action(action,13,247,"child_2_remaining",310,20);}
+fn RefineAccretionDiskMatterToSilicatePlasmaIntoBalance(action){refine_resource_into_balance_action(action,13,247,"child_3_remaining",311,20);}
+fn RefineRelativisticPlasmaToPairPlasmaIntoBalance(action){refine_resource_into_balance_action(action,13,248,"child_1_remaining",312,20);}
+fn RefineRelativisticPlasmaToSynchrotronPlasmaIntoBalance(action){refine_resource_into_balance_action(action,13,248,"child_2_remaining",313,20);}
+fn RefineRelativisticPlasmaToRelativisticIonBeamIntoBalance(action){refine_resource_into_balance_action(action,13,248,"child_3_remaining",314,20);}
+fn RefinePhaseShiftedMatterToMetastableIsotopeIntoBalance(action){refine_resource_into_balance_action(action,13,250,"child_1_remaining",315,20);}
+fn RefinePhaseShiftedMatterToPhaseLockedCrystalIntoBalance(action){refine_resource_into_balance_action(action,14,250,"child_2_remaining",316,20);}
+fn RefinePhaseShiftedMatterToVacuumPolarizedMatterIntoBalance(action){refine_resource_into_balance_action(action,14,250,"child_3_remaining",317,20);}
+fn RefinePolymerSalvageToThermoplasticIntoBalance(action){refine_resource_into_balance_action(action,10,253,"child_1_remaining",318,32);}
+fn RefinePolymerSalvageToThermosetResinIntoBalance(action){refine_resource_into_balance_action(action,10,253,"child_2_remaining",319,32);}
+fn RefinePolymerSalvageToElastomerIntoBalance(action){refine_resource_into_balance_action(action,10,253,"child_3_remaining",320,32);}
+fn RefineOpticalSalvageToOpticalGlassIntoBalance(action){refine_resource_into_balance_action(action,15,254,"child_1_remaining",321,32);}
+fn RefineOpticalSalvageToPhotonicCrystalIntoBalance(action){refine_resource_into_balance_action(action,15,254,"child_2_remaining",322,32);}
+fn RefineOpticalSalvageToLaserCrystalIntoBalance(action){refine_resource_into_balance_action(action,15,254,"child_3_remaining",323,32);}
+fn RefineMolecularCloudGasToMolecularHydrogenIntoBalance(action){refine_resource_into_balance_action(action,3,255,"child_1_remaining",324,2);}
+fn RefineMolecularCloudGasToCarbonMonoxideIntoBalance(action){refine_resource_into_balance_action(action,3,255,"child_2_remaining",325,2);}
+fn RefineMolecularCloudGasToHydrogenCyanideIntoBalance(action){refine_resource_into_balance_action(action,3,255,"child_3_remaining",326,2);}
+fn RefineInterstellarDustToSilicateDustIntoBalance(action){refine_resource_into_balance_action(action,3,256,"child_1_remaining",327,8);}
+fn RefineInterstellarDustToCarbonDustIntoBalance(action){refine_resource_into_balance_action(action,3,256,"child_2_remaining",328,8);}
+fn RefineInterstellarDustToIceGrainIntoBalance(action){refine_resource_into_balance_action(action,3,256,"child_3_remaining",329,8);}
+fn RefineSupernovaEjectaToCalcium44IntoBalance(action){refine_resource_into_balance_action(action,16,258,"child_1_remaining",330,12);}
+fn RefineSupernovaEjectaToTitanium44IntoBalance(action){refine_resource_into_balance_action(action,16,258,"child_2_remaining",331,12);}
+fn RefineSupernovaEjectaToNickel56IntoBalance(action){refine_resource_into_balance_action(action,16,258,"child_3_remaining",332,12);}
+fn RefineRadioisotopeDepositToCobalt60IntoBalance(action){refine_resource_into_balance_action(action,4,259,"child_1_remaining",333,12);}
+fn RefineRadioisotopeDepositToCesium137IntoBalance(action){refine_resource_into_balance_action(action,4,259,"child_2_remaining",334,12);}
+fn RefineRadioisotopeDepositToStrontium90IntoBalance(action){refine_resource_into_balance_action(action,4,259,"child_3_remaining",335,12);}
+fn RefineStellarRefractoryDustToCorundumIntoBalance(action){refine_resource_into_balance_action(action,7,336,"child_1_remaining",354,12);}
+fn RefineStellarRefractoryDustToSpinelIntoBalance(action){refine_resource_into_balance_action(action,7,336,"child_2_remaining",355,12);}
+fn RefineStellarRefractoryDustToPerovskiteIntoBalance(action){refine_resource_into_balance_action(action,7,336,"child_3_remaining",356,12);}
+fn RefineSolarWindCondensateToLithium7IntoBalance(action){refine_resource_into_balance_action(action,4,337,"child_1_remaining",357,12);}
+fn RefineSolarWindCondensateToBeryllium9IntoBalance(action){refine_resource_into_balance_action(action,4,337,"child_2_remaining",358,12);}
+fn RefineSolarWindCondensateToBoron11IntoBalance(action){refine_resource_into_balance_action(action,4,337,"child_3_remaining",359,12);}
+fn RefineSProcessEjectaToYttriumIntoBalance(action){refine_resource_into_balance_action(action,16,338,"child_1_remaining",360,12);}
+fn RefineSProcessEjectaToZirconiumIntoBalance(action){refine_resource_into_balance_action(action,16,338,"child_2_remaining",361,12);}
+fn RefineSProcessEjectaToMolybdenumIntoBalance(action){refine_resource_into_balance_action(action,16,338,"child_3_remaining",362,12);}
+fn RefineSedimentaryRockToSandstoneIntoBalance(action){refine_resource_into_balance_action(action,3,339,"child_1_remaining",363,8);}
+fn RefineSedimentaryRockToShaleIntoBalance(action){refine_resource_into_balance_action(action,3,339,"child_2_remaining",364,8);}
+fn RefineSedimentaryRockToDolomiteIntoBalance(action){refine_resource_into_balance_action(action,3,339,"child_3_remaining",365,8);}
+fn RefineDissolvedTraceMineralsToBromineIntoBalance(action){refine_resource_into_balance_action(action,3,340,"child_1_remaining",366,4);}
+fn RefineDissolvedTraceMineralsToIodineIntoBalance(action){refine_resource_into_balance_action(action,3,340,"child_2_remaining",367,4);}
+fn RefineDissolvedTraceMineralsToBoronIntoBalance(action){refine_resource_into_balance_action(action,3,340,"child_3_remaining",368,4);}
+fn RefinePlantExtractToStarchIntoBalance(action){refine_resource_into_balance_action(action,12,341,"child_1_remaining",369,4);}
+fn RefinePlantExtractToSucroseIntoBalance(action){refine_resource_into_balance_action(action,12,341,"child_2_remaining",370,4);}
+fn RefinePlantExtractToLigninIntoBalance(action){refine_resource_into_balance_action(action,12,341,"child_3_remaining",371,4);}
+fn RefineSulfurCloudToSulfurDioxideIntoBalance(action){refine_resource_into_balance_action(action,3,342,"child_1_remaining",372,4);}
+fn RefineSulfurCloudToAmmoniumHydrosulfideIntoBalance(action){refine_resource_into_balance_action(action,3,342,"child_2_remaining",373,4);}
+fn RefineSulfurCloudToPolysulfurAerosolIntoBalance(action){refine_resource_into_balance_action(action,3,342,"child_3_remaining",374,4);}
+fn RefineAlkaliMineralOreToSodiumIntoBalance(action){refine_resource_into_balance_action(action,3,344,"child_1_remaining",375,8);}
+fn RefineAlkaliMineralOreToPotassiumIntoBalance(action){refine_resource_into_balance_action(action,3,344,"child_2_remaining",376,8);}
+fn RefineAlkaliMineralOreToRubidiumIntoBalance(action){refine_resource_into_balance_action(action,3,344,"child_3_remaining",377,8);}
+fn RefineMagnetosphericParticleFluxToPositronPlasmaIntoBalance(action){refine_resource_into_balance_action(action,13,345,"child_1_remaining",378,20);}
+fn RefineMagnetosphericParticleFluxToMuonFluxIntoBalance(action){refine_resource_into_balance_action(action,13,345,"child_2_remaining",379,20);}
+fn RefineMagnetosphericParticleFluxToHeavyIonFluxIntoBalance(action){refine_resource_into_balance_action(action,13,345,"child_3_remaining",380,20);}
+fn RefineAccretionAerosolToIronOxideAerosolIntoBalance(action){refine_resource_into_balance_action(action,13,347,"child_1_remaining",381,20);}
+fn RefineAccretionAerosolToSilicateAerosolIntoBalance(action){refine_resource_into_balance_action(action,13,347,"child_2_remaining",382,20);}
+fn RefineAccretionAerosolToCarbonaceousAerosolIntoBalance(action){refine_resource_into_balance_action(action,13,347,"child_3_remaining",383,20);}
+fn RefineMechanicalSalvageToBearingSteelIntoBalance(action){refine_resource_into_balance_action(action,1,351,"child_1_remaining",384,32);}
+fn RefineMechanicalSalvageToToolSteelIntoBalance(action){refine_resource_into_balance_action(action,1,351,"child_2_remaining",385,32);}
+fn RefineMechanicalSalvageToIndustrialLubricantIntoBalance(action){refine_resource_into_balance_action(action,1,351,"child_3_remaining",386,32);}
+fn RefinePrebioticMoleculeMixtureToGlycineIntoBalance(action){refine_resource_into_balance_action(action,5,352,"child_1_remaining",387,4);}
+fn RefinePrebioticMoleculeMixtureToFormamideIntoBalance(action){refine_resource_into_balance_action(action,5,352,"child_2_remaining",388,4);}
+fn RefinePrebioticMoleculeMixtureToAcetonitrileIntoBalance(action){refine_resource_into_balance_action(action,5,352,"child_3_remaining",389,4);}
+fn RefineNickelIronMatrixToKamaciteIntoBalance(action){refine_resource_into_balance_action(action,1,435,"child_1_remaining",494,8);}
+fn RefineNickelIronMatrixToTaeniteIntoBalance(action){refine_resource_into_balance_action(action,1,435,"child_2_remaining",495,8);}
+fn RefineNickelIronMatrixToSchreibersiteIntoBalance(action){refine_resource_into_balance_action(action,1,435,"child_3_remaining",496,8);}
+fn RefineCarbonaceousRegolithToKerogenGrainIntoBalance(action){refine_resource_into_balance_action(action,3,436,"child_1_remaining",497,8);}
+fn RefineCarbonaceousRegolithToInsolubleOrganicMatterIntoBalance(action){refine_resource_into_balance_action(action,10,436,"child_2_remaining",498,8);}
+fn RefineCarbonaceousRegolithToNanodiamondDustIntoBalance(action){refine_resource_into_balance_action(action,7,436,"child_3_remaining",499,8);}
+fn RefineSilicateRubbleToOlivineAggregateIntoBalance(action){refine_resource_into_balance_action(action,6,437,"child_1_remaining",500,8);}
+fn RefineSilicateRubbleToPyroxeneAggregateIntoBalance(action){refine_resource_into_balance_action(action,6,437,"child_2_remaining",501,8);}
+fn RefineSilicateRubbleToPlagioclaseFragmentIntoBalance(action){refine_resource_into_balance_action(action,6,437,"child_3_remaining",502,8);}
+fn RefineHydratedMineralAggregateToSerpentineFiberIntoBalance(action){refine_resource_into_balance_action(action,3,438,"child_1_remaining",503,8);}
+fn RefineHydratedMineralAggregateToSaponiteClayIntoBalance(action){refine_resource_into_balance_action(action,3,438,"child_2_remaining",504,8);}
+fn RefineHydratedMineralAggregateToBruciteNoduleIntoBalance(action){refine_resource_into_balance_action(action,3,438,"child_3_remaining",505,8);}
+fn RefinePlatinumGroupVeinToRutheniumIntoBalance(action){refine_resource_into_balance_action(action,1,439,"child_1_remaining",506,8);}
+fn RefinePlatinumGroupVeinToRhodiumIntoBalance(action){refine_resource_into_balance_action(action,1,439,"child_2_remaining",507,8);}
+fn RefinePlatinumGroupVeinToPalladiumIntoBalance(action){refine_resource_into_balance_action(action,1,439,"child_3_remaining",508,8);}
+fn RefineImpactGlassBrecciaToTektiteGlassIntoBalance(action){refine_resource_into_balance_action(action,7,440,"child_1_remaining",509,8);}
+fn RefineImpactGlassBrecciaToMaskelyniteIntoBalance(action){refine_resource_into_balance_action(action,7,440,"child_2_remaining",510,8);}
+fn RefineImpactGlassBrecciaToShockedQuartzIntoBalance(action){refine_resource_into_balance_action(action,7,440,"child_3_remaining",511,8);}
+fn RefineUltramaficMagmaToKomatiiteMeltIntoBalance(action){refine_resource_into_balance_action(action,6,442,"child_1_remaining",512,8);}
+fn RefineUltramaficMagmaToDuniteCrystalIntoBalance(action){refine_resource_into_balance_action(action,6,442,"child_2_remaining",513,8);}
+fn RefineUltramaficMagmaToChromiteSpinelIntoBalance(action){refine_resource_into_balance_action(action,1,442,"child_3_remaining",514,8);}
+fn RefineSulfideMagmaToPentlanditeIntoBalance(action){refine_resource_into_balance_action(action,1,443,"child_1_remaining",515,8);}
+fn RefineSulfideMagmaToBorniteIntoBalance(action){refine_resource_into_balance_action(action,1,443,"child_2_remaining",516,8);}
+fn RefineSulfideMagmaToMolybdeniteIntoBalance(action){refine_resource_into_balance_action(action,2,443,"child_3_remaining",517,8);}
+fn RefineVolcanicAshDepositToPumiceIntoBalance(action){refine_resource_into_balance_action(action,6,444,"child_1_remaining",518,8);}
+fn RefineVolcanicAshDepositToScoriaIntoBalance(action){refine_resource_into_balance_action(action,6,444,"child_2_remaining",519,8);}
+fn RefineVolcanicAshDepositToVolcanicTuffIntoBalance(action){refine_resource_into_balance_action(action,6,444,"child_3_remaining",520,8);}
+fn RefineFumaroleCondensateToSulfurSublimateIntoBalance(action){refine_resource_into_balance_action(action,3,445,"child_1_remaining",521,4);}
+fn RefineFumaroleCondensateToRealgarIntoBalance(action){refine_resource_into_balance_action(action,3,445,"child_2_remaining",522,4);}
+fn RefineFumaroleCondensateToOrpimentIntoBalance(action){refine_resource_into_balance_action(action,3,445,"child_3_remaining",523,4);}
+fn RefineGeothermalBrineToCesiumChlorideIntoBalance(action){refine_resource_into_balance_action(action,3,446,"child_1_remaining",524,4);}
+fn RefineGeothermalBrineToLithiumChlorideIntoBalance(action){refine_resource_into_balance_action(action,4,446,"child_2_remaining",525,4);}
+fn RefineGeothermalBrineToBoricAcidIntoBalance(action){refine_resource_into_balance_action(action,3,446,"child_3_remaining",526,4);}
+fn RefineMantleXenolithToGarnetPeridotiteIntoBalance(action){refine_resource_into_balance_action(action,7,447,"child_1_remaining",527,8);}
+fn RefineMantleXenolithToEclogiteIntoBalance(action){refine_resource_into_balance_action(action,7,447,"child_2_remaining",528,8);}
+fn RefineMantleXenolithToKimberliteIntoBalance(action){refine_resource_into_balance_action(action,1,447,"child_3_remaining",529,8);}
+fn RefineIonizedHydrogenCloudToBalmerAlphaPlasmaIntoBalance(action){refine_resource_into_balance_action(action,8,449,"child_1_remaining",530,12);}
+fn RefineIonizedHydrogenCloudToRecombinationIonIntoBalance(action){refine_resource_into_balance_action(action,8,449,"child_2_remaining",531,12);}
+fn RefineIonizedHydrogenCloudToFreeElectronGasIntoBalance(action){refine_resource_into_balance_action(action,8,449,"child_3_remaining",532,12);}
+fn RefineMolecularIceMantleToMethanolIceCrystalIntoBalance(action){refine_resource_into_balance_action(action,3,450,"child_1_remaining",533,4);}
+fn RefineMolecularIceMantleToCarbonylSulfideIceIntoBalance(action){refine_resource_into_balance_action(action,3,450,"child_2_remaining",534,4);}
+fn RefineMolecularIceMantleToCyanoacetyleneIceIntoBalance(action){refine_resource_into_balance_action(action,10,450,"child_3_remaining",535,4);}
+fn RefineStellarNurseryDustToProtochondruleGrainIntoBalance(action){refine_resource_into_balance_action(action,16,451,"child_1_remaining",536,8);}
+fn RefineStellarNurseryDustToCalciumAluminumInclusionIntoBalance(action){refine_resource_into_balance_action(action,16,451,"child_2_remaining",537,8);}
+fn RefineStellarNurseryDustToAmorphousSilicateIntoBalance(action){refine_resource_into_balance_action(action,7,451,"child_3_remaining",538,8);}
+fn RefinePolycyclicAromaticMixtureToNaphthaleneIntoBalance(action){refine_resource_into_balance_action(action,10,452,"child_1_remaining",539,4);}
+fn RefinePolycyclicAromaticMixtureToAnthraceneIntoBalance(action){refine_resource_into_balance_action(action,10,452,"child_2_remaining",540,4);}
+fn RefinePolycyclicAromaticMixtureToCoroneneIntoBalance(action){refine_resource_into_balance_action(action,10,452,"child_3_remaining",541,4);}
+fn RefineShockedNebularGasToRadiativeShockPlasmaIntoBalance(action){refine_resource_into_balance_action(action,16,453,"child_1_remaining",542,12);}
+fn RefineShockedNebularGasToTurbulentIonFilamentIntoBalance(action){refine_resource_into_balance_action(action,8,453,"child_2_remaining",543,12);}
+fn RefineShockedNebularGasToCompressedMolecularKnotIntoBalance(action){refine_resource_into_balance_action(action,16,453,"child_3_remaining",544,12);}
+fn RefinePrimitiveIceMatrixToCarbonDioxideIceIntoBalance(action){refine_resource_into_balance_action(action,3,456,"child_1_remaining",545,4);}
+fn RefinePrimitiveIceMatrixToCarbonMonoxideIceIntoBalance(action){refine_resource_into_balance_action(action,3,456,"child_2_remaining",546,4);}
+fn RefinePrimitiveIceMatrixToMolecularNitrogenIceIntoBalance(action){refine_resource_into_balance_action(action,3,456,"child_3_remaining",547,4);}
+fn RefineRefractoryCometDustToForsteriteCrystalIntoBalance(action){refine_resource_into_balance_action(action,7,457,"child_1_remaining",548,8);}
+fn RefineRefractoryCometDustToEnstatiteCrystalIntoBalance(action){refine_resource_into_balance_action(action,7,457,"child_2_remaining",549,8);}
+fn RefineRefractoryCometDustToEmbeddedMetalSilicateGrainIntoBalance(action){refine_resource_into_balance_action(action,1,457,"child_3_remaining",550,8);}
+fn RefineComplexOrganicMantleToTholinGranuleIntoBalance(action){refine_resource_into_balance_action(action,17,458,"child_1_remaining",551,4);}
+fn RefineComplexOrganicMantleToHexamethylenetetramineIntoBalance(action){refine_resource_into_balance_action(action,10,458,"child_2_remaining",552,4);}
+fn RefineComplexOrganicMantleToPolyoxymethyleneIntoBalance(action){refine_resource_into_balance_action(action,10,458,"child_3_remaining",553,4);}
+fn RefineCryovolcanicPlumeToSupercooledWaterVaporIntoBalance(action){refine_resource_into_balance_action(action,3,459,"child_1_remaining",554,4);}
+fn RefineCryovolcanicPlumeToCarbonDioxideJetIntoBalance(action){refine_resource_into_balance_action(action,3,459,"child_2_remaining",555,4);}
+fn RefineCryovolcanicPlumeToAmmoniaJetIntoBalance(action){refine_resource_into_balance_action(action,3,459,"child_3_remaining",556,4);}
+fn RefinePresolarGrainAggregateToPresolarSiliconCarbideIntoBalance(action){refine_resource_into_balance_action(action,16,460,"child_1_remaining",557,12);}
+fn RefinePresolarGrainAggregateToGraphiticSpheruleIntoBalance(action){refine_resource_into_balance_action(action,16,460,"child_2_remaining",558,12);}
+fn RefinePresolarGrainAggregateToCorundumStardustIntoBalance(action){refine_resource_into_balance_action(action,16,460,"child_3_remaining",559,12);}
+fn RefineIrradiatedIceCrustToRadicalBearingIceIntoBalance(action){refine_resource_into_balance_action(action,7,461,"child_1_remaining",560,8);}
+fn RefineIrradiatedIceCrustToAmorphousWaterIceIntoBalance(action){refine_resource_into_balance_action(action,7,461,"child_2_remaining",561,8);}
+fn RefineIrradiatedIceCrustToPeroxideIceIntoBalance(action){refine_resource_into_balance_action(action,3,461,"child_3_remaining",562,8);}
+fn RefineMetallicHydrogenLayerToDegenerateHydrogenFluidIntoBalance(action){refine_resource_into_balance_action(action,8,463,"child_1_remaining",563,12);}
+fn RefineMetallicHydrogenLayerToProtonicConductorIntoBalance(action){refine_resource_into_balance_action(action,2,463,"child_2_remaining",564,12);}
+fn RefineMetallicHydrogenLayerToPressureIonizedHeliumIntoBalance(action){refine_resource_into_balance_action(action,8,463,"child_3_remaining",565,12);}
+fn RefineAlkaliCloudDeckToSodiumSulfideCloudIntoBalance(action){refine_resource_into_balance_action(action,3,464,"child_1_remaining",566,4);}
+fn RefineAlkaliCloudDeckToPotassiumChlorideCloudIntoBalance(action){refine_resource_into_balance_action(action,3,464,"child_2_remaining",567,4);}
+fn RefineAlkaliCloudDeckToZincSulfideCondensateIntoBalance(action){refine_resource_into_balance_action(action,3,464,"child_3_remaining",568,4);}
+fn RefineSilicateCloudLayerToEnstatiteCloudCrystalIntoBalance(action){refine_resource_into_balance_action(action,7,465,"child_1_remaining",569,8);}
+fn RefineSilicateCloudLayerToIronSilicateDropletIntoBalance(action){refine_resource_into_balance_action(action,7,465,"child_2_remaining",570,8);}
+fn RefineSilicateCloudLayerToAluminaCloudGrainIntoBalance(action){refine_resource_into_balance_action(action,7,465,"child_3_remaining",571,8);}
+fn RefineCarbonChemistryMixtureToAcetyleneSootIntoBalance(action){refine_resource_into_balance_action(action,10,466,"child_1_remaining",572,4);}
+fn RefineCarbonChemistryMixtureToHydrogenCyanidePolymerIntoBalance(action){refine_resource_into_balance_action(action,10,466,"child_2_remaining",573,4);}
+fn RefineCarbonChemistryMixtureToCarbonMonosulfideIntoBalance(action){refine_resource_into_balance_action(action,3,466,"child_3_remaining",574,4);}
+fn RefineDeuteriumBurnAshToDeuteriumDepletedHeliumIntoBalance(action){refine_resource_into_balance_action(action,4,467,"child_1_remaining",575,12);}
+fn RefineDeuteriumBurnAshToLithiumDepletionResidueIntoBalance(action){refine_resource_into_balance_action(action,4,467,"child_2_remaining",576,12);}
+fn RefineDeuteriumBurnAshToProtonCaptureAshIntoBalance(action){refine_resource_into_balance_action(action,4,467,"child_3_remaining",577,12);}
+fn RefineCrystallizedCarbonOxygenCoreToCarbonOxygenLatticeIntoBalance(action){refine_resource_into_balance_action(action,13,470,"child_1_remaining",578,20);}
+fn RefineCrystallizedCarbonOxygenCoreToNeon22SedimentIntoBalance(action){refine_resource_into_balance_action(action,4,470,"child_2_remaining",579,20);}
+fn RefineCrystallizedCarbonOxygenCoreToPhaseSeparatedOxygenIntoBalance(action){refine_resource_into_balance_action(action,7,470,"child_3_remaining",580,20);}
+fn RefineDegenerateHeliumEnvelopeToPressureBroadenedHeliumIntoBalance(action){refine_resource_into_balance_action(action,16,471,"child_1_remaining",581,20);}
+fn RefineDegenerateHeliumEnvelopeToTraceCarbonLayerIntoBalance(action){refine_resource_into_balance_action(action,16,471,"child_2_remaining",582,20);}
+fn RefineDegenerateHeliumEnvelopeToConvectiveHeliumCellIntoBalance(action){refine_resource_into_balance_action(action,16,471,"child_3_remaining",583,20);}
+fn RefineMetalPollutedAtmosphereToSinkingCalciumIntoBalance(action){refine_resource_into_balance_action(action,16,472,"child_1_remaining",584,12);}
+fn RefineMetalPollutedAtmosphereToSinkingMagnesiumIntoBalance(action){refine_resource_into_balance_action(action,16,472,"child_2_remaining",585,12);}
+fn RefineMetalPollutedAtmosphereToSinkingIronIntoBalance(action){refine_resource_into_balance_action(action,16,472,"child_3_remaining",586,12);}
+fn RefineTidalDebrisDiskToRocheShreddedSilicateIntoBalance(action){refine_resource_into_balance_action(action,11,473,"child_1_remaining",587,12);}
+fn RefineTidalDebrisDiskToVaporizedMetalRingIntoBalance(action){refine_resource_into_balance_action(action,16,473,"child_2_remaining",588,12);}
+fn RefineTidalDebrisDiskToCompactDustArcIntoBalance(action){refine_resource_into_balance_action(action,11,473,"child_3_remaining",589,12);}
+fn RefineElectronDegenerateMatterToFermiElectronFluidIntoBalance(action){refine_resource_into_balance_action(action,13,474,"child_1_remaining",590,20);}
+fn RefineElectronDegenerateMatterToRelativisticElectronGasIntoBalance(action){refine_resource_into_balance_action(action,13,474,"child_2_remaining",591,20);}
+fn RefineElectronDegenerateMatterToCoulombCrystalIntoBalance(action){refine_resource_into_balance_action(action,7,474,"child_3_remaining",592,20);}
+fn RefineNovaAshDepositToNeonMagnesiumAshIntoBalance(action){refine_resource_into_balance_action(action,4,475,"child_1_remaining",593,12);}
+fn RefineNovaAshDepositToAluminum26DepositIntoBalance(action){refine_resource_into_balance_action(action,4,475,"child_2_remaining",594,12);}
+fn RefineNovaAshDepositToSodium22DepositIntoBalance(action){refine_resource_into_balance_action(action,4,475,"child_3_remaining",595,12);}
+fn RefineMagnetizedCrustalLatticeToMagnetostrictiveIronIntoBalance(action){refine_resource_into_balance_action(action,7,478,"child_1_remaining",596,20);}
+fn RefineMagnetizedCrustalLatticeToQuantizedCrystalDomainIntoBalance(action){refine_resource_into_balance_action(action,14,478,"child_2_remaining",597,20);}
+fn RefineMagnetizedCrustalLatticeToNuclearImpurityLayerIntoBalance(action){refine_resource_into_balance_action(action,13,478,"child_3_remaining",598,20);}
+fn RefineUltraStrongFieldCondensateToLandauQuantizedPlasmaIntoBalance(action){refine_resource_into_balance_action(action,14,479,"child_1_remaining",599,20);}
+fn RefineUltraStrongFieldCondensateToVacuumBirefringentMediumIntoBalance(action){refine_resource_into_balance_action(action,14,479,"child_2_remaining",600,20);}
+fn RefineUltraStrongFieldCondensateToBoundMagneticAtomIntoBalance(action){refine_resource_into_balance_action(action,7,479,"child_3_remaining",601,20);}
+fn RefineStarquakeEjectaToNeutronRichCrustShardIntoBalance(action){refine_resource_into_balance_action(action,13,480,"child_1_remaining",602,20);}
+fn RefineStarquakeEjectaToRelativisticPairFireballIntoBalance(action){refine_resource_into_balance_action(action,16,480,"child_2_remaining",603,20);}
+fn RefineStarquakeEjectaToHeavyNucleusFragmentIntoBalance(action){refine_resource_into_balance_action(action,4,480,"child_3_remaining",604,20);}
+fn RefineTwistedMagnetospherePlasmaToResonantCyclotronPlasmaIntoBalance(action){refine_resource_into_balance_action(action,8,481,"child_1_remaining",605,20);}
+fn RefineTwistedMagnetospherePlasmaToCurrentCarryingPairStreamIntoBalance(action){refine_resource_into_balance_action(action,8,481,"child_2_remaining",606,20);}
+fn RefineTwistedMagnetospherePlasmaToMagnetosphericTwistFluxIntoBalance(action){refine_resource_into_balance_action(action,14,481,"child_3_remaining",607,20);}
+fn RefineQEDVacuumDepositToPhotonSplittingResidueIntoBalance(action){refine_resource_into_balance_action(action,14,482,"child_1_remaining",608,20);}
+fn RefineQEDVacuumDepositToPolarizedVacuumDomainIntoBalance(action){refine_resource_into_balance_action(action,14,482,"child_2_remaining",609,20);}
+fn RefineQEDVacuumDepositToMagneticPairCreationSeedIntoBalance(action){refine_resource_into_balance_action(action,13,482,"child_3_remaining",610,20);}
+fn RefineDenseNuclearCondensateToHyperonRichMatterIntoBalance(action){refine_resource_into_balance_action(action,13,483,"child_1_remaining",611,20);}
+fn RefineDenseNuclearCondensateToSuperfluidNeutronVortexIntoBalance(action){refine_resource_into_balance_action(action,13,483,"child_2_remaining",612,20);}
+fn RefineDenseNuclearCondensateToSuperconductingProtonPhaseIntoBalance(action){refine_resource_into_balance_action(action,4,483,"child_3_remaining",613,20);}
+fn RefineExoticThroatMatterToNegativeEnergyCondensateIntoBalance(action){refine_resource_into_balance_action(action,13,486,"child_1_remaining",614,20);}
+fn RefineExoticThroatMatterToNullEnergyFilamentIntoBalance(action){refine_resource_into_balance_action(action,14,486,"child_2_remaining",615,20);}
+fn RefineExoticThroatMatterToCasimirDenseFoamIntoBalance(action){refine_resource_into_balance_action(action,13,486,"child_3_remaining",616,20);}
+fn RefineTidalShearCondensateToGeodesicShearCrystalIntoBalance(action){refine_resource_into_balance_action(action,14,487,"child_1_remaining",617,20);}
+fn RefineTidalShearCondensateToRedshiftLockedLatticeIntoBalance(action){refine_resource_into_balance_action(action,7,487,"child_2_remaining",618,20);}
+fn RefineTidalShearCondensateToCurvatureStressedMatterIntoBalance(action){refine_resource_into_balance_action(action,13,487,"child_3_remaining",619,20);}
+fn RefineChronologyResidueToClosedTimelikeFragmentIntoBalance(action){refine_resource_into_balance_action(action,14,488,"child_1_remaining",620,20);}
+fn RefineChronologyResidueToCausalHorizonDustIntoBalance(action){refine_resource_into_balance_action(action,14,488,"child_2_remaining",621,20);}
+fn RefineChronologyResidueToProperTimeDifferentialIntoBalance(action){refine_resource_into_balance_action(action,11,488,"child_3_remaining",622,20);}
+fn RefineVacuumBoundaryLayerToFalseVacuumMembraneIntoBalance(action){refine_resource_into_balance_action(action,13,489,"child_1_remaining",623,20);}
+fn RefineVacuumBoundaryLayerToTopologicalDomainWallIntoBalance(action){refine_resource_into_balance_action(action,14,489,"child_2_remaining",624,20);}
+fn RefineVacuumBoundaryLayerToQuantumFoamInclusionIntoBalance(action){refine_resource_into_balance_action(action,13,489,"child_3_remaining",625,20);}
+fn RefineTraversabilityFieldMatrixToMorrisThorneMetricSeedIntoBalance(action){refine_resource_into_balance_action(action,14,490,"child_1_remaining",626,20);}
+fn RefineTraversabilityFieldMatrixToThroatStabilizationModeIntoBalance(action){refine_resource_into_balance_action(action,14,490,"child_2_remaining",627,20);}
+fn RefineTraversabilityFieldMatrixToExoticStressTensorIntoBalance(action){refine_resource_into_balance_action(action,14,490,"child_3_remaining",628,20);}
+fn CombineResources2(action){
+var destination=action.mutate("resource");
+var source_1=action.input("resource");
+action.st_gt(destination.amount,-1);
+action.st_sum(source_1.resource_type,0,destination.resource_type);
+action.st_gt(source_1.amount,-1);
+var next_amount_1=unsafe{destination.amount-(0-source_1.amount)};
+action.st_sum(destination.amount,source_1.amount,next_amount_1);
+destination.update("amount",next_amount_1);
+var next_destination_key=action.random();
+rotate_key(destination,next_destination_key);
+}
+fn CombineResources3(action){
+var destination=action.mutate("resource");
+var source_1=action.input("resource");
+var source_2=action.input("resource");
+action.st_gt(destination.amount,-1);
+action.st_sum(source_1.resource_type,0,destination.resource_type);
+action.st_gt(source_1.amount,-1);
+var next_amount_1=unsafe{destination.amount-(0-source_1.amount)};
+action.st_sum(destination.amount,source_1.amount,next_amount_1);
+destination.update("amount",next_amount_1);
+action.st_sum(source_2.resource_type,0,destination.resource_type);
+action.st_gt(source_2.amount,-1);
+var next_amount_2=unsafe{destination.amount-(0-source_2.amount)};
+action.st_sum(destination.amount,source_2.amount,next_amount_2);
+destination.update("amount",next_amount_2);
+var next_destination_key=action.random();
+rotate_key(destination,next_destination_key);
+}
+fn CombineResources4(action){
+var destination=action.mutate("resource");
+var source_1=action.input("resource");
+var source_2=action.input("resource");
+var source_3=action.input("resource");
+action.st_gt(destination.amount,-1);
+action.st_sum(source_1.resource_type,0,destination.resource_type);
+action.st_gt(source_1.amount,-1);
+var next_amount_1=unsafe{destination.amount-(0-source_1.amount)};
+action.st_sum(destination.amount,source_1.amount,next_amount_1);
+destination.update("amount",next_amount_1);
+action.st_sum(source_2.resource_type,0,destination.resource_type);
+action.st_gt(source_2.amount,-1);
+var next_amount_2=unsafe{destination.amount-(0-source_2.amount)};
+action.st_sum(destination.amount,source_2.amount,next_amount_2);
+destination.update("amount",next_amount_2);
+action.st_sum(source_3.resource_type,0,destination.resource_type);
+action.st_gt(source_3.amount,-1);
+var next_amount_3=unsafe{destination.amount-(0-source_3.amount)};
+action.st_sum(destination.amount,source_3.amount,next_amount_3);
+destination.update("amount",next_amount_3);
+var next_destination_key=action.random();
+rotate_key(destination,next_destination_key);
+}
+fn CombineResources5(action){
+var destination=action.mutate("resource");
+var source_1=action.input("resource");
+var source_2=action.input("resource");
+var source_3=action.input("resource");
+var source_4=action.input("resource");
+action.st_gt(destination.amount,-1);
+action.st_sum(source_1.resource_type,0,destination.resource_type);
+action.st_gt(source_1.amount,-1);
+var next_amount_1=unsafe{destination.amount-(0-source_1.amount)};
+action.st_sum(destination.amount,source_1.amount,next_amount_1);
+destination.update("amount",next_amount_1);
+action.st_sum(source_2.resource_type,0,destination.resource_type);
+action.st_gt(source_2.amount,-1);
+var next_amount_2=unsafe{destination.amount-(0-source_2.amount)};
+action.st_sum(destination.amount,source_2.amount,next_amount_2);
+destination.update("amount",next_amount_2);
+action.st_sum(source_3.resource_type,0,destination.resource_type);
+action.st_gt(source_3.amount,-1);
+var next_amount_3=unsafe{destination.amount-(0-source_3.amount)};
+action.st_sum(destination.amount,source_3.amount,next_amount_3);
+destination.update("amount",next_amount_3);
+action.st_sum(source_4.resource_type,0,destination.resource_type);
+action.st_gt(source_4.amount,-1);
+var next_amount_4=unsafe{destination.amount-(0-source_4.amount)};
+action.st_sum(destination.amount,source_4.amount,next_amount_4);
+destination.update("amount",next_amount_4);
+var next_destination_key=action.random();
+rotate_key(destination,next_destination_key);
+}
+fn CombineResources6(action){
+var destination=action.mutate("resource");
+var source_1=action.input("resource");
+var source_2=action.input("resource");
+var source_3=action.input("resource");
+var source_4=action.input("resource");
+var source_5=action.input("resource");
+action.st_gt(destination.amount,-1);
+action.st_sum(source_1.resource_type,0,destination.resource_type);
+action.st_gt(source_1.amount,-1);
+var next_amount_1=unsafe{destination.amount-(0-source_1.amount)};
+action.st_sum(destination.amount,source_1.amount,next_amount_1);
+destination.update("amount",next_amount_1);
+action.st_sum(source_2.resource_type,0,destination.resource_type);
+action.st_gt(source_2.amount,-1);
+var next_amount_2=unsafe{destination.amount-(0-source_2.amount)};
+action.st_sum(destination.amount,source_2.amount,next_amount_2);
+destination.update("amount",next_amount_2);
+action.st_sum(source_3.resource_type,0,destination.resource_type);
+action.st_gt(source_3.amount,-1);
+var next_amount_3=unsafe{destination.amount-(0-source_3.amount)};
+action.st_sum(destination.amount,source_3.amount,next_amount_3);
+destination.update("amount",next_amount_3);
+action.st_sum(source_4.resource_type,0,destination.resource_type);
+action.st_gt(source_4.amount,-1);
+var next_amount_4=unsafe{destination.amount-(0-source_4.amount)};
+action.st_sum(destination.amount,source_4.amount,next_amount_4);
+destination.update("amount",next_amount_4);
+action.st_sum(source_5.resource_type,0,destination.resource_type);
+action.st_gt(source_5.amount,-1);
+var next_amount_5=unsafe{destination.amount-(0-source_5.amount)};
+action.st_sum(destination.amount,source_5.amount,next_amount_5);
+destination.update("amount",next_amount_5);
+var next_destination_key=action.random();
+rotate_key(destination,next_destination_key);
+}
+fn CombineResources7(action){
+var destination=action.mutate("resource");
+var source_1=action.input("resource");
+var source_2=action.input("resource");
+var source_3=action.input("resource");
+var source_4=action.input("resource");
+var source_5=action.input("resource");
+var source_6=action.input("resource");
+action.st_gt(destination.amount,-1);
+action.st_sum(source_1.resource_type,0,destination.resource_type);
+action.st_gt(source_1.amount,-1);
+var next_amount_1=unsafe{destination.amount-(0-source_1.amount)};
+action.st_sum(destination.amount,source_1.amount,next_amount_1);
+destination.update("amount",next_amount_1);
+action.st_sum(source_2.resource_type,0,destination.resource_type);
+action.st_gt(source_2.amount,-1);
+var next_amount_2=unsafe{destination.amount-(0-source_2.amount)};
+action.st_sum(destination.amount,source_2.amount,next_amount_2);
+destination.update("amount",next_amount_2);
+action.st_sum(source_3.resource_type,0,destination.resource_type);
+action.st_gt(source_3.amount,-1);
+var next_amount_3=unsafe{destination.amount-(0-source_3.amount)};
+action.st_sum(destination.amount,source_3.amount,next_amount_3);
+destination.update("amount",next_amount_3);
+action.st_sum(source_4.resource_type,0,destination.resource_type);
+action.st_gt(source_4.amount,-1);
+var next_amount_4=unsafe{destination.amount-(0-source_4.amount)};
+action.st_sum(destination.amount,source_4.amount,next_amount_4);
+destination.update("amount",next_amount_4);
+action.st_sum(source_5.resource_type,0,destination.resource_type);
+action.st_gt(source_5.amount,-1);
+var next_amount_5=unsafe{destination.amount-(0-source_5.amount)};
+action.st_sum(destination.amount,source_5.amount,next_amount_5);
+destination.update("amount",next_amount_5);
+action.st_sum(source_6.resource_type,0,destination.resource_type);
+action.st_gt(source_6.amount,-1);
+var next_amount_6=unsafe{destination.amount-(0-source_6.amount)};
+action.st_sum(destination.amount,source_6.amount,next_amount_6);
+destination.update("amount",next_amount_6);
+var next_destination_key=action.random();
+rotate_key(destination,next_destination_key);
+}
+fn CombineResources8(action){
+var destination=action.mutate("resource");
+var source_1=action.input("resource");
+var source_2=action.input("resource");
+var source_3=action.input("resource");
+var source_4=action.input("resource");
+var source_5=action.input("resource");
+var source_6=action.input("resource");
+var source_7=action.input("resource");
+action.st_gt(destination.amount,-1);
+action.st_sum(source_1.resource_type,0,destination.resource_type);
+action.st_gt(source_1.amount,-1);
+var next_amount_1=unsafe{destination.amount-(0-source_1.amount)};
+action.st_sum(destination.amount,source_1.amount,next_amount_1);
+destination.update("amount",next_amount_1);
+action.st_sum(source_2.resource_type,0,destination.resource_type);
+action.st_gt(source_2.amount,-1);
+var next_amount_2=unsafe{destination.amount-(0-source_2.amount)};
+action.st_sum(destination.amount,source_2.amount,next_amount_2);
+destination.update("amount",next_amount_2);
+action.st_sum(source_3.resource_type,0,destination.resource_type);
+action.st_gt(source_3.amount,-1);
+var next_amount_3=unsafe{destination.amount-(0-source_3.amount)};
+action.st_sum(destination.amount,source_3.amount,next_amount_3);
+destination.update("amount",next_amount_3);
+action.st_sum(source_4.resource_type,0,destination.resource_type);
+action.st_gt(source_4.amount,-1);
+var next_amount_4=unsafe{destination.amount-(0-source_4.amount)};
+action.st_sum(destination.amount,source_4.amount,next_amount_4);
+destination.update("amount",next_amount_4);
+action.st_sum(source_5.resource_type,0,destination.resource_type);
+action.st_gt(source_5.amount,-1);
+var next_amount_5=unsafe{destination.amount-(0-source_5.amount)};
+action.st_sum(destination.amount,source_5.amount,next_amount_5);
+destination.update("amount",next_amount_5);
+action.st_sum(source_6.resource_type,0,destination.resource_type);
+action.st_gt(source_6.amount,-1);
+var next_amount_6=unsafe{destination.amount-(0-source_6.amount)};
+action.st_sum(destination.amount,source_6.amount,next_amount_6);
+destination.update("amount",next_amount_6);
+action.st_sum(source_7.resource_type,0,destination.resource_type);
+action.st_gt(source_7.amount,-1);
+var next_amount_7=unsafe{destination.amount-(0-source_7.amount)};
+action.st_sum(destination.amount,source_7.amount,next_amount_7);
+destination.update("amount",next_amount_7);
+var next_destination_key=action.random();
+rotate_key(destination,next_destination_key);
+}
+
 // Components
 fn FabricateStructuralAlloyReusable(action){fabricate_component_reusable_action(action,8,1,211,6,196,3,159,2,257,390,1);}
 fn FabricateStructuralAlloyFinal(action){fabricate_component_final_action(action,8,1,211,6,196,3,159,2,257,390,1);}
@@ -3699,18 +4531,18 @@ fn FabricateCivilizationArchiveSeedFinal(action){fabricate_component_final_actio
 fn FabricateVacuumEnergyTapReusable(action){fabricate_component_reusable_action(action,32,9,317,5,312,225,307,20,350,434,1);}
 fn FabricateVacuumEnergyTapFinal(action){fabricate_component_final_action(action,32,9,317,5,312,225,307,20,350,434,1);}
 // Initial civilization skills
-fn DevelopTypeIIndustrialFabricationSkill(action){develop_initial_skill_upper_action(action,3074457344902430719,1,1,1);}
-fn DevelopTypeIElectronicsSkill(action){develop_initial_skill_range_action(action,3074457344902430720,6148914689804861439,1,2,1);}
-fn DevelopTypeIChemicalEngineeringSkill(action){develop_initial_skill_range_action(action,6148914689804861440,9223372034707292159,1,3,1);}
-fn DevelopTypeINuclearEngineeringSkill(action){develop_initial_skill_range_action(action,9223372034707292160,-6148914694099828737,1,4,1);}
-fn DevelopTypeIGeneticEngineeringSkill(action){develop_initial_skill_range_action(action,-6148914694099828736,-3074457349197398017,1,5,1);}
-fn DevelopTypeIPlanetaryInfrastructureSkill(action){develop_initial_skill_lower_action(action,-3074457349197398016,1,6,1);}
-fn DevelopTypeIIMetamaterialEngineeringSkill(action){develop_initial_skill_upper_action(action,3074457344902430719,2,7,1);}
-fn DevelopTypeIIStellarEnergySystemsSkill(action){develop_initial_skill_range_action(action,3074457344902430720,6148914689804861439,2,8,1);}
-fn DevelopTypeIISyntheticIntelligenceSkill(action){develop_initial_skill_range_action(action,6148914689804861440,9223372034707292159,2,9,1);}
-fn DevelopTypeIIMolecularFabricationSkill(action){develop_initial_skill_range_action(action,9223372034707292160,-6148914694099828737,2,10,1);}
-fn DevelopTypeIIInterstellarNavigationSkill(action){develop_initial_skill_range_action(action,-6148914694099828736,-3074457349197398017,2,11,1);}
-fn DevelopTypeIIBiosphereEngineeringSkill(action){develop_initial_skill_lower_action(action,-3074457349197398016,2,12,1);}
+fn DevelopTypeIIndustrialFabricationSkill(action){develop_initial_skill_upper_action(action,5165088339436083608,1,1,1);}
+fn DevelopTypeIElectronicsSkill(action){develop_initial_skill_range_action(action,5165088339436083609,8485502271930708786,1,2,1);}
+fn DevelopTypeIChemicalEngineeringSkill(action){develop_initial_skill_range_action(action,8485502271930708787,-4796153462342759220,1,3,1);}
+fn DevelopTypeINuclearEngineeringSkill(action){develop_initial_skill_range_action(action,-4796153462342759219,-4058283699566175847,1,4,1);}
+fn DevelopTypeIGeneticEngineeringSkill(action){develop_initial_skill_range_action(action,-4058283699566175846,-3320413936789592474,1,5,1);}
+fn DevelopTypeIPlanetaryInfrastructureSkill(action){develop_initial_skill_lower_action(action,-3320413936789592473,1,6,1);}
+fn DevelopTypeIIMetamaterialEngineeringSkill(action){develop_initial_skill_upper_action(action,2459565875921944575,2,7,1);}
+fn DevelopTypeIIStellarEnergySystemsSkill(action){develop_initial_skill_range_action(action,2459565875921944576,4919131751843889151,2,8,1);}
+fn DevelopTypeIISyntheticIntelligenceSkill(action){develop_initial_skill_range_action(action,4919131751843889152,7378697627765833727,2,9,1);}
+fn DevelopTypeIIMolecularFabricationSkill(action){develop_initial_skill_range_action(action,7378697627765833728,-4919131756138856449,2,10,1);}
+fn DevelopTypeIIInterstellarNavigationSkill(action){develop_initial_skill_range_action(action,-4919131756138856448,-2459565880216911873,2,11,1);}
+fn DevelopTypeIIBiosphereEngineeringSkill(action){develop_initial_skill_lower_action(action,-2459565880216911872,2,12,1);}
 fn DevelopTypeIIIExoticMatterEngineeringSkill(action){develop_initial_skill_upper_action(action,3074457344902430719,3,13,1);}
 fn DevelopTypeIIISpacetimeEngineeringSkill(action){develop_initial_skill_range_action(action,3074457344902430720,6148914689804861439,3,14,1);}
 fn DevelopTypeIIIGalacticIntelligenceArchitectureSkill(action){develop_initial_skill_range_action(action,6148914689804861440,9223372034707292159,3,15,1);}
@@ -3864,8 +4696,8 @@ fn AssembleStellarMegastructureSeed(action){produce_capability_artifact_3_eviden
 fn AssembleWorldSeedPackage(action){produce_capability_artifact_3_evidence_action(action,32,89,699,1,677,1,678,1,679,1);}
 fn AssembleCivilizationContinuityCore(action){produce_capability_artifact_3_evidence_action(action,32,90,700,1,680,1,681,1,682,1);}
 fn UseTechnologySkill(action){
-var ship=action.mutate("microverse__ship");
-var technology_skill=action.mutate("microverse__technology_skill");
+var ship=action.mutate("ship");
+var technology_skill=action.mutate("technology_skill");
 prove_fixed_versions(action,ship);
 prove_fixed_versions(action,technology_skill);
 action.st_sum(technology_skill.civilization_version,0,2);
@@ -3885,8 +4717,8 @@ rotate_key(technology_skill,next_skill_key);
 }
 // Permits and auxiliary ships
 fn CreateLargeShipConstructionPermit(action){
-var permit=action.output("microverse__shipyard_permit");
-var ship=action.mutate("microverse__ship");
+var permit=action.output("shipyard_permit");
+var ship=action.mutate("ship");
 prove_fixed_versions(action,ship);
 var x=unsafe{ship.x-0};
 var y=unsafe{ship.y-0};
@@ -3920,8 +4752,8 @@ fn AuthorizeLargeShipIndustrial(action){authorize_large_ship_action(action,1,"in
 fn AuthorizeLargeShipElectronics(action){authorize_large_ship_action(action,2,"electronics_authorized");}
 fn AuthorizeLargeShipMolecular(action){authorize_large_ship_action(action,10,"molecular_authorized");}
 fn IssueAuxiliaryShipPermit(action){
-var permit=action.output("microverse__shipyard_permit");
-var ship=action.mutate("microverse__ship");
+var permit=action.output("shipyard_permit");
+var ship=action.mutate("ship");
 prove_fixed_versions(action,ship);
 action.st_sum(ship.extraction_amount,0,250);
 action.st_sum(ship.rare_extraction_amount,0,25);
@@ -3954,25 +4786,50 @@ var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
 }
 fn BuildAuxiliaryShipSmall(action){
-var child_ship=action.output("microverse__ship");
-var permit=action.input("microverse__shipyard_permit");
-var ingredient_1_matter=action.input("microverse__resource");
-var ingredient_2_iron=action.input("microverse__resource");
-var ingredient_3_aluminum=action.input("microverse__resource");
-var ingredient_4_copper=action.input("microverse__resource");
-var ingredient_5_silicon=action.input("microverse__resource");
+var child_ship=action.output("ship");
+var permit=action.input("shipyard_permit");
+var ingredient_1_matter=action.mutate("resource");
+var ingredient_2_iron=action.mutate("resource");
+var ingredient_3_aluminum=action.mutate("resource");
+var ingredient_4_copper=action.mutate("resource");
+var ingredient_5_silicon=action.mutate("resource");
 prove_fixed_versions(action,permit);
 action.st_sum(permit.permit_type,0,2);
 action.st_sum(ingredient_1_matter.resource_type,0,1);
-action.st_sum(ingredient_1_matter.amount,0,10);
+var ingredient_1_matter_remainder=unsafe{ingredient_1_matter.amount-500};
+action.st_sum(ingredient_1_matter_remainder,500,ingredient_1_matter.amount);
+action.st_gt(ingredient_1_matter_remainder,-1);
+ingredient_1_matter.update("amount",ingredient_1_matter_remainder);
+var ingredient_1_matter_next_key=action.random();
+rotate_key(ingredient_1_matter,ingredient_1_matter_next_key);
 action.st_sum(ingredient_2_iron.resource_type,0,156);
-action.st_sum(ingredient_2_iron.amount,0,6);
+var ingredient_2_iron_remainder=unsafe{ingredient_2_iron.amount-40};
+action.st_sum(ingredient_2_iron_remainder,40,ingredient_2_iron.amount);
+action.st_gt(ingredient_2_iron_remainder,-1);
+ingredient_2_iron.update("amount",ingredient_2_iron_remainder);
+var ingredient_2_iron_next_key=action.random();
+rotate_key(ingredient_2_iron,ingredient_2_iron_next_key);
 action.st_sum(ingredient_3_aluminum.resource_type,0,196);
-action.st_sum(ingredient_3_aluminum.amount,0,6);
+var ingredient_3_aluminum_remainder=unsafe{ingredient_3_aluminum.amount-50};
+action.st_sum(ingredient_3_aluminum_remainder,50,ingredient_3_aluminum.amount);
+action.st_gt(ingredient_3_aluminum_remainder,-1);
+ingredient_3_aluminum.update("amount",ingredient_3_aluminum_remainder);
+var ingredient_3_aluminum_next_key=action.random();
+rotate_key(ingredient_3_aluminum,ingredient_3_aluminum_next_key);
 action.st_sum(ingredient_4_copper.resource_type,0,161);
-action.st_sum(ingredient_4_copper.amount,0,6);
+var ingredient_4_copper_remainder=unsafe{ingredient_4_copper.amount-40};
+action.st_sum(ingredient_4_copper_remainder,40,ingredient_4_copper.amount);
+action.st_gt(ingredient_4_copper_remainder,-1);
+ingredient_4_copper.update("amount",ingredient_4_copper_remainder);
+var ingredient_4_copper_next_key=action.random();
+rotate_key(ingredient_4_copper,ingredient_4_copper_next_key);
 action.st_sum(ingredient_5_silicon.resource_type,0,164);
-action.st_sum(ingredient_5_silicon.amount,0,6);
+var ingredient_5_silicon_remainder=unsafe{ingredient_5_silicon.amount-40};
+action.st_sum(ingredient_5_silicon_remainder,40,ingredient_5_silicon.amount);
+action.st_gt(ingredient_5_silicon_remainder,-1);
+ingredient_5_silicon.update("amount",ingredient_5_silicon_remainder);
+var ingredient_5_silicon_next_key=action.random();
+rotate_key(ingredient_5_silicon,ingredient_5_silicon_next_key);
 var build_x=unsafe{permit.x-0};
 var build_y=unsafe{permit.y-0};
 var build_z=unsafe{permit.z-0};
@@ -4003,34 +4860,74 @@ var work=action.intro_vdf(34,child_ship);
 child_ship.update("work",work);
 }
 fn BuildAuxiliaryShipMedium(action){
-var child_ship=action.output("microverse__ship");
-var permit=action.input("microverse__shipyard_permit");
-var ingredient_1_matter=action.input("microverse__resource");
-var ingredient_2_crystal=action.input("microverse__resource");
-var ingredient_3_energy=action.input("microverse__resource");
-var ingredient_4_iron=action.input("microverse__resource");
-var ingredient_5_aluminum=action.input("microverse__resource");
-var ingredient_6_copper=action.input("microverse__resource");
-var ingredient_7_silicon=action.input("microverse__resource");
-var ingredient_8_carbon=action.input("microverse__resource");
+var child_ship=action.output("ship");
+var permit=action.input("shipyard_permit");
+var ingredient_1_matter=action.mutate("resource");
+var ingredient_2_crystal=action.mutate("resource");
+var ingredient_3_energy=action.mutate("resource");
+var ingredient_4_iron=action.mutate("resource");
+var ingredient_5_aluminum=action.mutate("resource");
+var ingredient_6_copper=action.mutate("resource");
+var ingredient_7_silicon=action.mutate("resource");
+var ingredient_8_carbon=action.mutate("resource");
 prove_fixed_versions(action,permit);
 action.st_sum(permit.permit_type,0,2);
 action.st_sum(ingredient_1_matter.resource_type,0,1);
-action.st_sum(ingredient_1_matter.amount,0,10);
+var ingredient_1_matter_remainder=unsafe{ingredient_1_matter.amount-500};
+action.st_sum(ingredient_1_matter_remainder,500,ingredient_1_matter.amount);
+action.st_gt(ingredient_1_matter_remainder,-1);
+ingredient_1_matter.update("amount",ingredient_1_matter_remainder);
+var ingredient_1_matter_next_key=action.random();
+rotate_key(ingredient_1_matter,ingredient_1_matter_next_key);
 action.st_sum(ingredient_2_crystal.resource_type,0,2);
-action.st_sum(ingredient_2_crystal.amount,0,10);
+var ingredient_2_crystal_remainder=unsafe{ingredient_2_crystal.amount-500};
+action.st_sum(ingredient_2_crystal_remainder,500,ingredient_2_crystal.amount);
+action.st_gt(ingredient_2_crystal_remainder,-1);
+ingredient_2_crystal.update("amount",ingredient_2_crystal_remainder);
+var ingredient_2_crystal_next_key=action.random();
+rotate_key(ingredient_2_crystal,ingredient_2_crystal_next_key);
 action.st_sum(ingredient_3_energy.resource_type,0,4);
-action.st_sum(ingredient_3_energy.amount,0,10);
+var ingredient_3_energy_remainder=unsafe{ingredient_3_energy.amount-500};
+action.st_sum(ingredient_3_energy_remainder,500,ingredient_3_energy.amount);
+action.st_gt(ingredient_3_energy_remainder,-1);
+ingredient_3_energy.update("amount",ingredient_3_energy_remainder);
+var ingredient_3_energy_next_key=action.random();
+rotate_key(ingredient_3_energy,ingredient_3_energy_next_key);
 action.st_sum(ingredient_4_iron.resource_type,0,156);
-action.st_sum(ingredient_4_iron.amount,0,6);
+var ingredient_4_iron_remainder=unsafe{ingredient_4_iron.amount-40};
+action.st_sum(ingredient_4_iron_remainder,40,ingredient_4_iron.amount);
+action.st_gt(ingredient_4_iron_remainder,-1);
+ingredient_4_iron.update("amount",ingredient_4_iron_remainder);
+var ingredient_4_iron_next_key=action.random();
+rotate_key(ingredient_4_iron,ingredient_4_iron_next_key);
 action.st_sum(ingredient_5_aluminum.resource_type,0,196);
-action.st_sum(ingredient_5_aluminum.amount,0,6);
+var ingredient_5_aluminum_remainder=unsafe{ingredient_5_aluminum.amount-50};
+action.st_sum(ingredient_5_aluminum_remainder,50,ingredient_5_aluminum.amount);
+action.st_gt(ingredient_5_aluminum_remainder,-1);
+ingredient_5_aluminum.update("amount",ingredient_5_aluminum_remainder);
+var ingredient_5_aluminum_next_key=action.random();
+rotate_key(ingredient_5_aluminum,ingredient_5_aluminum_next_key);
 action.st_sum(ingredient_6_copper.resource_type,0,161);
-action.st_sum(ingredient_6_copper.amount,0,6);
+var ingredient_6_copper_remainder=unsafe{ingredient_6_copper.amount-40};
+action.st_sum(ingredient_6_copper_remainder,40,ingredient_6_copper.amount);
+action.st_gt(ingredient_6_copper_remainder,-1);
+ingredient_6_copper.update("amount",ingredient_6_copper_remainder);
+var ingredient_6_copper_next_key=action.random();
+rotate_key(ingredient_6_copper,ingredient_6_copper_next_key);
 action.st_sum(ingredient_7_silicon.resource_type,0,164);
-action.st_sum(ingredient_7_silicon.amount,0,6);
+var ingredient_7_silicon_remainder=unsafe{ingredient_7_silicon.amount-40};
+action.st_sum(ingredient_7_silicon_remainder,40,ingredient_7_silicon.amount);
+action.st_gt(ingredient_7_silicon_remainder,-1);
+ingredient_7_silicon.update("amount",ingredient_7_silicon_remainder);
+var ingredient_7_silicon_next_key=action.random();
+rotate_key(ingredient_7_silicon,ingredient_7_silicon_next_key);
 action.st_sum(ingredient_8_carbon.resource_type,0,205);
-action.st_sum(ingredient_8_carbon.amount,0,6);
+var ingredient_8_carbon_remainder=unsafe{ingredient_8_carbon.amount-40};
+action.st_sum(ingredient_8_carbon_remainder,40,ingredient_8_carbon.amount);
+action.st_gt(ingredient_8_carbon_remainder,-1);
+ingredient_8_carbon.update("amount",ingredient_8_carbon_remainder);
+var ingredient_8_carbon_next_key=action.random();
+rotate_key(ingredient_8_carbon,ingredient_8_carbon_next_key);
 var build_x=unsafe{permit.x-0};
 var build_y=unsafe{permit.y-0};
 var build_z=unsafe{permit.z-0};
