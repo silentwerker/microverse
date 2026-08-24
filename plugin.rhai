@@ -585,53 +585,53 @@ fn scan_celestial_body_upper_action(action,upper_limb,category_code,candidate_co
 var body=action.output("celestial_body");
 var signal=action.input("celestial_signal");
 var ship=action.mutate("ship");
+scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 let body_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(signal.stable_identifier,body_selector_upper);
-scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 }
 fn scan_celestial_body_lower_action(action,lower_limb,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining){
 var body=action.output("celestial_body");
 var signal=action.input("celestial_signal");
 var ship=action.mutate("ship");
+scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 let body_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(body_selector_lower,signal.stable_identifier);
-scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 }
 fn scan_celestial_body_range_action(action,lower_limb,upper_limb,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining){
 var body=action.output("celestial_body");
 var signal=action.input("celestial_signal");
 var ship=action.mutate("ship");
-let body_selector_lower=action.top_limb_u256(lower_limb);
-action.intro_lt_eq_u256(body_selector_lower,signal.stable_identifier);
+scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
 let body_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(signal.stable_identifier,body_selector_upper);
-scan_body_core(action,body,signal,ship,category_code,candidate_code,body_type,life_stat,matter_remaining,crystal_remaining,gas_remaining,energy_remaining,satellites_remaining);
+let body_selector_lower=action.top_limb_u256(lower_limb);
+action.intro_lt_eq_u256(body_selector_lower,signal.stable_identifier);
 }
 fn develop_initial_skill_upper_action(action,upper_limb,civilization_type,skill_type,reusable){
 var ship=action.mutate("ship");
 var technology_skill=action.output("technology_skill");
 var civilization=action.mutate("civilization");
+develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 let skill_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
-develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 }
 fn develop_initial_skill_lower_action(action,lower_limb,civilization_type,skill_type,reusable){
 var ship=action.mutate("ship");
 var technology_skill=action.output("technology_skill");
 var civilization=action.mutate("civilization");
+develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 let skill_selector_lower=action.top_limb_u256(lower_limb);
 action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
-develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 }
 fn develop_initial_skill_range_action(action,lower_limb,upper_limb,civilization_type,skill_type,reusable){
 var ship=action.mutate("ship");
 var technology_skill=action.output("technology_skill");
 var civilization=action.mutate("civilization");
-let skill_selector_lower=action.top_limb_u256(lower_limb);
-action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
+develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
 let skill_selector_upper=action.top_limb_u256(upper_limb);
 action.intro_lt_eq_u256(civilization.source_life_signal_identifier,skill_selector_upper);
-develop_technology_skill_core(action,technology_skill,ship,civilization,civilization_type,skill_type,reusable);
+let skill_selector_lower=action.top_limb_u256(lower_limb);
+action.intro_lt_eq_u256(skill_selector_lower,civilization.source_life_signal_identifier);
 }
 fn scan_body_core(
 action,
@@ -654,9 +654,6 @@ action.st_sum(signal.body_bank_version,0,2);
 action.st_sum(signal.category_code,0,category_code);
 action.st_sum(signal.candidate_code,0,-1);
 action.st_gt(signal.slot_serial,-1);
-var source_signal_identifier=action.random();
-var_assign(source_signal_identifier,signal.stable_identifier);
-signal.update("stable_identifier",source_signal_identifier);
 var sector_x=unsafe{signal.sector_x-0};
 var sector_y=unsafe{signal.sector_y-0};
 var sector_z=unsafe{signal.sector_z-0};
@@ -676,7 +673,7 @@ body.set([
 ["mechanics_version",2],
 ["universe_version",2],
 ["body_bank_version",2],
-["source_signal_identifier",source_signal_identifier],
+["source_signal_identifier",signal.stable_identifier],
 ["sector_x",sector_x],
 ["sector_y",sector_y],
 ["sector_z",sector_z],
@@ -1449,11 +1446,6 @@ ship.update("key",next_ship_key);
 fn SurveySector_01_Sparse(action){
 var ship=action.mutate("ship");
 var sector=action.mutate("sector");
-var sector_selector=action.random();
-var_assign(sector_selector,sector.stable_identifier);
-sector.update("stable_identifier",sector_selector);
-let survey_selector_upper=action.top_limb_u256(7723496582334330630);
-action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
@@ -1466,17 +1458,12 @@ sector.update("minor_body_field_remaining",1);
 sector.update("revision",next_sector_revision);
 var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
+let survey_selector_upper=action.top_limb_u256(7723496582334330630);
+action.intro_lt_eq_u256(sector.stable_identifier,survey_selector_upper);
 }
 fn SurveySector_02_Standard(action){
 var ship=action.mutate("ship");
 var sector=action.mutate("sector");
-var sector_selector=action.random();
-var_assign(sector_selector,sector.stable_identifier);
-sector.update("stable_identifier",sector_selector);
-let survey_selector_lower=action.top_limb_u256(7723496582334330631);
-action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
-let survey_selector_upper=action.top_limb_u256(-6861499200208055670);
-action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
@@ -1493,17 +1480,14 @@ sector.update("minor_body_field_remaining",2);
 sector.update("revision",next_sector_revision);
 var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
+let survey_selector_upper=action.top_limb_u256(-6861499200208055670);
+action.intro_lt_eq_u256(sector.stable_identifier,survey_selector_upper);
+let survey_selector_lower=action.top_limb_u256(7723496582334330631);
+action.intro_lt_eq_u256(survey_selector_lower,sector.stable_identifier);
 }
 fn SurveySector_03_Rich(action){
 var ship=action.mutate("ship");
 var sector=action.mutate("sector");
-var sector_selector=action.random();
-var_assign(sector_selector,sector.stable_identifier);
-sector.update("stable_identifier",sector_selector);
-let survey_selector_lower=action.top_limb_u256(-6861499200208055669);
-action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
-let survey_selector_upper=action.top_limb_u256(-5896062127416264341);
-action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
@@ -1522,17 +1506,14 @@ sector.update("minor_body_field_remaining",4);
 sector.update("revision",next_sector_revision);
 var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
+let survey_selector_upper=action.top_limb_u256(-5896062127416264341);
+action.intro_lt_eq_u256(sector.stable_identifier,survey_selector_upper);
+let survey_selector_lower=action.top_limb_u256(-6861499200208055669);
+action.intro_lt_eq_u256(survey_selector_lower,sector.stable_identifier);
 }
 fn SurveySector_04_Ancient(action){
 var ship=action.mutate("ship");
 var sector=action.mutate("sector");
-var sector_selector=action.random();
-var_assign(sector_selector,sector.stable_identifier);
-sector.update("stable_identifier",sector_selector);
-let survey_selector_lower=action.top_limb_u256(-5896062127416264340);
-action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
-let survey_selector_upper=action.top_limb_u256(-5654702859218316509);
-action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
@@ -1551,17 +1532,14 @@ sector.update("minor_body_field_remaining",2);
 sector.update("revision",next_sector_revision);
 var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
+let survey_selector_upper=action.top_limb_u256(-5654702859218316509);
+action.intro_lt_eq_u256(sector.stable_identifier,survey_selector_upper);
+let survey_selector_lower=action.top_limb_u256(-5896062127416264340);
+action.intro_lt_eq_u256(survey_selector_lower,sector.stable_identifier);
 }
 fn SurveySector_05_Anomalous(action){
 var ship=action.mutate("ship");
 var sector=action.mutate("sector");
-var sector_selector=action.random();
-var_assign(sector_selector,sector.stable_identifier);
-sector.update("stable_identifier",sector_selector);
-let survey_selector_lower=action.top_limb_u256(-5654702859218316508);
-action.intro_lt_eq_u256(survey_selector_lower,sector_selector);
-let survey_selector_upper=action.top_limb_u256(-5534023225119342593);
-action.intro_lt_eq_u256(sector_selector,survey_selector_upper);
 survey_replacement_ship_core(action,ship,sector);
 prove_empty_survey_sector_core(action,sector);
 var next_sector_revision=unsafe{sector.revision-(0-1)};
@@ -1582,6 +1560,10 @@ sector.update("minor_body_field_remaining",2);
 sector.update("revision",next_sector_revision);
 var next_sector_key=action.random();
 rotate_key(sector,next_sector_key);
+let survey_selector_upper=action.top_limb_u256(-5534023225119342593);
+action.intro_lt_eq_u256(sector.stable_identifier,survey_selector_upper);
+let survey_selector_lower=action.top_limb_u256(-5654702859218316508);
+action.intro_lt_eq_u256(survey_selector_lower,sector.stable_identifier);
 }
 // Signals and celestial bodies
 fn DetectCelestialSignal_00_RedDwarf(action){detect_celestial_signal_action(action,2,-1,"star_remaining","next_star_serial");}
@@ -2956,26 +2938,19 @@ ship.update("action_serial",next_action_serial);
 ship.update("civilization_scan_serial",next_scan_serial);
 var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
-let life_selector_lower=action.top_limb_u256(-8610277184978619144);
-action.intro_lt_eq_u256(life_selector_lower,body.source_signal_identifier);
-let life_selector_upper=action.top_limb_u256(-8441844532774322357);
-action.intro_lt_eq_u256(body.source_signal_identifier,life_selector_upper);
 action.st_sum(body.body_type,0,1);
 action.st_sum(body.life_stat,0,0);
 action.st_sum(body.civilization_discovered,0,0);
-var source_body_identifier=action.random();
-var_assign(source_body_identifier,body.stable_identifier);
-body.update("stable_identifier",source_body_identifier);
 life_signal.set([
 ["schema_version",2],
 ["mechanics_version",2],
 ["universe_version",2],
 ["civilization_version",2],
-["source_body_identifier",source_body_identifier],
-["sector_x",ship.x],
-["sector_y",ship.y],
-["sector_z",ship.z],
-["origin_epoch",ship.epoch]
+["source_body_identifier",body.stable_identifier],
+["sector_x",body.sector_x],
+["sector_y",body.sector_y],
+["sector_z",body.sector_z],
+["origin_epoch",body.sector_epoch]
 ]);
 let zero=action.top_limb_u256(0);
 life_signal.update("key",zero);
@@ -2983,13 +2958,15 @@ body.update("life_stat",1);
 body.update("civilization_discovered",1);
 var next_body_key=action.random();
 rotate_key(body,next_body_key);
+let life_selector_upper=action.top_limb_u256(-8441844532774322357);
+action.intro_lt_eq_u256(body.source_signal_identifier,life_selector_upper);
+let life_selector_lower=action.top_limb_u256(-8610277184978619144);
+action.intro_lt_eq_u256(life_selector_lower,body.source_signal_identifier);
 }
 fn MaterializeCivilizationTypeI(action){
 var civilization=action.output("civilization");
 var life_signal=action.input("life_signal");
 var ship=action.mutate("ship");
-let civilization_selector_upper=action.top_limb_u256(-1148698352939831522);
-action.intro_lt_eq_u256(life_signal,civilization_selector_upper);
 prove_fixed_versions(action,life_signal);
 prove_fixed_versions(action,ship);
 action.st_sum(life_signal.civilization_version,0,2);
@@ -3007,21 +2984,12 @@ action.st_sum(ship.z,0,sector_z);
 action.st_sum(ship.epoch,0,origin_epoch);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-var source_life_signal_identifier=action.random();
-var_assign(
-source_life_signal_identifier,
-life_signal.stable_identifier
-);
-life_signal.update(
-"stable_identifier",
-source_life_signal_identifier
-);
 civilization.set([
 ["schema_version",2],
 ["mechanics_version",2],
 ["universe_version",2],
 ["civilization_version",2],
-["source_life_signal_identifier",source_life_signal_identifier],
+["source_life_signal_identifier",life_signal.stable_identifier],
 ["sector_x",sector_x],
 ["sector_y",sector_y],
 ["sector_z",sector_z],
@@ -3034,15 +3002,13 @@ ship.update("active_skill_type",0);
 ship.update("action_serial",next_action_serial);
 var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
+let civilization_selector_upper=action.top_limb_u256(-1148698352939831522);
+action.intro_lt_eq_u256(life_signal,civilization_selector_upper);
 }
 fn MaterializeCivilizationTypeII(action){
 var civilization=action.output("civilization");
 var life_signal=action.input("life_signal");
 var ship=action.mutate("ship");
-let civilization_selector_lower=action.top_limb_u256(-1148698352939831521);
-action.intro_lt_eq_u256(civilization_selector_lower,life_signal);
-let civilization_selector_upper=action.top_limb_u256(-67570495391724016);
-action.intro_lt_eq_u256(life_signal,civilization_selector_upper);
 prove_fixed_versions(action,life_signal);
 prove_fixed_versions(action,ship);
 action.st_sum(life_signal.civilization_version,0,2);
@@ -3060,21 +3026,12 @@ action.st_sum(ship.z,0,sector_z);
 action.st_sum(ship.epoch,0,origin_epoch);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-var source_life_signal_identifier=action.random();
-var_assign(
-source_life_signal_identifier,
-life_signal.stable_identifier
-);
-life_signal.update(
-"stable_identifier",
-source_life_signal_identifier
-);
 civilization.set([
 ["schema_version",2],
 ["mechanics_version",2],
 ["universe_version",2],
 ["civilization_version",2],
-["source_life_signal_identifier",source_life_signal_identifier],
+["source_life_signal_identifier",life_signal.stable_identifier],
 ["sector_x",sector_x],
 ["sector_y",sector_y],
 ["sector_z",sector_z],
@@ -3087,13 +3044,15 @@ ship.update("active_skill_type",0);
 ship.update("action_serial",next_action_serial);
 var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
+let civilization_selector_upper=action.top_limb_u256(-67570495391724016);
+action.intro_lt_eq_u256(life_signal,civilization_selector_upper);
+let civilization_selector_lower=action.top_limb_u256(-1148698352939831521);
+action.intro_lt_eq_u256(civilization_selector_lower,life_signal);
 }
 fn MaterializeCivilizationTypeIII(action){
 var civilization=action.output("civilization");
 var life_signal=action.input("life_signal");
 var ship=action.mutate("ship");
-let civilization_selector_lower=action.top_limb_u256(-67570495391724015);
-action.intro_lt_eq_u256(civilization_selector_lower,life_signal);
 prove_fixed_versions(action,life_signal);
 prove_fixed_versions(action,ship);
 action.st_sum(life_signal.civilization_version,0,2);
@@ -3111,21 +3070,12 @@ action.st_sum(ship.z,0,sector_z);
 action.st_sum(ship.epoch,0,origin_epoch);
 var next_action_serial=unsafe{ship.action_serial-(0-1)};
 action.st_sum(ship.action_serial,1,next_action_serial);
-var source_life_signal_identifier=action.random();
-var_assign(
-source_life_signal_identifier,
-life_signal.stable_identifier
-);
-life_signal.update(
-"stable_identifier",
-source_life_signal_identifier
-);
 civilization.set([
 ["schema_version",2],
 ["mechanics_version",2],
 ["universe_version",2],
 ["civilization_version",2],
-["source_life_signal_identifier",source_life_signal_identifier],
+["source_life_signal_identifier",life_signal.stable_identifier],
 ["sector_x",sector_x],
 ["sector_y",sector_y],
 ["sector_z",sector_z],
@@ -3138,6 +3088,8 @@ ship.update("active_skill_type",0);
 ship.update("action_serial",next_action_serial);
 var next_ship_key=action.random();
 rotate_key(ship,next_ship_key);
+let civilization_selector_lower=action.top_limb_u256(-67570495391724015);
+action.intro_lt_eq_u256(civilization_selector_lower,life_signal);
 }
 // Resource extraction and refinement
 fn ExtractRedDwarfFusionGas(action){extract_composite_ungated_action(action,12,0,8,"gas_remaining",119,50,5,30,15,5);}
